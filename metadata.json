@@ -1,0 +1,7 @@
+{
+  "name": "CHICUONG AI –  OK",
+  "description": "Hệ thống tạo ảnh và video quảng cáo 4K chuyên nghiệp cho thị trường Việt Nam.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
