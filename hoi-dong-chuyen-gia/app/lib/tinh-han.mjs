@@ -157,6 +157,9 @@ export function tinhHan(tu, so, loai = "lam-viec", opts = {}) {
       if (laNgayLamViec(d, opts)) dem++;
       else if (laNgayLe(d, opts)) nghi.push(`${vn(d)} ${laNgayLe(d, opts)}`);
     }
+  } else if (loai === "luu-tru") {
+    // hạn lưu trú, thị thực, thẻ: hết đúng ngày ghi, không lùi theo ngày nghỉ
+    d = cong(bd, n);
   } else {
     d = cong(bd, n);
     while (!laNgayLamViec(d, opts)) { if (laNgayLe(d, opts)) nghi.push(`${vn(d)} ${laNgayLe(d, opts)}`); d = cong(d, 1); }
@@ -165,6 +168,6 @@ export function tinhHan(tu, so, loai = "lam-viec", opts = {}) {
   const nguon = nam.map((y) => `${y}: ${ngayNghiLe(y, opts).nguon}`).join(", ");
   return {
     han: vn(d), han_iso: key(d), cac_ngay_nghi: nghi, nguon_le: nguon,
-    ghi_chu: /dự kiến/.test(nguon) ? "Ngày nghỉ Tết và Quốc khánh là dự kiến theo Điều 112 Bộ luật Lao động 45/2019/QH14. CẦN KIỂM TRA thông báo nghỉ lễ chính thức của năm (khai vào nghi-le.json để máy dùng lịch chính thức)." : "Dùng lịch nghỉ lễ chính thức đã khai trong nghi-le.json.",
+    ghi_chu: loai === "luu-tru" ? "Hạn lưu trú, thị thực, thẻ tạm trú hết đúng ngày ghi trên giấy tờ, không lùi theo ngày nghỉ. Nên nộp hồ sơ trước ngày làm việc cuối cùng trước hạn." : /dự kiến/.test(nguon) ? "Ngày nghỉ Tết và Quốc khánh là dự kiến theo Điều 112 Bộ luật Lao động 45/2019/QH14. CẦN KIỂM TRA thông báo nghỉ lễ chính thức của năm (khai vào nghi-le.json để máy dùng lịch chính thức)." : "Dùng lịch nghỉ lễ chính thức đã khai trong nghi-le.json.",
   };
 }

@@ -7,7 +7,7 @@ import { goiChoTrang, goi } from "./lib/nganh.mjs";
 import { cheDuLieu } from "./lib/che-du-lieu.mjs";
 import { tinhHan } from "./lib/tinh-han.mjs";
 import { startCouncil, getSession, subscribe, listSaved, loadSaved, MODELS, chairSeat } from "./lib/council.mjs";
-import { usage } from "./lib/anthropic.mjs";
+import { usage, askJson, S } from "./lib/anthropic.mjs";
 import * as watch from "./lib/watch.mjs";
 import { startHoiGocApp } from "./lib/hoi-goc.mjs";
 import { ghiPhieu, ghiHopTiep, phieuTrongThuMuc } from "./lib/phieu.mjs";
@@ -54,7 +54,7 @@ const server = http.createServer(async (req, res) => {
   const p = url.pathname;
   try {
     // A web page open in the browser can fire cross-site text/plain POSTs at 127.0.0.1; JSON needs a CORS preflight, which this server never approves.
-    if (req.method === "POST" && /^\/api\/(hoi|council)(\/|$)/.test(p) && !/^application\/json/i.test(req.headers["content-type"] || "")) return send(res, 415, { error: "Cần Content-Type: application/json" });
+    if (req.method === "POST" && /^\/api\/(hoi|council|dich-phieu|tinh-han)(\/|$)/.test(p) && !/^application\/json/i.test(req.headers["content-type"] || "")) return send(res, 415, { error: "Cần Content-Type: application/json" });
     if (p === "/api/seats") {
       // portraits: which of the four mouth shapes exist for each seat (a seat with none gets a drawn bust)
       const frame = (key, sh) => ["webp", "png", "jpg"].map((x) => `${key}-${sh}.${x}`).find((f) => fs.existsSync(path.join(PUBLIC, "portraits", f)));
@@ -93,8 +93,25 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/tinh-han" && req.method === "POST") {
       const { tu, so, loai } = await readJson(req);
-      try { return send(res, 200, tinhHan(String(tu ?? "").slice(0, 20), Math.min(3650, Number(so) || 0), loai === "lich" ? "lich" : "lam-viec")); }
+      try { return send(res, 200, tinhHan(String(tu ?? "").slice(0, 20), Math.min(3650, Number(so) || 0), ["lich", "luu-tru"].includes(loai) ? loai : "lam-viec")); }
       catch (e) { return send(res, 400, { error: String(e.message || e) }); }
+    }
+    // Phiếu khách song ngữ: trang gửi nội dung phiếu (object chữ) và ngôn ngữ; trả object cùng khoá, giá trị đã dịch.
+    if (p === "/api/dich-phieu" && req.method === "POST") {
+      const { noi_dung, ngon_ngu } = await readJson(req);
+      const ten = { en: "English", zh: "Simplified Chinese (简体中文)", ko: "Korean (한국어)" }[ngon_ngu];
+      if (!ten || !noi_dung || typeof noi_dung !== "object") return send(res, 400, { error: "Thiếu nội dung phiếu hoặc ngôn ngữ không hỗ trợ." });
+      const nguon = JSON.stringify(noi_dung);
+      if (nguon.length > 30000) return send(res, 400, { error: "Phiếu quá dài để dịch." });
+      try {
+        const r = await askJson({
+          model: env("SEAT_MODEL") || "claude-sonnet-5-5", effort: "low",
+          system: "You translate Vietnamese legal and immigration advisory documents for foreign clients in Việt Nam. Precise, formal, no additions, no omissions.",
+          prompt: `Translate every string value in this JSON from Vietnamese into ${ten}. Keep every key, the structure, array order, numbers, dates (dd/mm/yyyy), document numbers (61/2020/QH14, 219/2025/NĐ-CP) and visa or card symbols (DN1, ĐT3, TRC) unchanged. At the first mention of a Vietnamese legal term or authority, add the Vietnamese original in parentheses. Labels like CẦN KIỂM TRA become the target-language equivalent of "TO BE VERIFIED". Return only the translated JSON as the string field json.\n\n${nguon}`,
+          schema: S.obj({ json: S.str }),
+        });
+        return send(res, 200, { noi_dung: JSON.parse(String(r.json).replace(/^```(?:json)?\s*|\s*```$/g, "")) });
+      } catch (e) { return send(res, 502, { error: `Chưa dịch được phiếu: ${String(e.message || e).slice(0, 200)}` }); }
     }
     if (p === "/api/council" && req.method === "POST") {
       if (RUNNER !== "api") return send(res, 403, { error: "Phòng đang ở chế độ xem. Chạy /roast-room trong Claude Code, hoặc đặt COUNCIL_RUNNER=api trong .env." });

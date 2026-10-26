@@ -3,7 +3,7 @@ import path from "node:path";
 import { SEATS, BOARD, byKey, systemFor, parseCard, checkQuotes, defaultBoard, loadRoster, chairSeat } from "./seats.mjs";
 import * as ai from "./anthropic.mjs";
 import { S } from "./anthropic.mjs";
-import { SESSIONS_DIR, env } from "./env.mjs";
+import { SESSIONS_DIR, BRAINS_DIR, env } from "./env.mjs";
 import { LUAT_SO, kiemSo } from "./luat-so.mjs";
 import { goi, chuToa, gheCua, banMacDinh } from "./nganh.mjs";
 import { chiMucLuat, kiemLuat, gopKiemLuat, canhBaoLuat, ganSoHieu } from "./kiem-luat.mjs";
@@ -26,13 +26,20 @@ const chairSystem = (st) => {
   const ai = g.loai === "vai-tro"
     ? `${seats.length} simulated expert roles (not real people), each built from current law, official procedures and professional practice: ${seats.map((x) => `${x.name} (${x.pillar.toLowerCase()})`).join(", ")}`
     : `${seats.length} simulated advisors built from the public work of ${seats.map((x) => `${x.name} (${x.pillar.toLowerCase()})`).join(", ")}`;
-  return `You are the Chair of a Hội đồng chuyên gia council (gói ngành: ${g.ten}): ${ai}.
+  return `${homNayDong(st)}
+You are the Chair of a Hội đồng chuyên gia council (gói ngành: ${g.ten}): ${ai}.
 You never argue a side and never add your own pillar. You run the room and keep score. Write every human-readable field in formal Vietnamese (tiếng Việt trang trọng): short sentences, no em dashes, no hype, no tee-ups like "here's the thing", no filler. JSON keys and the label enum stay exactly as given in the schema. Seat keys (for key fields only): ${seats.map((x) => x.key).join(", ")}. Whenever you write a seat's name in prose or in a seat field, use its display name: ${seats.map((x) => x.short).join(", ")}. Viết mọi chữ hiển thị (title, decision, brief, options, verdict) bằng tiếng Việt trang trọng, câu ngắn.${luatNganh(st)}`;
 };
 
 // Luật riêng của gói ngành (nganh/<key>.md, mục "Luật ngành"), gửi cho Chủ toạ và mọi ghế.
 // Kèm cảnh báo của máy kiểm điều luật (văn bản hết hiệu lực hoặc ngoài nguồn đã xác minh) tính tới vòng vừa xong.
-const luatNganh = (st) => (st.goi?.luat_nganh ? `\n\nLUẬT NGÀNH (${st.goi.ten}), BẮT BUỘC:\n${st.goi.luat_nganh}` : "") + (st.luatIdx && canhBaoLuat(tongKiemLuat(st)) ? `\n\n${canhBaoLuat(tongKiemLuat(st))}` : "");
+const luatNganh = (st) => (st.goi?.luat_nganh ? `\n\nLUẬT NGÀNH (${st.goi.ten}), BẮT BUỘC:\n${st.goi.luat_nganh}` : "") + (st.luatIdx && canhBaoLuat(tongKiemLuat(st)) ? `\n\n${canhBaoLuat(tongKiemLuat(st))}` : "") + daXacNhan(st);
+// Văn bản máy đã xác nhận còn hiệu lực (theo nguồn của não): không rào "CẦN KIỂM TRA hiệu lực" cho chúng.
+function daXacNhan(st) {
+  const con = tongKiemLuat(st).con || [];
+  if (!st.luatIdx || !con.length) return "";
+  return `\n\nĐÃ XÁC NHẬN CÒN HIỆU LỰC trong nguồn đã kiểm của các não: ${con.map((x) => x.so).join("; ")}. Không ghi CẦN KIỂM TRA về hiệu lực của các văn bản này. CẦN KIỂM TRA chỉ dùng cho điều, khoản, mức tiền, thời hạn chưa xác minh. Được nêu khoảng mức phạt kèm nhãn khi não có khoảng đó.`;
+}
 /** Kết quả kiểm điều luật gộp qua mọi thẻ đã có. */
 export const tongKiemLuat = (st) => gopKiemLuat([st.kiemDeBai, ...[1, 2, 3].flatMap((r) => Object.values(st.cards?.[r] || {}).map((c) => c.kiem_luat))]);
 /** Lời miễn trừ của phiên: theo gói ngành, mặc định là lời của bản gốc. */
@@ -79,10 +86,12 @@ export function subscribe(s, res) {
 }
 
 // ---------------------------------------------------------------- prompts
+// Hôm nay theo giờ Việt Nam: mọi mốc hạn ("còn 20 ngày", "trong 48 giờ") tính từ ngày này.
+const homNayDong = (st) => `TODAY (Vietnam time): ${st.ngay || ngayVN()}. Every deadline and day count is computed from this date; write dates as dd/mm/yyyy.`;
 function briefBlock(st) {
   const opts = st.options.map((o) => `(${o.id}) ${o.label}`).join("\n");
   const goc = st.prompt ? `\n\nTHE FOUNDER'S BRIEF, VERBATIM, WITH THE SECRETARY'S SỐ LIỆU SHEET (the only source of numbers about this business):\n"""${st.prompt}"""` : "";
-  return `THE DECISION: ${st.decision}\n\nOPTIONS:\n${opts}\n\n${st.brief}\n\nAssumptions the Chair made (marked as assumed; challenge them if they matter):\n${st.assumptions.map((a) => `- ${a}`).join("\n")}${goc}`;
+  return `${homNayDong(st)}\n\nTHE DECISION: ${st.decision}\n\nOPTIONS:\n${opts}\n\n${st.brief}\n\nAssumptions the Chair made (marked as assumed; challenge them if they matter):\n${st.assumptions.map((a) => `- ${a}`).join("\n")}${goc}`;
 }
 // Nhãn trường và giá trị liệt kê là giao kèo với bộ đọc phiếu (seats.mjs parseCard): giữ tiếng Anh.
 // Mọi nội dung khác viết tiếng Việt trang trọng.
@@ -131,14 +140,36 @@ ${LUAT_SO}${luatNganh(st)}`;
 // Chống a dua: thẻ đưa cho một ghế đọc thì không kèm trọng số và xếp theo thứ tự riêng của ghế đó,
 // để không ghế nào luôn được đọc trước và không ai nể ghế "nặng ký". Chủ toạ vẫn thấy trọng số.
 const bam = (t) => [...String(t)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+// Ẩn danh: thẻ đưa cho một ghế đọc mang nhãn "Ghế N" theo thứ tự riêng của ghế đó (st.anon[ghế] giữ ánh xạ),
+// để lập luận được đánh giá bằng nội dung, không bằng danh tiếng của người nói. Thẻ trả về được đổi nhãn
+// lại thành tên ghế (hienDanh) trước khi lưu, nên người dùng và Chủ toạ vẫn đọc tên thật.
+export function nhanAnDanh(st, choGhe) {
+  st.anon ||= {};
+  st.anon[choGhe] ||= st.seats.slice().sort((a, b) => bam(choGhe + a) - bam(choGhe + b));
+  return Object.fromEntries(st.anon[choGhe].map((k, i) => [k, k === choGhe ? `Ghế ${i + 1} (thẻ của bạn)` : `Ghế ${i + 1}`]));
+}
+export function hienDanh(st, choGhe, text) {
+  const ds = st.anon?.[choGhe];
+  if (!ds) return text;
+  return String(text ?? "").replace(/Ghế\s*(\d{1,2})(?:\s*\(thẻ của bạn\))?/g, (m, n) => (ds[Number(n) - 1] ? byKey[ds[Number(n) - 1]].short : m));
+}
 export function cardsBlock(st, round, choGhe = null) {
-  const keys = choGhe ? st.seats.slice().sort((a, b) => bam(choGhe + a) - bam(choGhe + b)) : st.seats;
-  return keys.map((k) => `### ${byKey[k].short}${choGhe ? "" : ` (trọng số ${st.weights[k].weight})`}\n${st.cards[round][k]?.text || "(không có phiếu)"}`).join("\n\n");
+  if (!choGhe) return st.seats.map((k) => `### ${byKey[k].short} (trọng số ${st.weights[k].weight})\n${st.cards[round][k]?.text || "(không có phiếu)"}`).join("\n\n");
+  const nhan = nhanAnDanh(st, choGhe);
+  return st.anon[choGhe].map((k) => `### ${nhan[k]}\n${anDanhChu(st, choGhe, st.cards[round][k]?.text || "(không có phiếu)")}`).join("\n\n");
+}
+// tên ghế nhắc trong chữ cũng đổi sang nhãn ẩn danh
+function anDanhChu(st, choGhe, text) {
+  const nhan = nhanAnDanh(st, choGhe);
+  let t = String(text ?? "");
+  for (const k of st.seats) for (const ten of [byKey[k].name, byKey[k].short]) if (ten && ten.length > 2) t = t.split(ten).join(nhan[k].replace(" (thẻ của bạn)", ""));
+  return t.replace(/^SEAT:.*$/m, "SEAT: (ẩn)");
 }
 
 function round2Prompt(st, seat) {
-  const cr = st.cruxes.map((c, i) => `${i + 1}. ${c.question} (${c.sides.map((x) => `${x.position}: ${x.seats.map((k) => byKey[k]?.short || k).join(", ")}`).join("; ")})`).join("\n");
-  const push = st.pressure?.[seat.key] ? `\nFor you specifically: ${st.pressure[seat.key]}\n` : "";
+  const nhan = nhanAnDanh(st, seat.key);
+  const cr = st.cruxes.map((c, i) => `${i + 1}. ${anDanhChu(st, seat.key, c.question)} (${c.sides.map((x) => `${anDanhChu(st, seat.key, x.position)}: ${x.seats.map((k) => (nhan[k] || k).replace(" (thẻ của bạn)", " (bạn)")).join(", ")}`).join("; ")})`).join("\n");
+  const push = st.pressure?.[seat.key] ? `\nFor you specifically: ${anDanhChu(st, seat.key, st.pressure[seat.key])}\n` : "";
   return `HỘI ĐỒNG CHUYÊN GIA COUNCIL, ROUND 2 OF 3: DEBATE
 
 You hold the ${seat.short.toUpperCase()} seat.
@@ -146,7 +177,7 @@ You hold the ${seat.short.toUpperCase()} seat.
 THE BRIEF
 ${briefBlock(st)}
 
-ROUND 1, EVERY SEAT'S CARD (order shuffled for you; argue with the arguments, not the names)
+ROUND 1, EVERY SEAT'S CARD (anonymous labels, order shuffled for you; judge the arguments, not who made them)
 ${cardsBlock(st, 1, seat.key)}
 
 THE CRUXES THE CHAIR SEES
@@ -155,7 +186,7 @@ ${push}
 Answer in your seat's voice, first person, plain text, under 280 words, in exactly this shape:
 
 SEAT: ${seat.short.toUpperCase()}
-I DISAGREE MOST WITH: [seat name]. Their argument, in one line, then your rebuttal using your frameworks.
+I DISAGREE MOST WITH: [Ghế N, the anonymous label above]. Their argument, in one line, then your rebuttal using your frameworks.
 I CONCEDE: the strongest point another seat made against you, and what it changes. "Nothing" only if you can say why their best point fails.
 ON THE CRUXES: your answer to each crux, one or two lines each.
 STANCE: ...
@@ -234,7 +265,7 @@ function bandFor(score) {
 }
 
 // ---------------------------------------------------------------- chair calls
-async function chairSetup(st) {
+async function chairSetup(st, sua = "") {
   const schema = S.obj({
     title: S.str,
     decision: S.str,
@@ -260,7 +291,7 @@ Set up the room.
 - assumptions: any number or fact you had to assume to make the brief usable, each one line starting with "GIẢ ĐỊNH:" and saying how to check it within 30 days. Keep it to what matters; never present an assumed number as the founder's.
 - weights: one entry for every seat, weight 1 to 3 (3 = the decision lives in this pillar, 2 = materially affected, 1 = touched at the edges). Exactly one or two seats at 3. Reason in one line.
 - quick_seats: the four seats for a quick council: the two highest-weight seats, the seat that guards the downside (money, capital, or risk) if it is not already in, and the seat most likely to disagree with the others.
-- seats: ${st.pick ? "the board for a full council, five to seven seats: every seat at weight 2 or 3, the seat that guards the downside, and the seat most likely to disagree. Leave out seats at weight 1 unless they are the downside or dissent seat." : "every seat (the board is fixed)."}
+${sua ? `${sua}\n` : ""}- seats: ${st.pick ? "the board for a full council, five to seven seats: every seat at weight 2 or 3, the seat that guards the downside, and the seat most likely to disagree. Leave out seats at weight 1 unless they are the downside or dissent seat." : "every seat (the board is fixed)."}
 
 ${LUAT_SO}`,
   });
@@ -340,6 +371,8 @@ async function chairVerdict(st, finalScores, recommended, sua = "") {
     cheapest_test: S.str,
     kill_criteria: S.str,
     revisit: S.str,
+    lam_ngay: S.str,
+    can_xac_nhan: S.arr(S.obj({ viec: S.str, ai: S.str })),
     huong_ghe_neu: S.arr(S.obj({ huong: S.str, ghe: S.str, xu_ly: S.enum("đưa vào", "gạt"), ly_do: S.str })),
     du_bao: S.obj({ ket_qua: S.str, xac_suat: S.int, han: S.str, co_so: S.str }),
     so_lieu: SO_LIEU,
@@ -368,6 +401,9 @@ Write the verdict for the founder.
 - minority: the strongest losing view; quote copies the seat's own words exactly from a card; would_have_to_be_true in one line. If unanimous, use the least-tested assumption instead.
 - amendments: every Round 3 amendment, adopted or not, with the reason (empty in quick mode). Adopt when no seat objected or the argument went unanswered.
 - conditions, next_steps (with when), cheapest_test, kill_criteria, revisit: final, merged, checkable.
+- lam_ngay: the one action to take today, in one short line (it may belong to a different option than the main route, e.g. "Nộp gia hạn tạm trú hôm nay" while the main route is D).
+- can_xac_nhan: one merged list of everything a lawyer or the authority must confirm before filing (viec = what, ai = who: luật sư, Phòng Quản lý xuất nhập cảnh, Sở…). Put every "CẦN KIỂM TRA" item here once instead of repeating it across sections.
+- LENGTH: the whole verdict stays under 900 words. call at most 2 sentences; why 3 to 5 points of at most 2 sentences; fights at most 3; conditions at most 6; next_steps at most 7. Do not repeat a caveat in several sections: state it once in can_xac_nhan.
 - huong_ghe_neu: every distinct path a seat proposed in any card that is NOT one of the options (a different visa or residence route, a different legal structure, a different sequence). For each: the path, the seat, whether the verdict takes it in (as a condition, a step or the fallback) or sets it aside, and the reason in one sentence. A path set aside without a reason is a defect. Empty only if no seat proposed one.
 - du_bao: a calibrated forecast the founder can score later. ket_qua = one observable outcome by the revisit date if they follow the call (yes or no, no judgment needed, e.g. "Khách có thẻ tạm trú trước 30/11"); xac_suat = your probability 0 to 100 that it happens; han = the date; co_so = in one sentence, what the number rests on (the seats' confidence, the spread, the unknowns). Do not round to 90+ or 10- unless the council had decisive evidence; with many CẦN KIỂM TRA or Chưa có số items stay between 30 and 70. In Vietnamese.
 - so_lieu: every number that appears in call, why, conditions, next_steps, cheapest_test and kill_criteria (not dates, deadlines, option letters or the computed scores). so = the number exactly as you wrote it; y = what it measures; loai = "đề bài" (the founder gave it), "số liệu" (from the SỐ LIỆU sheet; nguon = its source as listed there), "tính" (nguon = the arithmetic, using only đề bài and SỐ LIỆU numbers), or "giả định" (nguon = how to check it within 30 days). Write y and nguon in Vietnamese. Never list a number you cannot source as "số liệu": mark it "giả định" or take it out of the verdict.${sua ? `\n\n${sua}` : ""}
@@ -380,12 +416,14 @@ ${LUAT_SO}`,
 const SO_LIEU = S.arr(S.obj({ so: S.str, y: S.str, loai: S.enum("đề bài", "số liệu", "tính", "giả định"), nguon: S.str }));
 // Numbers the council may use: the founder's brief and additions with the secretary's sheet (in a follow-up, not the
 // last verdict's own numbers), plus what the app computed (scores, confidence, weights).
-const dauVaoSo = (st) => String(st.prompt || "").split("\n").filter((l) => !/^KẾT LUẬN LẦN TRƯỚC:/.test(l)).join("\n");
+// Nguồn số: đề bài của người hỏi, và (gói vai nghề) não của các ghế, nơi có ngưỡng luật định như "3 tỷ đồng".
+const dauVaoSo = (st) => String(st.prompt || "").split("\n").filter((l) => !/^KẾT LUẬN LẦN TRƯỚC:/.test(l)).join("\n") + (st.vanBanNao ? `\n${st.vanBanNao}` : "");
 const cacBanSo = (v, st) => [...Object.values(v?.scores || {}).map((x) => x.score), v?.confidence, v?.support, v?.spread, ...Object.values(st.weights || {}).map((w) => w.weight)];
 const vanBanKetLuan = (v) => [v.call, ...(v.why || []).map((w) => w.point), ...(v.conditions || []), ...(v.next_steps || []).map((n) => n.action), v.cheapest_test, v.kill_criteria].join("\n");
 
 const CHAIR_VIEW = S.obj({
   dong_y: S.enum("đồng ý", "đồng ý có điều kiện", "không đồng ý"),
+  lech: S.arr(S.str),
   nhan_dinh: S.str,
   ly_do: S.arr(S.obj({ y: S.str, khung: S.str, nguon: S.str })),
   bo_buoc: S.str,
@@ -421,6 +459,7 @@ KẾT LUẬN CỦA HỘI ĐỒNG (đã chốt theo điểm, không đổi): ${v.
 
 Bạn là Chủ toạ của hội đồng này, nói bằng kiến thức của chính mình (não ở trên). Bạn không bỏ phiếu và không đổi kết luận của hội đồng. Viết tiếng Việt, câu ngắn, xưng "tôi", gọi người hỏi là "bạn":
 - dong_y: bạn đồng ý, đồng ý có điều kiện, hay không đồng ý với kết luận.
+- lech: mỗi điểm cụ thể bạn phản bác trong kết luận (một điều kiện, một bước, một căn cứ), mỗi điểm một câu; rỗng khi bạn đồng ý toàn bộ. Trang kết luận hiện các điểm này thành cảnh báo.
 - nhan_dinh: tối đa 2 câu, dưới 50 từ, ý chính của bạn (câu này được đọc to ở bàn).
 - ly_do: 2 đến 4 lý do, mỗi lý do tối đa 3 câu, có con số khi có. Mỗi lý do gắn một khung của bạn (khung, tên ngắn) và một nguồn có trong não (nguon)${st.goi?.loai === "vai-tro" ? ': ghi số hiệu đầy đủ của văn bản rồi mới tới mã, ví dụ "Luật 47/2014/QH13, Điều 7 (S001)"; không bao giờ ghi mã S0xx trần' : ": mã nguồn S0xx"}. Muốn trích nguyên văn thì để câu đó trong ngoặc kép, đúng ngôn ngữ như trong não, ngay sau là (S0xx), dưới 45 từ, chép đúng từng chữ.
 - bo_buoc: một yêu cầu hoặc một bước nên xoá, kèm người sở hữu nếu biết.
@@ -457,6 +496,8 @@ async function runSeat(s, st, round, key, prompt) {
     emit(s, "seat_error", { round, seat: key, error: String(e.message || e) });
     throw e;
   }
+  // vòng 2: nhãn "Ghế N" trong thẻ trả về được đổi lại thành tên ghế
+  if (round === 2) text = hienDanh(st, key, text);
   // gói vai nghề: mã S0xx của ghế được gắn số hiệu văn bản theo não của chính ghế đó
   if (st.luatIdx) text = ganSoHieu(text, seat.slug);
   const parsed = parseCard(text, st.options.map((o) => o.id));
@@ -494,11 +535,18 @@ async function run(s) {
   const g = goi(s.nganh);
   s.nganh = g.key;
   const chair = chuToa(g);
-  const st = (s.state = { prompt: s.prompt, mode: s.mode, pick, goi: g, chair, board: tableBoard(pick, gheCua(g), banMacDinh(g), chair), cards: { 1: {}, 2: {}, 3: {} }, scores: {}, rounds: [] });
+  s.usage0 = { ...ai.usage };
+  const st = (s.state = { ngay: ngayVN(), prompt: s.prompt, mode: s.mode, pick, goi: g, chair, board: tableBoard(pick, gheCua(g), banMacDinh(g), chair), cards: { 1: {}, 2: {}, 3: {} }, scores: {}, rounds: [] });
   // gói theo vai nghề: dựng chỉ mục văn bản đã xác minh từ não của mọi ghế trong gói và Chủ toạ
+  if (g.loai === "vai-tro") st.vanBanNao = [...gheCua(g), chair].filter((k) => byKey[k]).flatMap((k) => ["_hot.md", "frameworks.md", "positions.md"].map((f) => { try { return fs.readFileSync(path.join(BRAINS_DIR, byKey[k].slug, f), "utf8"); } catch { return ""; } })).join("\n");
   if (g.loai === "vai-tro") st.luatIdx = chiMucLuat([...gheCua(g), chair].filter((k) => byKey[k]).map((k) => byKey[k].slug));
   emit(s, "phase", { phase: "setup", label: "Chủ toạ đang đọc câu hỏi" });
-  const setup = await chairSetup(st);
+  let setup = await chairSetup(st);
+  // đề bài dẫn văn bản hết hiệu lực thì Chủ toạ soạn lại một lần trước khi các ghế đọc
+  if (st.luatIdx) {
+    const het = kiemLuat([setup.decision, setup.brief, ...setup.options.map((o) => o.label), ...(setup.assumptions || [])].join("\n"), st.luatIdx).het;
+    if (het.length) setup = await chairSetup(st, `- SỬA LẠI: bản đề bài trước dẫn văn bản đã hết hiệu lực hoặc đã bị thay thế (${het.map((x) => x.so).join("; ")}). Không dùng các văn bản đó; nếu cần, ghi văn bản thay thế hoặc ghi CẦN KIỂM TRA.`);
+  }
   Object.assign(st, {
     title: setup.title, decision: setup.decision, brief: setup.brief,
     options: setup.options, assumptions: setup.assumptions,
@@ -568,6 +616,8 @@ async function run(s) {
     st.verdict.kiem_luat = gopKiemLuat([tongKiemLuat(st), st.verdict.kiem_luat_ket_luan]);
   }
   st.verdict.a_dua = chiSoADua(st);
+  st.verdict.ngay_phien = st.ngay;
+  if (support != null) st.verdict.support_math = congThucUngHo(st);
   if (st.verdict.du_bao) st.verdict.du_bao.xac_suat = Math.max(0, Math.min(100, Math.round(Number(st.verdict.du_bao.xac_suat) || 0)));
   emit(s, "verdict", { verdict: st.verdict, seats: verdictSeats(st, last) });
   await addChairView(s, st);
@@ -587,7 +637,9 @@ export function finishRun(s, persist = save) {
     catch (e) { console.error("onDone", e); emit(s, "phieu", { error: String(e.message || e), ...(s.cap_nhat ? { cap_nhat: true } : {}) }); }
   }
   s.status = "done";
-  emit(s, "usage", { usage: ai.usage });
+  // chi phí của riêng phiên này: hiệu số so với lúc phiên bắt đầu
+  const u0 = s.usage0 || {};
+  emit(s, "usage", { usage: Object.fromEntries(Object.entries(ai.usage).map(([k, v]) => [k, v - (u0[k] || 0)])), phien: true });
   for (const res of s.subs) res.write(`data: ${JSON.stringify({ type: "end" })}\n\n`);
   persist(s);
 }
@@ -605,7 +657,16 @@ export function chiSoADua(st) {
   if (!soDong || !Object.keys(st.cards[2] || {}).length) return null;
   const khac = st.seats.filter((k) => r1[k] && r1[k] !== soDong && st.cards[2][k]);
   const doiTheo = khac.filter((k) => top(st.cards[2][k]) === soDong);
-  return { so_dong: soDong, khac_so_dong: khac.length, doi_theo: doiTheo.length, ghe: doiTheo.map((k) => byKey[k]?.short || k) };
+  // cả phòng cùng đổi: số ghế đổi phương án giữa vòng 1 và vòng 2, kể cả khi đổi sang một phương án mới
+  const doi = st.seats.filter((k) => r1[k] && st.cards[2][k] && top(st.cards[2][k]) !== r1[k]);
+  return { so_dong: soDong, khac_so_dong: khac.length, doi_theo: doiTheo.length, ghe: doiTheo.map((k) => byKey[k]?.short || k), doi_y: doi.length, tong: st.seats.length };
+}
+
+/** Công thức của mức ủng hộ: điểm vòng 3 (FINAL SCORE) của mỗi ghế nhân trọng số, chia tổng trọng số. */
+export function congThucUngHo(st) {
+  const p = st.seats.map((k) => [st.weights[k].weight, st.cards[3]?.[k]?.parsed.finalScore]).filter(([, v]) => typeof v === "number");
+  const d = p.reduce((a, [w]) => a + w, 0);
+  return d ? `(${p.map(([w, v]) => `${w}×${String(v).replace(".", ",")}`).join(" + ")}) / ${d}: điểm ủng hộ nghị quyết ở vòng bỏ phiếu, khác điểm phương án` : "";
 }
 
 export function finalNumbers(st) {
@@ -693,6 +754,7 @@ function verdictMarkdown(st) {
   }
   if (v.huong_ghe_neu?.length) L.push("", "## Hướng các ghế nêu thêm", "", ...v.huong_ghe_neu.map((h) => `- **${h.huong}** (${h.ghe}): ${h.xu_ly}. ${h.ly_do}`));
   if (v.du_bao?.ket_qua) L.push("", "## Dự báo", "", `${v.du_bao.ket_qua}: **${v.du_bao.xac_suat}%** (hạn ${v.du_bao.han}). ${v.du_bao.co_so}`, "", "Khi xem lại, ghi kết quả thật (xảy ra hay không) để chấm độ chính xác của hội đồng.");
+  if (v.a_dua?.doi_y >= Math.ceil((v.a_dua.tong || 0) / 2) && v.a_dua.doi_y > 1) L.push("", `Cả phòng đổi ý: ${v.a_dua.doi_y}/${v.a_dua.tong} ghế đổi phương án giữa vòng mở đầu và vòng tranh luận. Kiểm tra xem có dữ kiện mới thật hay chỉ là đồng thuận.`);
   if (v.a_dua?.doi_theo) L.push("", `Chỉ số a dua: ${v.a_dua.doi_theo}/${v.a_dua.khac_so_dong} ghế mở đầu khác số đông đã đổi sang phương án ${v.a_dua.so_dong} ở vòng tranh luận (${v.a_dua.ghe.join(", ")}). Đọc lại lý do đổi trong thẻ vòng 2.`);
   L.push("", `**Cách thử rẻ nhất:** ${v.cheapest_test}`, `**Dừng nếu:** ${v.kill_criteria}`, `**Xem lại vào:** ${v.revisit}`, "", "---", tuyenBo(st), "");
   return L.join("\n");

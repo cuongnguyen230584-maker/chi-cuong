@@ -39,3 +39,9 @@ test("chấm Brier từ mục Dự báo của phiếu", async () => {
   assert.equal(docDuBao("## Dự báo\n\nX: **50%**\n\n☐ Xảy ra ☐ Không xảy ra").ket_qua, null);
   assert.ok(Math.abs(brier([a, b]) - ((0.3 ** 2 + 0.2 ** 2) / 2)) < 1e-9);
 });
+
+test("hạn lưu trú hết đúng ngày, không lùi theo ngày nghỉ", () => {
+  const r = tinhHan("26/10/2026", 20, "luu-tru", { lichChinhThuc: {} });
+  assert.equal(r.han, "15/11/2026"); // Chủ nhật, vẫn là hạn
+  assert.match(r.ghi_chu, /không lùi/);
+});

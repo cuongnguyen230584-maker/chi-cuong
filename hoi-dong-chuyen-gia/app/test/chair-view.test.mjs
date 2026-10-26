@@ -33,7 +33,7 @@ test("addChairView: Chủ toạ nói bằng não của mình, phát chair_view c
   assert.match(req.prompt, /không đổi kết luận/);
   assert.match(JSON.stringify(req.system), /brains\/elon-musk\/_hot\.md/);
   assert.deepEqual(req.schema.properties.dong_y.enum, ["đồng ý", "đồng ý có điều kiện", "không đồng ý"]);
-  assert.deepEqual(Object.keys(req.schema.properties), ["dong_y", "nhan_dinh", "ly_do", "bo_buoc", "thu_nhanh", "so_lieu"]);
+  assert.deepEqual(Object.keys(req.schema.properties), ["dong_y", "lech", "nhan_dinh", "ly_do", "bo_buoc", "thu_nhanh", "so_lieu"]);
   assert.match(req.prompt, /NUMBERS RULE/);
   assert.equal(s.events.at(-1).type, "chair_view");
 });

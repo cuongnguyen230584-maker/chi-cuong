@@ -78,3 +78,15 @@ test("nhắc văn bản là đã bị thay thì không bị coi là viện dẫn
   const b = kiemLuat("Xin giấy phép bán lẻ theo Nghị định 09/2018/NĐ-CP, Điều 5.", idx);
   assert.equal(b.het[0]?.so, "09/2018/NĐ-CP");
 });
+
+test("ẩn danh thẻ ở vòng tranh luận và đổi lại tên khi lưu", async () => {
+  const { cardsBlock, hienDanh, nhanAnDanh } = await import("../lib/council.mjs");
+  const st = { seats: ["bezos", "buffett", "graham"], weights: { bezos: { weight: 3 }, buffett: { weight: 2 }, graham: { weight: 1 } },
+    cards: { 1: { bezos: { text: "SEAT: BEZOS\nTôi phản đối Buffett." }, buffett: { text: "SEAT: BUFFETT\nOK" }, graham: { text: "SEAT: GRAHAM\nOK" } } } };
+  const b = cardsBlock(st, 1, "graham");
+  assert.doesNotMatch(b, /Bezos|Buffett|trọng số/);
+  assert.match(b, /Ghế \d \(thẻ của bạn\)/);
+  const nhan = nhanAnDanh(st, "graham");
+  const n = nhan.buffett.match(/\d+/)[0];
+  assert.match(hienDanh(st, "graham", `I DISAGREE MOST WITH: Ghế ${n}. Lý do…`), /I DISAGREE MOST WITH: Buffett\./);
+});
