@@ -38,7 +38,8 @@ Dựng từ nghị định xử phạt hiện hành (sources.md) và thực ti�
 - **Là gì:** Bậc 1 phạt tiền. Bậc 2 hình thức bổ sung (trục xuất, tước, đình chỉ). Bậc 3 tái phạm sau khi đã bị xử phạt. Bậc 4 tổ chức, môi giới vì vụ lợi.
 - **Khi dùng:** Khách đã từng bị phạt, hoặc phương án có nhiều người nước ngoài cùng lúc.
 - **Cách chấm:** Từ bậc 3 trở lên: chấm 0 và chuyển luật sư.
-- **Căn cứ:** S001, S011, S020 (Điều 347 cần điều kiện đã bị xử phạt hành chính; Điều 348 vì vụ lợi).
+- **Điều kiện để lên bậc 3, 4:** phải có dữ kiện cụ thể trong đề bài. Bậc 3 cần dữ kiện đã bị xử phạt hành chính về hành vi xuất nhập cảnh, ở lại trái phép rồi còn vi phạm (Điều 347). Bậc 4 cần dữ kiện có người vì vụ lợi tổ chức hoặc môi giới cho người khác xuất cảnh, nhập cảnh hoặc ở lại Việt Nam trái phép (Điều 348). Thiết kế gói giá, cam kết hoàn phí dịch vụ, báo giá trọn gói không phải dữ kiện của bậc 4.
+- **Căn cứ:** Bộ luật Hình sự 100/2015/QH13, Điều 347, 348 (S020); S001, S011.
 - **Số nguồn dùng:** 3.
 
 ## 6. Bậc quá hạn tạm trú

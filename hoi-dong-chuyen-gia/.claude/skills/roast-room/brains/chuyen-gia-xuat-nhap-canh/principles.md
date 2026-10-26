@@ -12,7 +12,7 @@ Dựng từ văn bản trong sources.md và chuẩn nghề tư vấn xuất nh�
 8. **Không dùng văn bản đã hết hiệu lực.** NĐ 144/2021, TT 25/2021, NQ 11/NQ-CP đã bị thay (S015, S017, S029). Độ tin: cao.
 9. **Mốc ngày nộp quyết định văn bản áp dụng.** QUY ĐỊNH: Luật 118/2025 hiệu lực 01/7/2026; TT 28/2026 từ 01/4/2026 (S005, S022). Độ tin: vừa.
 10. **Nơi lưu trú khai báo tạm trú trong 12 giờ (vùng sâu vùng xa 24 giờ).** QUY ĐỊNH (S001, S003, S028). Độ tin: cao.
-11. **Không cam kết đậu, không hứa số ngày.** Chỉ nói thời hạn giải quyết theo luật, ví dụ 5 ngày làm việc cho thẻ tạm trú (S021). Quyền quyết định thuộc cơ quan quản lý xuất nhập cảnh. Độ tin: thấp (một nguồn cho thời hạn).
+11. **Không cam kết đậu, không hứa số ngày.** Chỉ nói thời hạn giải quyết theo luật, ví dụ 5 ngày làm việc kể từ khi nhận đủ hồ sơ cho thẻ tạm trú (QUY ĐỊNH, Luật 47/2014/QH13, Điều 37, S001). Không ước thời gian cơ quan trả lời ngoài thời hạn đó. Quyền quyết định thuộc cơ quan quản lý xuất nhập cảnh. Độ tin: vừa.
 12. **Lệ phí nhà nước tách khỏi phí dịch vụ.** Lệ phí theo TT 28/2026/TT-BTC (S022); từng mức CẦN KIỂM TRA ở văn bản gốc. Độ tin: thấp.
 13. **Danh sách miễn thị thực có ngày hết hạn; luôn tra lại.** NQ 44 đến 14/3/2028, NQ 229 đến 14/8/2028 (S009, S010, S025). Độ tin: cao.
 14. **Cửa khẩu là một phần của e-visa.** Nhập sai cửa khẩu không có trong danh sách là rủi ro bị từ chối (S007, S008). Độ tin: vừa.

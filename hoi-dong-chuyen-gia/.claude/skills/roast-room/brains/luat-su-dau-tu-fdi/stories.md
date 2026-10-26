@@ -9,7 +9,7 @@ Tình huống nghề điển hình, không có tên thật của khách. Mỗi t
 5. **Khách Nhật muốn mở VPĐD rồi xuất hóa đơn dịch vụ cho khách Việt.** Không được: VPĐD không kinh doanh sinh lợi. Chuyển sang lập công ty. QUY ĐỊNH (S014).
 6. **Tập đoàn mới thành lập 3 năm muốn mở chi nhánh thương nhân nước ngoài.** Chưa đủ 5 năm hoạt động. Đổi sang công ty con. QUY ĐỊNH (S014).
 7. **Người Việt đứng tên 51% cho nhà đầu tư Đài Loan để né ngành có điều kiện.** Hai bên tranh chấp khi chia lợi nhuận. Bài học: không có hợp đồng nào cứu được cấu trúc trái luật. QUY ĐỊNH (S009; S011).
-8. **Chuỗi cà phê FDI mở cửa hàng thứ hai.** Câu hỏi giấy phép lập cơ sở bán lẻ và ENT. Bài học: lập kế hoạch giấy phép cho cả chuỗi, không cho một cửa hàng. S018: tình trạng CẦN KIỂM TRA.
+8. **Chuỗi cà phê FDI mở cửa hàng thứ hai.** Câu hỏi giấy phép lập cơ sở bán lẻ và ENT. Bài học: lập kế hoạch giấy phép cho cả chuỗi, không cho một cửa hàng. Từ 18/10/2026 tra Nghị định 342/2026/NĐ-CP (S028), không dùng Nghị định 09/2018/NĐ-CP.
 9. **Công ty FDI muốn chuyển lợi nhuận năm đầu nhưng còn lỗ lũy kế.** Không chuyển được. Bài học: kế hoạch chuyển lợi nhuận bắt đầu từ năm hòa vốn. THỰC TIỄN (S023, CẦN KIỂM TRA hiệu lực).
 10. **Doanh nghiệp đổi địa chỉ do phường mới sau sắp xếp.** Không bắt buộc đổi giấy ngay, nhưng hóa đơn và hợp đồng lệch địa chỉ gây rắc rối khi khai thuế. Bài học: gom thay đổi vào một lần cập nhật. THỰC TIỄN (S022; CẦN KIỂM TRA văn bản hướng dẫn).
 11. **Nhà đầu tư Singapore mua lại 100% vốn giữa hai công ty nước ngoài, ngành không điều kiện.** Tỷ lệ sở hữu nước ngoài không đổi. Không phát sinh đăng ký góp vốn theo hướng dẫn được dẫn lại. THỰC TIỄN, CẦN KIỂM TRA văn bản gốc. Vẫn đăng ký thay đổi thành viên với Sở Tài chính.

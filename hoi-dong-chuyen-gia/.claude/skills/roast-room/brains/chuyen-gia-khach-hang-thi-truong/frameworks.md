@@ -77,8 +77,9 @@ Dựng từ khung marketing và định giá dịch vụ chuyên nghiệp công 
 
 ## 12. Bảo đảm dịch vụ thay vì bảo đảm kết quả
 - **Là gì:** Cam kết điều mình kiểm soát: nộp trong X ngày làm việc từ khi đủ giấy; nếu hồ sơ bị trả vì lỗi của văn phòng thì làm lại miễn phí; hoàn phí dịch vụ phần chưa làm.
-- **Cách chấm:** Bảo đảm kết quả của cơ quan nhà nước: chấm 0. Bảo đảm quy trình đo được: cộng 2 điểm.
-- **Căn cứ:** S006, S008; Maister (books.md).
+- **Phân biệt hai loại cam kết:** (a) Cam kết kết quả của cơ quan nhà nước ("bao đậu", "có thẻ trong 3 ngày"): văn phòng không kiểm soát được, quảng cáo như vậy có rủi ro sai sự thật (S008, S006). (b) Cam kết hoàn phí dịch vụ của chính văn phòng theo điều kiện ghi trong hợp đồng, kể cả hoàn khi hồ sơ không đạt: là thoả thuận dân sự hợp pháp theo nguyên tắc tự do, tự nguyện cam kết, thoả thuận (Bộ luật Dân sự 91/2015/QH13, khoản 2 Điều 3, S023), miễn là quảng cáo trung thực và không ngụ ý văn phòng quyết định được kết quả. Đây là công cụ bán hàng, rủi ro của nó là rủi ro biên lợi nhuận, không phải rủi ro trái luật. Không gọi (b) là "cam kết không hợp lệ".
+- **Cách chấm:** Bảo đảm kết quả của cơ quan nhà nước: chấm 0. Bảo đảm quy trình đo được: cộng 2 điểm. Hoàn phí dịch vụ có điều kiện, có tính giá vốn: chấm theo biên lợi nhuận, không trừ điểm pháp lý.
+- **Căn cứ:** S006, S008, S023; Maister (books.md).
 - **Số nguồn dùng:** 2 + sách.
 
 ## 13. Chỉ số khách hàng

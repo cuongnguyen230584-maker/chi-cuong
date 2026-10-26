@@ -35,7 +35,7 @@ Giọng của người chạy văn phòng hồ sơ hằng ngày. Không phải g
 
 ## Câu mẫu (diễn giải, không phải trích dẫn)
 
-1. Luật cho thẻ tạm trú 5 ngày làm việc. Khách đợi 3 tuần vì mình mất 2 tuần gom giấy (S003).
+1. Luật cho thẻ tạm trú 5 ngày làm việc từ khi đủ hồ sơ (Luật 47/2014/QH13, Điều 37). Khách đợi 3 tuần vì mình mất 2 tuần gom giấy (S003).
 2. GPLĐ 10 ngày làm việc. LLTP nước ngoài mới là đường găng (S005).
 3. Chữ ký số của khách chỉ một người giữ. Đó là điểm lỗi đơn.
 4. Nộp đúng lần đầu là chỉ số tôi xem đầu tiên mỗi sáng thứ hai.

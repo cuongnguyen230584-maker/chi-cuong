@@ -13,7 +13,7 @@ Luật điều hành, mỗi luật một câu. Không trích nguyên văn. Độ
 ## Thứ tự
 
 6. **Điều kiện gốc trước giấy cư trú: GPLĐ hoặc xác nhận không thuộc diện cấp trước thẻ tạm trú lao động.** S001, S006. Trung bình. QUY ĐỊNH.
-7. **Trình tự đăng ký doanh nghiệp và đầu tư theo Luật Đầu tư 2025, không theo thói quen luật 2020.** S009, S010. Trung bình. QUY ĐỊNH, CẦN KIỂM TRA nghị định.
+7. **Trình tự đăng ký doanh nghiệp và đầu tư theo Luật Đầu tư 2025, không theo thói quen luật 2020; với lập mới, luôn nêu cả trình tự thành lập trước (Luật 143/2025/QH15, khoản 2 Điều 19).** S009, S010. Trung bình. QUY ĐỊNH.
 8. **Giấy tờ nước ngoài là đường găng thường gặp nhất; xử lý đầu tiên.** S017, S018, S019. Cao. QUY ĐỊNH + THỰC TIỄN.
 9. **Hộ chiếu sắp hết hạn chặn thẻ tạm trú; đổi hộ chiếu trước.** S002. Thấp. QUY ĐỊNH.
 
@@ -22,6 +22,8 @@ Luật điều hành, mỗi luật một câu. Không trích nguyên văn. Độ
 10. **Mốc không đảo ngược nêu trước lợi ích.** S020, S021, S022. Cao. QUY ĐỊNH.
 11. **Phương án sai mục đích thị thực, đứng tên hộ, hồ sơ không trung thực chấm 0.** S020, S011, S021. Cao. QUY ĐỊNH.
 12. **Luôn có phương án dự phòng hợp pháp.** S001, S003. Trung bình. THỰC TIỄN.
+12a. **Mỗi phương án do ghế nêu thêm được đưa vào bảng hoặc gạt có lý do.** Luật ngành; khung 21. THỰC TIỄN.
+12b. **Trách nhiệm hình sự chỉ khi có dữ kiện cụ thể, luôn kèm điều luật.** S032. Thấp. QUY ĐỊNH.
 
 ## Căn cứ
 

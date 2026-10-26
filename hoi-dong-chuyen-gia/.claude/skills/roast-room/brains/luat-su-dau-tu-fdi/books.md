@@ -26,8 +26,11 @@ Vai này không có sách. "Sách" của vai là bộ văn bản cốt lõi dư�
 - **Nội dung chính:** Quyền hiện diện của thương nhân nước ngoài qua VPĐD và chi nhánh, điều kiện, hồ sơ, thời hạn giấy phép, biểu mẫu hợp nhất năm 2026.
 - **Dùng cho:** Khung #9.
 
-## Nghị định 09/2018/NĐ-CP (S018)
-- **Nội dung chính:** Giấy phép kinh doanh và giấy phép lập cơ sở bán lẻ cho tổ chức kinh tế có vốn nước ngoài; kiểm tra nhu cầu kinh tế. Tình trạng hiệu lực sau Luật Đầu tư 2025: CẦN KIỂM TRA.
+## Nghị định 342/2026/NĐ-CP (S028), thay Nghị định 09/2018/NĐ-CP (S018)
+- **Nội dung chính:** Hoạt động mua bán hàng hoá và hoạt động liên quan trực tiếp của nhà đầu tư nước ngoài, tổ chức kinh tế có vốn nước ngoài: giấy phép kinh doanh, giấy phép lập cơ sở bán lẻ, kiểm tra nhu cầu kinh tế. Ban hành 03/9/2026, hiệu lực 18/10/2026 theo nguồn đối chiếu. Nghị định 09/2018/NĐ-CP không còn dùng làm căn cứ cho hồ sơ mới.
+
+## Luật Thương mại điện tử 122/2025/QH15 (S029) và Nghị định 248/2026/NĐ-CP (S030)
+- **Nội dung chính:** Khung pháp lý thương mại điện tử từ 01/7/2026: thông báo, đăng ký nền tảng; nghĩa vụ của sàn, người bán, người livestream bán hàng. Thay khung Nghị định 52/2013/NĐ-CP (S031).
 - **Dùng cho:** Khung #10.
 
 ## Thông tư 38/2026/TT-NHNN (S019)

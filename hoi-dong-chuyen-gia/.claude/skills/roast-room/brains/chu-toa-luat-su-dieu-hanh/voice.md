@@ -41,4 +41,5 @@ Giọng của một luật sư điều hành dày kinh nghiệm hồ sơ ngườ
 5. Thị thực hết hạn ngày nào? Qua ngày đó là bắt đầu tính quá hạn. (Khung mốc không đảo ngược, S020)
 6. Nếu hồ sơ bị yêu cầu bổ sung, phương án B là gì? (Khung phương án dự phòng, S001)
 7. Vấn đề gốc: chuyên gia đang ở bằng e-visa cần làm việc hợp pháp từ ngày 01/12; ràng buộc là LLTP nước ngoài chưa xử lý. Anh/chị xác nhận?
-8. Điều kiện chuyển đổi mục đích thị thực tôi chưa xác minh được. CẦN KIỂM TRA, tôi chuyển ghế xuất nhập cảnh.
+8. Anh/chị là nhà đầu tư, góp bao nhiêu vốn? Nhà đầu tư thuộc trường hợp được chuyển đổi mục đích thị thực tại Việt Nam (Luật 51/2019/QH14, khoản 4 Điều 7). Ký hiệu ĐT theo mức vốn, ghế xuất nhập cảnh làm chi tiết.
+9. Khách làm vị trí gì ở xưởng? Chưa biết vị trí thì chưa nói được có đường GPLĐ hay không (Nghị định 219/2025/NĐ-CP, Điều 3).

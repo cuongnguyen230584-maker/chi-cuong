@@ -4,18 +4,21 @@ Dựng từ `sources.md`. Mỗi khung: là gì, bước, khi dùng, cách chấm
 
 ## 1. Cây quyết định: cấp phép, miễn có xác nhận, hay ngoài diện
 - **Là gì:** Phân loại người nước ngoài vào một trong ba nhánh trước khi làm hồ sơ.
-- **Bước:** (a) Có làm việc tại Việt Nam theo nghĩa của luật không, hay chỉ họp, khảo sát? (b) Có thuộc trường hợp không thuộc diện cấp GPLĐ không (ví dụ chủ sở hữu, thành viên góp vốn từ mức nhất định; di chuyển nội bộ; làm việc dưới 90 ngày mỗi năm; lĩnh vực ưu tiên được cơ quan xác nhận)? (c) Nếu có: xin xác nhận không thuộc diện cấp, trừ nhóm không phải xin xác nhận. (d) Nếu không: xin GPLĐ.
+- **Bước:** (a) Có làm việc tại Việt Nam theo một trong các hình thức của khoản 1 Điều 2 Nghị định 219/2025/NĐ-CP không: thực hiện HĐLĐ; di chuyển trong nội bộ doanh nghiệp; thực hiện hợp đồng, thoả thuận kinh tế, xã hội; nhà cung cấp dịch vụ theo hợp đồng; chào bán dịch vụ; tình nguyện viên; người chịu trách nhiệm thành lập hiện diện thương mại; và các hình thức khác trong danh mục (S002, theo nguồn đối chiếu; danh mục đầy đủ CẦN KIỂM TRA). Hay chỉ họp, khảo sát? (b) Có làm ở một trong bốn vị trí của Điều 3 không: nhà quản lý, giám đốc điều hành, chuyên gia, lao động kỹ thuật (khung 2)? Không thuộc bốn vị trí thì không có đường GPLĐ. (c) Có thuộc trường hợp không thuộc diện cấp GPLĐ không (khung 15: ngưỡng vốn góp 3 tỷ đồng; di chuyển nội bộ; làm việc dưới 90 ngày mỗi năm; lĩnh vực ưu tiên)? Nếu có: xin xác nhận không thuộc diện cấp, trừ nhóm không phải xin xác nhận. (d) Nếu không: xin GPLĐ.
+- **Diễn đạt đúng nghĩa vụ:** Nghĩa vụ có GPLĐ hoặc xác nhận không thuộc diện cấp gắn với việc làm việc tại Việt Nam theo các hình thức trên, không gắn với việc có nhận lương hay không. Tình nguyện viên, chào bán dịch vụ, người chịu trách nhiệm thành lập hiện diện thương mại đều nằm trong danh mục dù có thể không có lương (S002, Điều 2, theo nguồn đối chiếu). Không viết "không điều hành có hưởng lương" hay "làm không lương thì không cần phép". Viết: "không làm việc ở vị trí thuộc diện phải có GPLĐ khi chưa có GPLĐ hoặc xác nhận không thuộc diện cấp".
 - **Khi dùng:** Mọi ca mới.
 - **Chấm:** Xác định được nhánh có giấy tờ: 9. Dựa vào lời khách: 4.
-- **Căn cứ:** QUY ĐỊNH: S001 (điều về trường hợp không thuộc diện cấp GPLĐ, Điều 154 theo bố cục bộ luật; số điều CẦN KIỂM TRA); S002. Danh mục và ngưỡng vốn cụ thể: CẦN KIỂM TRA nguyên văn S002. Nhóm dưới 90 ngày và nhóm lĩnh vực ưu tiên (tài chính, khoa học công nghệ, đổi mới sáng tạo, chuyển đổi số): theo nguồn đối chiếu, CẦN KIỂM TRA điều kiện.
+- **Căn cứ:** QUY ĐỊNH: Bộ luật Lao động 45/2019/QH14, Điều 154 (S001; trường hợp không thuộc diện cấp GPLĐ); Nghị định 219/2025/NĐ-CP, Điều 2, 3, 7 (S002, theo nguồn đối chiếu). Ngưỡng vốn 3 tỷ đồng: khung 15. Nhóm dưới 90 ngày và nhóm lĩnh vực ưu tiên (tài chính, khoa học công nghệ, đổi mới sáng tạo, chuyển đổi số): theo nguồn đối chiếu, CẦN KIỂM TRA điều kiện.
 - **Nguồn dùng:** S001, S002, S016.
 
 ## 2. Kiểm tra điều kiện bốn vai
 - **Là gì:** So hồ sơ người lao động với điều kiện của vai.
-- **Bước:** Nhà quản lý: theo khái niệm Luật Doanh nghiệp, mở rộng tới người đứng đầu, cấp phó của cơ quan tổ chức. Giám đốc điều hành: đứng đầu và trực tiếp quản lý một bộ phận, tối thiểu 3 năm kinh nghiệm phù hợp. Chuyên gia: đại học trở lên và tối thiểu 2 năm kinh nghiệm phù hợp, 1 năm cho lĩnh vực ưu tiên. Lao động kỹ thuật: đào tạo cộng kinh nghiệm, nguồn lệch (3 năm, hoặc 1 năm đào tạo cộng 2 năm). Chuyên ngành bằng phải khớp vị trí.
-- **Khi dùng:** Trước khi chọn vai trên đơn.
+- **Câu hỏi bắt buộc trước mọi kết luận về GPLĐ:** Khách làm vị trí gì, chức danh gì, làm việc gì hằng ngày? Không có câu trả lời thì không kết luận khách "xin được GPLĐ" hay "quay lại bằng GPLĐ".
+- **Bước (QUY ĐỊNH, diễn giải Nghị định 219/2025/NĐ-CP, Điều 3, S002, theo nguồn đối chiếu):** (1) Nhà quản lý (khoản 1): người quản lý doanh nghiệp theo Luật Doanh nghiệp (S024), hoặc người đứng đầu, cấp phó của người đứng đầu cơ quan, tổ chức. (2) Giám đốc điều hành (khoản 2): người đứng đầu chi nhánh, văn phòng đại diện hoặc địa điểm kinh doanh; hoặc người đứng đầu, trực tiếp điều hành một lĩnh vực của cơ quan, tổ chức, doanh nghiệp, có ít nhất 3 năm kinh nghiệm phù hợp. (3) Chuyên gia (khoản 3): bằng đại học trở lên và ít nhất 2 năm kinh nghiệm phù hợp; lĩnh vực tài chính, khoa học, công nghệ, đổi mới sáng tạo, chuyển đổi số quốc gia hoặc lĩnh vực ưu tiên: bằng đại học đúng chuyên ngành và 1 năm kinh nghiệm. (4) Lao động kỹ thuật (khoản 4): được đào tạo ít nhất 1 năm và có ít nhất 2 năm kinh nghiệm phù hợp, hoặc có ít nhất 3 năm kinh nghiệm phù hợp (theo nguồn đối chiếu EY; nguyên văn CẦN KIỂM TRA). Chuyên ngành bằng phải khớp vị trí.
+- **Ngoài bốn vị trí:** công nhân sản xuất, lao động phổ thông, phụ việc không thuộc vị trí nào ở trên thì không có đường GPLĐ (S002, Điều 2 khoản 1 dẫn chiếu Điều 3). Ghế phải nói thẳng điều này trước khi khách hay doanh nghiệp lên kế hoạch "làm GPLĐ rồi quay lại".
+- **Khi dùng:** Trước khi chọn vai trên đơn, và trước mọi phương án hứa đường lao động cho khách.
 - **Chấm:** Bằng và kinh nghiệm khớp vai: 8 đến 10. Kinh nghiệm thiếu dưới 6 tháng: 3. Bằng khác ngành: 4, cần giải trình.
-- **Căn cứ:** QUY ĐỊNH: S002 (Điều 3 và các điều về điều kiện, theo nguồn đối chiếu; số điều CẦN KIỂM TRA). Lao động kỹ thuật: CẦN KIỂM TRA.
+- **Căn cứ:** QUY ĐỊNH: Nghị định 219/2025/NĐ-CP, Điều 3 khoản 1 đến 4 (S002, theo nguồn đối chiếu thuvienphapluat, EY, Luật Việt An). Nguyên văn khoản 4 (lao động kỹ thuật) và dự thảo sửa đổi 2026: CẦN KIỂM TRA.
 - **Nguồn dùng:** S002, S016.
 
 ## 3. Đồng hồ hiệu lực ba lớp
@@ -100,7 +103,16 @@ Dựng từ `sources.md`. Mỗi khung: là gì, bước, khi dùng, cách chấm
 
 ## 14. Xử lý ca đã vi phạm
 - **Là gì:** Khách đã cho người làm việc không phép.
-- **Bước:** Dừng ngay công việc thuộc diện cấp phép; nộp hồ sơ cấp phép; tính rủi ro phạt theo ngày vi phạm (S011 hay S010); tư vấn người lao động về rủi ro trục xuất; không làm giả ngày bắt đầu.
+- **Bước:** Hỏi vị trí thật của người lao động (khung 2): nếu không thuộc bốn vị trí, không hứa đường GPLĐ cho lần quay lại. Dừng ngay công việc thuộc diện cấp phép; nộp hồ sơ cấp phép; tính rủi ro phạt theo ngày vi phạm (S011 hay S010); tư vấn người lao động về rủi ro trục xuất; không làm giả ngày bắt đầu.
 - **Chấm:** Ghế không chấm điểm cao cho bất kỳ phương án che giấu nào.
 - **Căn cứ:** QUY ĐỊNH: S010, S011.
 - **Nguồn dùng:** S010, S011.
+
+## 15. Ngưỡng vốn góp không thuộc diện cấp GPLĐ
+- **Là gì:** Xác định nhà đầu tư kiêm người điều hành có phải xin GPLĐ không.
+- **Nội dung (QUY ĐỊNH, diễn giải):** Bộ luật Lao động 45/2019/QH14, Điều 154 khoản 1 và 2 (S001) giao Chính phủ quy định giá trị góp vốn. Nghị định 219/2025/NĐ-CP, Điều 7 (S002, theo nguồn đối chiếu): chủ sở hữu hoặc thành viên góp vốn của công ty TNHH có giá trị góp vốn từ 3 tỷ đồng trở lên (khoản 2); Chủ tịch hoặc thành viên Hội đồng quản trị của công ty cổ phần có giá trị góp vốn từ 3 tỷ đồng trở lên (khoản 3). Số khoản: CẦN KIỂM TRA nguyên văn.
+- **Bước:** (1) Loại hình công ty. (2) Chức danh của khách trong công ty (chủ sở hữu, thành viên góp vốn, Chủ tịch hay thành viên Hội đồng quản trị). (3) Giá trị góp vốn của chính khách (không phải vốn điều lệ cả công ty). (4) Đạt ngưỡng: không thuộc diện cấp; có phải xin văn bản xác nhận hay chỉ báo cáo: CẦN KIỂM TRA theo S002. (5) Dưới ngưỡng, hoặc là cổ đông công ty cổ phần nhưng không ở Hội đồng quản trị: xét GPLĐ theo vị trí (khung 2).
+- **Cầu nối:** Mức 3 tỷ đồng trùng với ngưỡng ĐT3 của thị thực đầu tư (ghế xuất nhập cảnh). Báo cả hai ghế cùng lúc.
+- **Chấm:** Kết luận "giám đốc kiêm chủ phải có GPLĐ" mà không hỏi giá trị vốn góp: thiếu, tối đa 4.
+- **CẦN KIỂM TRA:** "giá trị góp vốn" tính theo vốn đã góp hay vốn cam kết; chứng từ cơ quan chấp nhận.
+- **Nguồn dùng:** S001, S002, S021, S024.

@@ -9,7 +9,7 @@ Lập trường của vai với câu hỏi thường gặp. Không trích nguyê
 3. **Giảm giá cho khách đầu tiên của một doanh nghiệp FDI lớn?** Được, nếu đổi lấy hợp đồng năm hoặc quyền làm toàn bộ người nước ngoài của doanh nghiệp. Reichheld (books.md).
 4. **Báo giá gộp lệ phí nhà nước?** Không. Tách riêng, ghi "theo biểu lệ phí hiện hành". S006.
 5. **Phí hoả tốc?** Chỉ tính cho phần văn phòng làm nhanh hơn; không thu tiền để "đẩy" cơ quan. Liên quan ghế tuân thủ.
-6. **Hoàn tiền khi bị từ chối?** Hoàn phần dịch vụ chưa làm; phần đã làm không hoàn nếu văn phòng không có lỗi. Ghi rõ trong hợp đồng. S006, S012.
+6. **Hoàn tiền khi bị từ chối?** Là lựa chọn kinh doanh, không phải câu hỏi hợp lệ hay không. Mặc định an toàn: hoàn phần dịch vụ chưa làm; phần đã làm không hoàn nếu văn phòng không có lỗi. Văn phòng được quyền chọn mức hoàn rộng hơn (hoàn theo nguyên nhân, hoàn toàn bộ phí dịch vụ) vì đây là thoả thuận dân sự (Bộ luật Dân sự 91/2015/QH13, khoản 2 Điều 3, S023), miễn là ghi rõ điều kiện trong hợp đồng, tách phí nhà nước, và quảng cáo không hứa kết quả của cơ quan (S008, S006). S006, S012, S023.
 
 ## Khách và thị trường
 

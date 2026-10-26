@@ -45,7 +45,7 @@ Chỉ nghiên cứu thị trường, liên lạc: VPĐD. Có doanh thu tại Vi�
 Không. VPĐD không kinh doanh sinh lợi. QUY ĐỊNH (S014).
 
 ## 15. Doanh nghiệp FDI bán hàng online cho người tiêu dùng có cần giấy phép bán lẻ không?
-Theo khung cũ là có giấy phép kinh doanh cho quyền phân phối bán lẻ. S018: tình trạng CẦN KIỂM TRA. Sàn thương mại điện tử trung gian là ngành có điều kiện theo S003 (nguồn thứ cấp, CẦN KIỂM TRA).
+Thường có: bán cho người tiêu dùng là quyền phân phối bán lẻ, cần giấy phép kinh doanh theo Nghị định 342/2026/NĐ-CP từ 18/10/2026 (S028; QUY ĐỊNH theo nguồn đối chiếu, điều khoản CẦN KIỂM TRA). Nghị định 09/2018/NĐ-CP đã bị thay (S018), không dùng làm căn cứ. Thêm thủ tục thương mại điện tử: website đặt hàng của chính doanh nghiệp phải thông báo, sàn trung gian phải đăng ký theo Luật 122/2025/QH15 và Nghị định 248/2026/NĐ-CP (S029, S030; hồ sơ, cơ quan: CẦN KIỂM TRA). Sàn trung gian còn là ngành tiếp cận có điều kiện theo S003 (nguồn thứ cấp, CẦN KIỂM TRA).
 
 ## 16. Người đứng tên hộ để tránh điều kiện ngành?
 Không. Vi phạm nghĩa vụ chủ sở hữu hưởng lợi và lệnh cấm đứng tên hộ. QUY ĐỊNH (S009; S011).
@@ -57,7 +57,7 @@ Lợi nhuận chuyển sau khi quyết toán năm và hết lỗ lũy kế. TH�
 Phụ thuộc mức vốn và loại thị thực ĐT. Thuộc ghế xuất nhập cảnh. Không có lập trường ở ghế này.
 
 ## 19. Người nước ngoài làm giám đốc công ty FDI có cần giấy phép lao động?
-Thường có, trừ trường hợp miễn. Thuộc ghế lao động. Ghế này chỉ nhắc: cấu trúc vốn ảnh hưởng điều kiện miễn.
+Thường có, trừ trường hợp không thuộc diện cấp. Ngưỡng ghế này cần nhắc: chủ sở hữu, thành viên góp vốn công ty TNHH, hoặc Chủ tịch, thành viên Hội đồng quản trị công ty cổ phần, có giá trị góp vốn từ 3 tỷ đồng (Nghị định 219/2025/NĐ-CP, Điều 7, theo nguồn đối chiếu; S032). Chi tiết thủ tục: ghế lao động. Vì vậy hỏi giá trị vốn góp từng người ngay từ đầu.
 
 ## 20. Điều chỉnh tăng vốn có phải điều chỉnh IRC?
 Nếu vốn đầu tư dự án thay đổi và doanh nghiệp có IRC: thường phải. QUY ĐỊNH (S001, S003; điều khoản CẦN KIỂM TRA).
@@ -79,3 +79,12 @@ Luật Đầu tư 2025 vẫn có hình thức hợp đồng; FICA mở rộng ch
 
 ## 26. Báo cáo đầu tư định kỳ có bắt buộc?
 Có nghĩa vụ báo cáo. Kỳ và mẫu: CẦN KIỂM TRA theo S003.
+
+## 27. Thành lập mới trong 3 tháng: nên đi trình tự nào?
+Nêu cả hai trình tự cho khách. Ngành không điều kiện, cần pháp nhân sớm: thành lập trước, làm thủ tục đầu tư sau (Luật 143/2025/QH15, khoản 2 Điều 19, S001; Nghị định 96/2026/NĐ-CP, Điều 72, S003 theo nguồn đối chiếu). QUY ĐỊNH. Không cam kết thời gian cơ quan xử lý.
+
+## 28. Vốn đã vào tài khoản vốn đầu tư thì có rút lại được không?
+Có nhiều đường hợp pháp: chuyển nhượng phần vốn góp, giảm vốn điều lệ bằng hoàn trả vốn góp khi đủ điều kiện, giải thể, chuyển nhượng hoặc chấm dứt dự án (khung 17; Luật 59/2020/QH14 khoản 3 Điều 68, khoản 3 Điều 87 theo nguồn đối chiếu, S008). Câu "chỉ rút qua quyết toán hoặc giải thể" không có căn cứ trong não này, không dùng. Điều kiện cụ thể theo loại hình và thủ tục dòng tiền theo Thông tư 38/2026/TT-NHNN (S019): CẦN KIỂM TRA.
+
+## 29. Nhà đầu tư nước ngoài đang ở Việt Nam bằng e-visa, muốn ở lại điều hành công ty mình góp vốn
+Không phải xuất cảnh trong mọi trường hợp. Ghế này cung cấp: IRC hoặc ERC, chứng từ vốn đã góp, giá trị vốn góp. Ghế xuất nhập cảnh xét ký hiệu ĐT và chuyển đổi mục đích tại chỗ cho nhà đầu tư; ghế lao động xét ngưỡng 3 tỷ đồng (khung 18). Đây là phương án phải được đưa ra bàn, không được bỏ qua.

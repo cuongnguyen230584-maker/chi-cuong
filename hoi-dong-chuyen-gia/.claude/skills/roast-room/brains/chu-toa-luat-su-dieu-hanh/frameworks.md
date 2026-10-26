@@ -65,6 +65,7 @@ Mỗi loại: câu hỏi gốc, khung và mã nguồn, nhãn. Hỏi theo thứ t
 - E-visa đủ chưa (tối đa 90 ngày, nhiều lần) hay cần thị thực qua cơ quan, tổ chức bảo lãnh? (S003) QUY ĐỊNH.
 - Có thuộc diện thị thực mới UĐ1, UĐ2 không? (S004) CẦN KIỂM TRA điều kiện.
 - Ai bảo lãnh nếu cần công văn nhập cảnh? (Khung người bảo lãnh, S001)
+- Người này có góp vốn, làm chủ công ty tại Việt Nam không, giá trị vốn đã góp bao nhiêu? Nếu có, đường nhà đầu tư phải được đưa ra bàn (Khung đường nhà đầu tư, mục 22). QUY ĐỊNH.
 - Nhập cảnh ở cửa khẩu nào, ngày nào? (THỰC TIỄN)
 
 ### 14. Thẻ tạm trú (TRC) (S001, S002, S006)
@@ -73,10 +74,13 @@ Mỗi loại: câu hỏi gốc, khung và mã nguồn, nhãn. Hỏi theo thứ t
 - Hộ chiếu còn hạn bao lâu? Thẻ phải ngắn hơn hộ chiếu ít nhất 30 ngày (S002) QUY ĐỊNH.
 - Đang ở bằng thị thực ký hiệu gì, hết hạn ngày nào? (Khung mốc không đảo ngược, S020)
 - Thẻ cũ hết hạn thì cấp thẻ mới, không gia hạn (S002) QUY ĐỊNH.
+- Thời hạn giải quyết: 5 ngày làm việc kể từ khi cơ quan nhận đủ hồ sơ (Luật 47/2014/QH13, Điều 37, S001) QUY ĐỊNH; là thời hạn luật định, không phải lời hứa ngày cấp.
 - Thời hạn tối đa theo ký hiệu: lao động không quá 2 năm, nhà đầu tư ĐT1 không quá 10 năm (S002) QUY ĐỊNH, ký hiệu khác hỏi ghế xuất nhập cảnh.
 
 ### 15. Giấy phép lao động (GPLĐ) (S006, S007, S008)
-- Vị trí: nhà quản lý, giám đốc điều hành, chuyên gia, lao động kỹ thuật? (Khung chủ thể, S006) QUY ĐỊNH.
+- Câu bắt buộc: khách làm vị trí gì, chức danh gì, việc gì hằng ngày? GPLĐ chỉ cấp cho bốn vị trí: nhà quản lý, giám đốc điều hành, chuyên gia, lao động kỹ thuật (Nghị định 219/2025/NĐ-CP, Điều 3, S006, theo nguồn đối chiếu) QUY ĐỊNH. Lao động phổ thông không có đường GPLĐ; không hứa "làm GPLĐ rồi quay lại" khi chưa biết vị trí.
+- Khách có phải chủ sở hữu, thành viên góp vốn công ty TNHH, hoặc Chủ tịch, thành viên Hội đồng quản trị công ty cổ phần không; giá trị góp vốn bao nhiêu? Từ 3 tỷ đồng thì không thuộc diện cấp GPLĐ (Bộ luật Lao động 45/2019/QH14, Điều 154 khoản 1, 2, S007; Nghị định 219/2025/NĐ-CP, Điều 7, S006, theo nguồn đối chiếu) QUY ĐỊNH.
+- Nghĩa vụ GPLĐ gắn với việc làm việc, không gắn với việc nhận lương. Không dùng cách nói "không điều hành có hưởng lương"; nói "không làm việc ở vị trí thuộc diện phải có GPLĐ khi chưa có GPLĐ hoặc xác nhận không thuộc diện cấp" (S006, Điều 2).
 - Có thuộc diện không cấp GPLĐ không (bao gồm diện mới cho khoa học, công nghệ, đổi mới sáng tạo, chuyển đổi số)? (S006) QUY ĐỊNH, điều kiện cụ thể hỏi ghế lao động.
 - Bằng cấp, xác nhận kinh nghiệm, LLTP, giấy khám sức khoẻ đã có, đã hợp pháp hoá hoặc Apostille chưa, còn hạn sử dụng không? (Khung giấy tờ nước ngoài, S017, S018)
 - Làm việc tại tỉnh nào, có làm ở nhiều tỉnh không? (Khung cơ quan có thẩm quyền, S006)
@@ -86,7 +90,9 @@ Mỗi loại: câu hỏi gốc, khung và mã nguồn, nhãn. Hỏi theo thứ t
 ### 16. FDI: thành lập, điều chỉnh, góp vốn (S009, S010, S011, S012)
 - Nhà đầu tư là cá nhân hay tổ chức, quốc tịch, vốn từ đâu? (Khung chủ thể, S009)
 - Ngành nghề định làm có thuộc ngành có điều kiện với nhà đầu tư nước ngoài, Phụ lục IV từ 01/7/2026 không? (S009) QUY ĐỊNH; danh mục cụ thể hỏi ghế FDI.
-- Lập tổ chức kinh tế mới, góp vốn mua cổ phần, hay dự án mới? Trình tự đăng ký doanh nghiệp và đầu tư theo Luật 2025 (Khung thứ tự thủ tục, S009, S010) CẦN KIỂM TRA NĐ 96/2026.
+- Lập tổ chức kinh tế mới, góp vốn mua cổ phần, hay dự án mới? Với lập mới, nêu cả hai trình tự: IRC trước, hoặc thành lập tổ chức kinh tế trước rồi làm thủ tục đầu tư sau, khi đáp ứng điều kiện tiếp cận thị trường lúc thành lập (Luật 143/2025/QH15, khoản 2 Điều 19, S009; Nghị định 96/2026/NĐ-CP, Điều 72, S010 theo nguồn đối chiếu) QUY ĐỊNH.
+- Có bán cho người tiêu dùng, có cửa hàng, có website hoặc ứng dụng đặt hàng không? Nếu có: giấy phép kinh doanh, giấy phép lập cơ sở bán lẻ theo Nghị định 342/2026/NĐ-CP từ 18/10/2026 (S029), và thông báo hoặc đăng ký thương mại điện tử theo Luật 122/2025/QH15, Nghị định 248/2026/NĐ-CP (S030, S031). QUY ĐỊNH theo nguồn đối chiếu; hồ sơ, cơ quan: CẦN KIỂM TRA, hỏi ghế FDI.
+- Tỷ lệ và giá trị vốn góp của từng nhà đầu tư? Con số này quyết định ký hiệu ĐT, ngưỡng không thuộc diện cấp GPLĐ, và quyền chi phối. QUY ĐỊNH (S001, S006).
 - Ai là chủ sở hữu hưởng lợi thật? (S011) QUY ĐỊNH; không chấp nhận người đứng tên hộ.
 - Giấy tờ pháp nhân nước ngoài đã Apostille hoặc hợp pháp hoá chưa? (S017, S018)
 - Nhà đầu tư có cần thẻ tạm trú đầu tư, GPLĐ cho người điều hành không? (Khung thứ tự thủ tục, S001, S006)
@@ -119,3 +125,28 @@ Mỗi loại: câu hỏi gốc, khung và mã nguồn, nhãn. Hỏi theo thứ t
 - Ngày đi dự kiến, còn bao nhiêu ngày? (Khung mốc không đảo ngược)
 - Điều kiện, hồ sơ, thời gian xét của nước cấp visa: CẦN KIỂM TRA tại trang chính thức (S028). Chủ toạ chỉ phân loại, không kết luận.
 - Giấy tờ Việt Nam cần dùng ở nước đó có cần Apostille hay hợp pháp hoá không? (Khung giấy tờ nước ngoài, S018, S027)
+
+## Phần C. Khung điều hành phương án
+
+### 21. Khung phương án do ghế nêu (luật ngành)
+- **Là gì:** Sau vòng 1, Chủ toạ liệt kê mọi phương án mới do ghế nêu thêm (ví dụ đường nhà đầu tư, thành lập trước, tách gói dịch vụ). Mỗi phương án được đưa vào bảng chấm, hoặc bị gạt kèm lý do có căn cứ.
+- **Câu hỏi:** Ghế nào nêu đường nào chưa có trong bảng? Đường đó hợp pháp không, có căn cứ số hiệu, điều khoản không? Nếu gạt thì vì sao?
+- **Cách chấm (hướng dẫn):** Kết luận không nhắc một phương án hợp pháp mà ghế đã nêu có căn cứ: kết luận thiếu, phải sửa.
+
+### 22. Khung đường nhà đầu tư (S001, S002, S006, S009)
+- **Là gì:** Khi người nước ngoài là nhà đầu tư, chủ, thành viên góp vốn hoặc người đại diện phần vốn của tổ chức nước ngoài, xét đường này trước đường lao động hay xuất cảnh, nhập lại.
+- **Nội dung (QUY ĐỊNH, diễn giải):** ký hiệu theo vốn góp: ĐT1 từ 100 tỷ đồng (hoặc ngành, địa bàn ưu đãi), ĐT2 từ 50 đến dưới 100 tỷ đồng (hoặc ngành khuyến khích), ĐT3 từ 3 đến dưới 50 tỷ đồng, ĐT4 dưới 3 tỷ đồng (Luật 47/2014/QH13, Điều 8, sửa đổi bởi Luật 51/2019/QH14, S001, S002). Nhà đầu tư hoặc người đại diện tổ chức nước ngoài đầu tư tại Việt Nam được chuyển đổi mục đích thị thực tại Việt Nam, có giấy tờ chứng minh việc đầu tư, và được cấp thị thực mới đúng ký hiệu (điểm a khoản 4, khoản 5 Điều 7, S002). ĐT4 không được cấp thẻ tạm trú.
+- **Điều kiện:** giấy tờ chứng minh đầu tư (IRC hoặc ERC, chứng từ vốn đã góp); doanh nghiệp đứng ra bảo lãnh; thị thực hiện tại còn hạn; không có vi phạm cư trú chưa xử lý.
+- **Câu hỏi:** Góp vốn bao nhiêu, đã góp thật chưa, qua tài khoản nào? Đang ở bằng giấy gì, hết hạn ngày nào? Có trực tiếp điều hành không (ngưỡng 3 tỷ đồng cho GPLĐ, S006)?
+- **CẦN KIỂM TRA:** sửa đổi của Luật 118/2025/QH15 với Điều 7, Điều 8 (S004); hồ sơ, mẫu sau Thông tư 70/2026/TT-BCA (S005). Chi tiết thuộc ghế xuất nhập cảnh.
+
+### 23. Khung mức nêu trách nhiệm hình sự (S032)
+- **Là gì:** Chỉ nêu trách nhiệm hình sự khi đề bài có dữ kiện cụ thể dẫn tới tội danh, luôn kèm điều luật. Điều 347 Bộ luật Hình sự 100/2015/QH13: đã bị xử phạt hành chính mà còn vi phạm xuất cảnh, nhập cảnh, ở lại trái phép. Điều 348: vì vụ lợi tổ chức, môi giới cho người khác xuất cảnh, nhập cảnh hoặc ở lại Việt Nam trái phép. Khung hình phạt sau sửa đổi 2025: CẦN KIỂM TRA.
+- **Không dùng khi:** bàn gói giá, cam kết hoàn phí dịch vụ, quảng cáo, vận hành văn phòng mà không có dữ kiện tổ chức, môi giới xuất nhập cảnh trái phép.
+
+### 24. Khung hai loại cam kết với khách (S033)
+- **Là gì:** Tách cam kết kết quả của cơ quan nhà nước (không ai cam kết được, không dùng) với cam kết hoàn phí dịch vụ của chính văn phòng (thoả thuận dân sự hợp pháp theo Bộ luật Dân sự 91/2015/QH13, khoản 2 Điều 3, S033, miễn là quảng cáo và hợp đồng trung thực). Luật ngành số 3 áp cho lời của hội đồng, không phải lệnh cấm hoàn tiền trong hợp đồng của văn phòng.
+
+### 25. Khung thời hạn cơ quan (S001, S006)
+- **Là gì:** Chỉ nêu thời hạn luật định, ghi "theo luật", ngày làm việc hay ngày, kể từ khi nhận đủ hồ sơ hợp lệ, kèm số hiệu và điều. Không hứa hay ước thời gian trả lời của cơ quan ngoài thời hạn đó (ví dụ "cơ quan trả lời trong 48 giờ"). Thời hạn chưa xác minh ghi CẦN KIỂM TRA.
+- **Ví dụ đã thống nhất:** thẻ tạm trú 5 ngày làm việc (Luật 47/2014/QH13, Điều 37, S001) QUY ĐỊNH; GPLĐ 10 ngày làm việc (Nghị định 219/2025/NĐ-CP, S006, theo nguồn đối chiếu) QUY ĐỊNH.

@@ -17,7 +17,7 @@ Dựng từ `sources.md`. Mỗi dòng: quy tắc một câu, căn cứ (diễn g
 13. **Cơ quan đổi tên không làm mất giá trị giấy tờ đã cấp.** Căn cứ: S021, S022. Nguồn: 2. Tin cậy: trung bình. Việc có phải cập nhật địa chỉ trên ERC, IRC: THỰC TIỄN, CẦN KIỂM TRA.
 14. **VPĐD không được kinh doanh sinh lợi.** Căn cứ: S013, S014. Nguồn: 2. Tin cậy: trung bình.
 15. **Chi nhánh thương nhân nước ngoài cần thương nhân đã hoạt động tối thiểu 5 năm; VPĐD tối thiểu 1 năm.** Căn cứ: S014. Nguồn: 1. Tin cậy: thấp, cần đối chiếu với dự thảo sửa đổi 2026.
-16. **Bán lẻ của FDI là một lớp giấy phép riêng.** Căn cứ: S018 (tình trạng CẦN KIỂM TRA). Nguồn: 1. Tin cậy: thấp.
+16. **Bán lẻ và bán trực tuyến của FDI là hai lớp thủ tục riêng.** Giấy phép kinh doanh, giấy phép lập cơ sở bán lẻ theo Nghị định 342/2026/NĐ-CP từ 18/10/2026 (S028, thay S018); thông báo hoặc đăng ký thương mại điện tử theo Luật 122/2025/QH15 và Nghị định 248/2026/NĐ-CP (S029, S030). Nguồn: 3. Tin cậy: trung bình (nguồn đối chiếu, chưa đọc nguyên văn).
 17. **Lợi nhuận chỉ chuyển được khi sổ sách sạch: thuế xong, kiểm toán xong, hết lỗ lũy kế.** Căn cứ: S023 (CẦN KIỂM TRA hiệu lực); S024. Nguồn: 2. Tin cậy: trung bình, nhãn THỰC TIỄN.
 18. **Vốn điều lệ phải góp đúng hạn hoặc điều chỉnh giảm.** Căn cứ: S008. Nguồn: 1. Tin cậy: thấp, CẦN KIỂM TRA sau Luật 76/2025.
 19. **Thời hạn luật định là trần của cơ quan, không phải cam kết với khách.** Căn cứ: nguyên tắc nghề; S003 ghi thời hạn xử lý theo ngày làm việc. Nguồn: 1. Tin cậy: thấp.

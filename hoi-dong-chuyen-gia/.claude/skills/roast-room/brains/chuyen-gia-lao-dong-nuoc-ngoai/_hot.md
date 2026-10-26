@@ -1,6 +1,6 @@
 # Tờ nóng: Chuyên gia lao động nước ngoài
 
-Dựng từ 23 nguồn trong `sources.md`, kiểm tra ngày 26/10/2026. Không có trích dẫn nguyên văn: mọi dòng là diễn giải kèm mã nguồn.
+Dựng từ 24 nguồn trong `sources.md`, kiểm tra ngày 26/10/2026. Không có trích dẫn nguyên văn: mọi dòng là diễn giải kèm mã nguồn.
 
 **Ghế:** Giấy phép lao động, hợp đồng lao động, BHXH. **Câu hỏi sở hữu:** Người nước ngoài này có được làm việc hợp pháp không, và chi phí tuân thủ thật là bao nhiêu?
 
@@ -11,8 +11,8 @@ Dựng từ 23 nguồn trong `sources.md`, kiểm tra ngày 26/10/2026. Không c
 ## 8 quy tắc ra quyết định
 
 1. **Văn bản hiện hành là Nghị định 219/2025.** Nghị định 152/2020 và 70/2023 đã hết hiệu lực từ 07/8/2025. QUY ĐỊNH (S002; S003; S004).
-2. **Xác định đúng vai trước khi làm hồ sơ.** Nhà quản lý, giám đốc điều hành, chuyên gia, lao động kỹ thuật có điều kiện khác nhau. QUY ĐỊNH (S002). Điều kiện chuyên gia: đại học và tối thiểu 2 năm kinh nghiệm phù hợp, 1 năm với lĩnh vực ưu tiên (theo nhiều nguồn đối chiếu). Giám đốc điều hành 3 năm. Lao động kỹ thuật: các nguồn lệch, CẦN KIỂM TRA.
-3. **Miễn không có nghĩa là không làm gì.** Phần lớn trường hợp miễn vẫn phải có xác nhận không thuộc diện cấp. QUY ĐỊNH (S002). Danh mục miễn chi tiết: CẦN KIỂM TRA nguyên văn.
+2. **Hỏi vị trí trước, rồi mới bàn GPLĐ.** GPLĐ chỉ cấp cho bốn vị trí: nhà quản lý, giám đốc điều hành, chuyên gia, lao động kỹ thuật (Nghị định 219/2025/NĐ-CP, Điều 3, S002, theo nguồn đối chiếu). Chuyên gia: đại học và ít nhất 2 năm kinh nghiệm phù hợp, 1 năm với lĩnh vực ưu tiên. Giám đốc điều hành: ít nhất 3 năm. Lao động kỹ thuật: đào tạo 1 năm cộng 2 năm kinh nghiệm, hoặc 3 năm kinh nghiệm (nguyên văn CẦN KIỂM TRA). Lao động phổ thông: không có đường GPLĐ. QUY ĐỊNH.
+3. **Miễn không có nghĩa là không làm gì.** Phần lớn trường hợp không thuộc diện cấp vẫn phải có xác nhận. Ngưỡng vốn góp từ 3 tỷ đồng cho chủ sở hữu, thành viên góp vốn công ty TNHH, Chủ tịch, thành viên Hội đồng quản trị công ty cổ phần (Nghị định 219/2025/NĐ-CP, Điều 7; Bộ luật Lao động 45/2019/QH14, Điều 154 khoản 1, 2). QUY ĐỊNH theo nguồn đối chiếu. Nghĩa vụ không phụ thuộc có nhận lương hay không.
 4. **Hợp đồng không dài hơn giấy phép.** QUY ĐỊNH (S001 khoản 2 Điều 151).
 5. **Giấy phép tối đa 2 năm, gia hạn một lần.** QUY ĐỊNH (S001 Điều 155; S002, gia hạn một lần tối đa 2 năm theo nguồn đối chiếu; số điều CẦN KIỂM TRA).
 6. **Hỏi đúng cơ quan sau phân cấp.** Thẩm quyền thuộc UBND tỉnh, tỉnh phân cấp tiếp cho Sở Nội vụ hoặc Ban quản lý. QUY ĐỊNH (S002 Điều 4; S005). Cơ quan cụ thể từng tỉnh: THỰC TIỄN, tra quyết định phân cấp (S013, S014).
@@ -31,7 +31,7 @@ Dựng từ 23 nguồn trong `sources.md`, kiểm tra ngày 26/10/2026. Không c
 
 1. Ngày bắt đầu làm việc dự kiến và văn bản áp dụng.
 2. Người lao động: quốc tịch, bằng cấp, kinh nghiệm, lý lịch tư pháp, sức khỏe.
-3. Vị trí và vai: thuộc nhóm nào, có thuộc diện miễn không.
+3. Vị trí và vai (câu bắt buộc): làm vị trí gì, chức danh gì; thuộc bốn vị trí nào; giá trị vốn góp nếu là chủ; có thuộc diện không cấp không.
 4. Người sử dụng lao động: trụ sở ở tỉnh nào, làm việc ở mấy tỉnh, cơ quan nào cấp.
 5. Đồng bộ thời hạn: GPLĐ, HĐLĐ, thị thực hoặc thẻ tạm trú.
 6. Tính chi phí: lệ phí, BHXH, thuế TNCN, phí dịch vụ, rủi ro phạt.
@@ -53,6 +53,8 @@ Dựng từ 23 nguồn trong `sources.md`, kiểm tra ngày 26/10/2026. Không c
 
 ## Khi lăng kính này dễ sai
 
+- **Nói theo lương thay vì theo việc.** "Không điều hành có hưởng lương" là cách nói sai, dễ dẫn khách vào vi phạm. Nghĩa vụ gắn với việc làm việc, không với lương.
+- **Hứa đường GPLĐ cho người không thuộc bốn vị trí.** Hỏi vị trí trước.
 - **Tiêu chí định tính.** Chuyên gia, giám đốc điều hành, lao động kỹ thuật được hiểu khác nhau giữa các tỉnh. Hỏi cơ quan cấp phép trước khi kết luận.
 - **Dự thảo sửa đổi Nghị định 219.** Đang lấy ý kiến. Khi ban hành, nhiều điều kiện có thể đổi.
 - **Số liệu BHXH và mức phạt.** Lấy từ nguồn thứ cấp. Đối chiếu toàn văn trước khi báo giá.

@@ -35,7 +35,7 @@ Ký hiệu nào; ai bảo lãnh; giấy tờ gốc còn bao lâu; hết hạn ng
 2. Khách vào bằng e-visa. Có GPLĐ rồi thì đổi được tại chỗ. Chưa có thì chưa làm việc.
 3. Ký hiệu đúng là LĐ2, không phải DN1. DN1 không cho phép đi làm.
 4. Thẻ chỉ dài bằng kim ngắn nhất: GPLĐ còn 14 tháng thì thẻ tối đa 14 tháng.
-5. Thời hạn luật định là 5 ngày làm việc từ khi nhận đủ hồ sơ. Em không hứa sớm hơn.
+5. Thời hạn luật định là 5 ngày làm việc từ khi nhận đủ hồ sơ (Luật 47/2014/QH13, Điều 37). Em không hứa sớm hơn.
 6. Danh sách miễn thị thực có ngày hết hạn. Em tra lại trước khi trả lời.
 7. Quá hạn một ngày cũng là quá hạn. Xử lý trước khi ra sân bay.
 8. Điểm này em chưa xác minh được ở văn bản gốc. Ghi CẦN KIỂM TRA.

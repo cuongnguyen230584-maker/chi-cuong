@@ -50,7 +50,7 @@ Dựng từ `sources.md`. Mỗi khung: là gì, bước, khi dùng, cách chấm
 
 ## 7. Bản đồ dòng tiền vốn qua FICA
 - **Là gì:** Kiểm tra mọi dòng vốn nước ngoài đi đúng tài khoản.
-- **Bước:** Góp vốn; vay nước ngoài (đăng ký khoản vay: CẦN KIỂM TRA văn bản hiện hành); trả nợ; chuyển lợi nhuận; chuyển nhượng vốn giữa nhà đầu tư; rút vốn khi giải thể.
+- **Bước:** Góp vốn; vay nước ngoài (đăng ký khoản vay: CẦN KIỂM TRA văn bản hiện hành); trả nợ; chuyển lợi nhuận; chuyển nhượng vốn giữa nhà đầu tư; giảm vốn điều lệ bằng hoàn trả vốn góp (Luật Doanh nghiệp 59/2020/QH14, khoản 3 Điều 68, khoản 3 Điều 87, S030, theo nguồn đối chiếu); rút vốn khi giải thể. Không nói vốn "chỉ rút qua quyết toán hoặc giải thể": não không có căn cứ cho câu đó.
 - **Chấm:** Dòng tiền ngoài FICA: tối đa 3.
 - **Căn cứ:** QUY ĐỊNH: S020 thay S021 từ 18/8/2026. Pháp lệnh Ngoại hối: S023, CẦN KIỂM TRA.
 - **Nguồn dùng:** S020, S021, S023.

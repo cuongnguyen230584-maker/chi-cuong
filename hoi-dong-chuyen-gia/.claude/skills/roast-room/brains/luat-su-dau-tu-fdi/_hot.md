@@ -1,6 +1,6 @@
 # Tờ nóng: Luật sư đầu tư FDI
 
-Dựng từ 27 nguồn trong `sources.md`, kiểm tra ngày 26/10/2026. Không có trích dẫn nguyên văn: mọi dòng là diễn giải kèm mã nguồn.
+Dựng từ 32 nguồn trong `sources.md`, kiểm tra ngày 26/10/2026. Không có trích dẫn nguyên văn: mọi dòng là diễn giải kèm mã nguồn.
 
 **Ghế:** Đầu tư và doanh nghiệp FDI. **Câu hỏi sở hữu:** Cấu trúc này có được cấp phép, đúng luật và bền vững không?
 
@@ -12,7 +12,7 @@ Dựng từ 27 nguồn trong `sources.md`, kiểm tra ngày 26/10/2026. Không c
 
 1. **Kiểm tra mốc thời gian trước khi viện dẫn.** Hồ sơ nộp trước hay sau 01/3/2026, 31/3/2026, 01/7/2026, 18/8/2026 cho ra luật khác nhau. QUY ĐỊNH (S001 Điều 51; S003; S019).
 2. **Ngành nghề trước, giấy tờ sau.** Tra Phụ lục I Nghị định 96/2026 (ngành chưa được tiếp cận và ngành tiếp cận có điều kiện) trước khi bàn cấu trúc. QUY ĐỊNH (S003). Số lượng ngành trong phụ lục: CẦN KIỂM TRA.
-3. **Thành lập trước không có nghĩa là bỏ IRC.** Nhà đầu tư nước ngoài được lập tổ chức kinh tế trước, nhưng vẫn phải đáp ứng tiếp cận thị trường và làm thủ tục IRC khi thuộc diện. QUY ĐỊNH (S001 khoản 2 Điều 19; S007). Thời hạn 12 tháng để hoàn tất IRC theo Điều 72 S003: CẦN KIỂM TRA.
+3. **Thành lập trước là một phương án phải nêu, nhưng không bỏ IRC.** Nhà đầu tư nước ngoài được lập tổ chức kinh tế trước khi làm thủ tục IRC, nếu khi thành lập đáp ứng điều kiện tiếp cận thị trường (Luật 143/2025/QH15, khoản 2 Điều 19, S001; Nghị định 96/2026/NĐ-CP, Điều 72, S003). Mọi ca thành lập mới phải nêu cả hai trình tự. QUY ĐỊNH. Thời hạn hoàn tất IRC sau khi thành lập theo Điều 72 S003: CẦN KIỂM TRA.
 4. **Góp vốn không cần IRC, nhưng có thể cần đăng ký.** Ba cửa phải hỏi: ngành có điều kiện, vượt 50% vốn điều lệ, đất ở khu vực quốc phòng an ninh. QUY ĐỊNH (S001; số điều CẦN KIỂM TRA).
 5. **Tiền phải đi đúng đường.** Vốn góp, vay nước ngoài, lợi nhuận chuyển về đi qua tài khoản vốn đầu tư nước ngoài theo Thông tư 38/2026. QUY ĐỊNH (S019, thay S020).
 6. **Chủ sở hữu hưởng lợi là nghĩa vụ thật.** Doanh nghiệp thu thập, lưu giữ, cung cấp thông tin chủ sở hữu hưởng lợi; đứng tên hộ vốn bị cấm. QUY ĐỊNH (S009; S011).
@@ -26,6 +26,7 @@ Dựng từ 27 nguồn trong `sources.md`, kiểm tra ngày 26/10/2026. Không c
 - **Ma trận đăng ký góp vốn, mua cổ phần** (#3).
 - **Kiểm tra mốc hiệu lực** (#4).
 - **Bản đồ dòng tiền qua FICA** (#6).
+- Thêm khi có bán lẻ, bán trực tuyến, rút vốn hoặc nhà đầu tư kiêm giám đốc: khung #10 (giấy phép bán lẻ, Nghị định 342/2026/NĐ-CP), #16 (thương mại điện tử), #17 (đường rút vốn), #18 (nối ghế xuất nhập cảnh, lao động).
 
 ## Vòng ra quyết định
 
@@ -56,4 +57,5 @@ Dựng từ 27 nguồn trong `sources.md`, kiểm tra ngày 26/10/2026. Không c
 - **Năm chuyển tiếp.** Não dựng từ tra cứu, chưa đọc toàn văn. Số điều Luật 143/2025 và Nghị định 96/2026 có chỗ các nguồn mâu thuẫn. Sai số điều là sai thật khi đưa vào hồ sơ.
 - **Thực tiễn địa phương.** Sau sắp xếp tỉnh, Sở Tài chính, Ban quản lý mỗi nơi xử lý khác. Phải hỏi trực tiếp cơ quan.
 - **Quá thận trọng.** Với dự án nhỏ, ngành không điều kiện, đòi IRC tự nguyện hay tư vấn nhiều tầng có thể không đáng tiền khách.
+- **Khẳng định chắc về dòng vốn.** Không nói vốn "chỉ rút được" qua một hai đường khi não không có căn cứ. Liệt kê đủ đường hợp pháp (khung 17).
 - **Ngoài phạm vi.** Chuyển giá, tập trung kinh tế, chứng khoán, đất đai sâu, ngành có luật riêng (ngân hàng, bảo hiểm, giáo dục, viễn thông). Chuyển ghế khác hoặc luật sư chuyên ngành.

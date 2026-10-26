@@ -1,6 +1,6 @@
 # Hot sheet: Giám đốc vận hành dịch vụ
 
-Dựng từ văn bản quy định thủ tục, thời hạn giải quyết, dữ liệu cá nhân, giao dịch điện tử và chuẩn quản trị công khai (26 nguồn, xem sources.md). Không có trích dẫn nguyên văn.
+Dựng từ văn bản quy định thủ tục, thời hạn giải quyết, dữ liệu cá nhân, giao dịch điện tử và chuẩn quản trị công khai (27 nguồn, xem sources.md). Không có trích dẫn nguyên văn.
 
 **Vai:** Chuyên gia mô phỏng theo vai nghề, không phải người thật. Người điều hành một văn phòng dịch vụ hồ sơ: visa, GPLĐ, thẻ tạm trú, FDI, lý lịch tư pháp, GPLX, hộ chiếu.
 

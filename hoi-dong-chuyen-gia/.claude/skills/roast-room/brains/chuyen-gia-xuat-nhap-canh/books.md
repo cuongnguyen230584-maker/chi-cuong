@@ -40,7 +40,7 @@ Vai nghề không có sách. Đây là danh mục văn bản cốt lõi, mỗi v
 - **Nội dung chính:** Mẫu giấy tờ (NA): đề nghị cấp thị thực, gia hạn, thẻ tạm trú, giới thiệu con dấu chữ ký. TT 70/2026 thay một phần mẫu từ 01/7/2026: CẦN KIỂM TRA danh sách.
 
 ### TT 31/2015/TT-BCA (S021)
-- **Nội dung chính:** Hướng dẫn trình tự cấp thị thực, thẻ tạm trú (xem xét trong 5 ngày làm việc), thường trú. Tình trạng sau 2026: CẦN KIỂM TRA.
+- **Nội dung chính:** Hướng dẫn trình tự cấp thị thực, thẻ tạm trú, thường trú. Tình trạng sau 2026: CẦN KIỂM TRA. Thời hạn 5 ngày làm việc cho thẻ tạm trú dẫn theo Luật 47/2014/QH13, Điều 37 (S001), không dẫn theo thông tư này.
 
 ### TT 28/2026/TT-BTC, hiệu lực 01/4/2026 (S022)
 - **Nội dung chính:** Mức thu phí, lệ phí xuất nhập cảnh, cư trú; thay TT 25/2021/TT-BTC.

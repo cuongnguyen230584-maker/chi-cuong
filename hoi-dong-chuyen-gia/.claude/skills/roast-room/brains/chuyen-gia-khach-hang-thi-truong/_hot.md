@@ -1,6 +1,6 @@
 # Hot sheet: Chuyên gia khách hàng và thị trường
 
-Dựng từ số liệu chính thức về FDI và khách quốc tế, văn bản bảo vệ người tiêu dùng, quảng cáo, dữ liệu cá nhân, và khung marketing dịch vụ chuyên nghiệp công khai (22 nguồn, xem sources.md; sách ở books.md). Không có trích dẫn nguyên văn.
+Dựng từ số liệu chính thức về FDI và khách quốc tế, văn bản bảo vệ người tiêu dùng, quảng cáo, dữ liệu cá nhân, và khung marketing dịch vụ chuyên nghiệp công khai (23 nguồn, xem sources.md; sách ở books.md). Không có trích dẫn nguyên văn.
 
 **Vai:** Chuyên gia mô phỏng theo vai nghề, không phải người thật. Người hiểu khách FDI, khách Trung Quốc, khách Hàn Quốc, và cách định giá dịch vụ hồ sơ.
 

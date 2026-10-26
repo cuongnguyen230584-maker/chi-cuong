@@ -18,7 +18,7 @@ Dựng từ văn bản thủ tục hành chính (sources.md), chuẩn quản tr�
 
 ## 3. SLA hai lớp
 - **Là gì:** Lớp 1 là thời hạn luật định, tính từ khi cơ quan nhận đủ hồ sơ hợp lệ. Lớp 2 là thời hạn nội bộ: từ khi khách giao đủ giấy đến khi nộp.
-- **Thời hạn luật định cần nhớ (QUY ĐỊNH, chưa đọc nguyên văn bản hợp nhất 2026):** công văn nhập cảnh 5 ngày làm việc (Luật 47/2014 Điều 16); thị thực điện tử 3 ngày làm việc (Điều 16b); thẻ tạm trú 5 ngày làm việc (Điều 37); GPLĐ 10 ngày làm việc, từ chối trả lời trong 3 ngày làm việc (NĐ 219/2025); đăng ký doanh nghiệp 3 ngày làm việc (Luật Doanh nghiệp Điều 26); hộ chiếu trong nước 8 ngày làm việc (CẦN KIỂM TRA); phiếu LLTP sau 01/7/2026 (CẦN KIỂM TRA).
+- **Thời hạn luật định cần nhớ (chưa đọc nguyên văn bản hợp nhất 2026):** công văn nhập cảnh 5 ngày làm việc (Luật 47/2014/QH13, Điều 16; CẦN KIỂM TRA số điều); thị thực điện tử 3 ngày làm việc (Điều 16b; CẦN KIỂM TRA); thẻ tạm trú 5 ngày làm việc kể từ khi nhận đủ hồ sơ (QUY ĐỊNH, Luật 47/2014/QH13, Điều 37, S003; sửa đổi bởi Luật 118/2025/QH15 CẦN KIỂM TRA); GPLĐ 10 ngày làm việc, từ chối trả lời trong 3 ngày làm việc (NĐ 219/2025); đăng ký doanh nghiệp 3 ngày làm việc (Luật Doanh nghiệp Điều 26); hộ chiếu trong nước 8 ngày làm việc (CẦN KIỂM TRA); phiếu LLTP sau 01/7/2026 (CẦN KIỂM TRA).
 - **Cách chấm:** SLA với khách = lớp 2 + lớp 1 + đệm cho yêu cầu bổ sung. Báo khách bằng thời hạn luật "theo luật, từ khi đủ hồ sơ", không cam kết ngày ra kết quả.
 - **Căn cứ:** S003, S005, S006, S007, S015.
 - **Số nguồn dùng:** 5.

@@ -4,7 +4,7 @@ Lập trường của vai với câu hỏi thường gặp khi điều hành vă
 
 ## Quy trình và thời hạn
 
-1. **Khách hỏi "bao lâu có thẻ tạm trú?"** Trả lời hai lớp: thời gian gom đủ giấy (văn phòng ước tính) cộng 5 ngày làm việc theo luật từ khi cơ quan nhận đủ hồ sơ. Không hứa ngày. S003. QUY ĐỊNH + THỰC TIỄN.
+1. **Khách hỏi "bao lâu có thẻ tạm trú?"** Trả lời hai lớp: thời gian gom đủ giấy (văn phòng ước tính, THỰC TIỄN) cộng 5 ngày làm việc theo luật từ khi cơ quan nhận đủ hồ sơ (QUY ĐỊNH, Luật 47/2014/QH13, Điều 37, S003). Không hứa ngày, không ước thời gian cơ quan trả lời ngoài thời hạn luật định.
 2. **Có nên báo giá gói "hoả tốc"?** Chỉ hoả tốc phần văn phòng kiểm soát (dịch, soạn, nộp ngay trong ngày). Không bán tốc độ của cơ quan nhà nước. S003, S005. THỰC TIỄN.
 3. **GPLĐ mất bao lâu?** 10 ngày làm việc theo NĐ 219/2025 từ khi đủ hồ sơ; giấy tờ nước ngoài (LLTP, bằng cấp) thường là phần chậm nhất. S005, S018, S019.
 4. **Nhận hồ sơ khi khách chưa đủ giấy?** Nhận để chuẩn bị, không nộp. Nộp thiếu làm mất lượt và mất niềm tin. THỰC TIỄN.
@@ -45,3 +45,6 @@ Lập trường của vai với câu hỏi thường gặp khi điều hành vă
 
 25. **Mở thêm văn phòng ở tỉnh khác?** Chưa có lập trường; cần số liệu khối lượng theo tỉnh.
 26. **Thuê ngoài dịch thuật?** Được, kèm hợp đồng bảo mật và kiểm thuật ngữ bằng danh mục chuẩn. THỰC TIỄN.
+
+27. **Hỏi cơ quan một câu "có được không" thì bao lâu có trả lời?** Không ước, không hứa. Văn bản hỏi ý kiến không có thời hạn trả lời luật định trong não này: ghi CẦN KIỂM TRA, đặt mốc nội bộ để đôn đốc, không đưa mốc đó cho khách như thời hạn của cơ quan. THỰC TIỄN.
+28. **Gói trọn có hoàn phí khi bị từ chối.** Được thiết kế nếu văn phòng chịu được giá vốn. Đây là thoả thuận dân sự (Bộ luật Dân sự 91/2015/QH13, khoản 2 Điều 3, S027), không trái luật tự thân. Điều kiện vận hành: hợp đồng ghi rõ điều kiện hoàn và phần không hoàn (phí nhà nước), đo nguyên nhân hồ sơ bị trả trước khi định mức hoàn. THỰC TIỄN + QUY ĐỊNH.

@@ -31,11 +31,11 @@ Lập trường của vai đối với câu hỏi nghề thường gặp. Mỗi 
 - QUY ĐỊNH (S025); số ngày từng nước: CẦN KIỂM TRA.
 
 ## 8. E-visa có gia hạn được không
-- **Lập trường:** Coi như không. Muốn ở lâu thì chuyển đổi mục đích (nếu đủ điều kiện) hoặc xuất cảnh xin đường khác.
-- QUY ĐỊNH (S003, S002). Văn bản cấm hay cho phép gia hạn e-visa cụ thể: CẦN KIỂM TRA.
+- **Lập trường:** Chưa xác minh được. Không nói với khách "e-visa không gia hạn" như một quy định. Lên kế hoạch như thể không gia hạn được (THỰC TIỄN của ghế); muốn ở lâu thì chuyển đổi mục đích nếu thuộc ngoại lệ (Luật 51/2019/QH14, khoản 4 Điều 7, S002), hoặc xuất cảnh xin đường khác.
+- E-visa tối đa 90 ngày: QUY ĐỊNH (Luật 23/2023/QH15, S003). Có hay không cơ chế gia hạn tạm trú cho người vào bằng e-visa: CẦN KIỂM TRA (frameworks mục 9).
 
 ## 9. Thẻ tạm trú cho nhà đầu tư vốn nhỏ
-- **Lập trường:** Vốn dưới 3 tỷ đồng là ĐT4, không được cấp thẻ tạm trú. Muốn có thẻ thì cần đạt ngưỡng ĐT3 trở lên hoặc đi diện LĐ.
+- **Lập trường:** Vốn góp dưới 3 tỷ đồng là ĐT4, không được cấp thẻ tạm trú. Muốn có thẻ thì cần đạt ngưỡng ĐT3 trở lên (từ 3 tỷ đến dưới 50 tỷ đồng) hoặc đi diện LĐ nếu có GPLĐ.
 - QUY ĐỊNH (S002, S004).
 
 ## 10. Thẻ tạm trú tối đa bao lâu
@@ -83,8 +83,8 @@ Lập trường của vai đối với câu hỏi nghề thường gặp. Mỗi 
 - QUY ĐỊNH (S022, S017); từng mức: CẦN KIỂM TRA.
 
 ## 21. Mất bao lâu để có thẻ tạm trú
-- **Lập trường:** Theo luật, cơ quan xem xét trong 5 ngày làm việc từ khi nhận đủ hồ sơ hợp lệ. Thời gian chuẩn bị hồ sơ là của mình, không đổ cho cơ quan.
-- QUY ĐỊNH (S021).
+- **Lập trường:** Theo luật, cơ quan xem xét trong 5 ngày làm việc từ khi nhận đủ hồ sơ hợp lệ. Thời gian chuẩn bị hồ sơ là của mình, không đổ cho cơ quan. Không ước hay hứa thời gian thực tế của cơ quan.
+- QUY ĐỊNH (Luật 47/2014/QH13, Điều 37, S001). Sửa đổi bởi Luật 118/2025/QH15: CẦN KIỂM TRA (S005). Thông tư 31/2015/TT-BCA (S021) chỉ đối chiếu, tình trạng CẦN KIỂM TRA.
 
 ## 22. Nộp ở đâu sau sắp xếp tỉnh
 - **Lập trường:** Cục Quản lý xuất nhập cảnh hoặc Phòng Quản lý xuất nhập cảnh Công an tỉnh, thành phố nơi bảo lãnh hoặc nơi cư trú; nhiều thủ tục nộp trực tuyến.
@@ -107,3 +107,11 @@ Lập trường của vai đối với câu hỏi nghề thường gặp. Mỗi 
 
 ## 27. Tự động hoá, AI trong nộp hồ sơ
 - **Lập trường:** Chưa có lập trường được ghi nhận ngoài việc mọi dữ liệu nộp phải khớp hộ chiếu từng ký tự (THỰC TIỄN).
+
+## 28. Khách là chủ, thành viên góp vốn công ty FDI, đang ở Việt Nam bằng e-visa hoặc miễn thị thực, muốn ở lại điều hành
+- **Lập trường:** Đường đầu tiên phải xét là đường nhà đầu tư: chuyển đổi mục đích tại chỗ sang ký hiệu ĐT theo mức vốn góp (frameworks mục 17). Điểm a khoản 4 Điều 7 không đòi GPLĐ cho nhà đầu tư. Chỉ khi khách không chứng minh được tư cách nhà đầu tư mới tính xuất cảnh, nhập lại.
+- QUY ĐỊNH (Luật 47/2014/QH13 sửa đổi bởi Luật 51/2019/QH14, điểm a khoản 4 Điều 7 và Điều 8, S002). Việc điều hành có cần GPLĐ không: ghế lao động (ngưỡng góp vốn 3 tỷ đồng, Nghị định 219/2025/NĐ-CP, Điều 7, S016 theo nguồn đối chiếu). Sửa đổi của Luật 118/2025/QH15: CẦN KIỂM TRA.
+
+## 29. Khách hỏi ký hiệu ĐT mấy với vốn góp 10 tỷ đồng
+- **Lập trường:** ĐT3 (từ 3 tỷ đến dưới 50 tỷ đồng): thị thực đến 3 năm, thẻ tạm trú đến 3 năm, ngắn hơn hộ chiếu ít nhất 30 ngày. Nói thẳng ký hiệu, không rào "ký hiệu cụ thể CẦN KIỂM TRA" khi đã có số vốn.
+- QUY ĐỊNH (S002, S004). Vốn đã góp thực tế: hỏi chứng từ.

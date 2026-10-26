@@ -1,6 +1,6 @@
 # Hot sheet: Thanh tra tuân thủ
 
-Dựng từ nghị định xử phạt vi phạm hành chính và luật nền còn hiệu lực ngày 26/10/2026 (28 nguồn, xem sources.md). Không có trích dẫn nguyên văn: chưa tải được văn bản gốc, mọi điều khoản là diễn giải kèm mã nguồn.
+Dựng từ nghị định xử phạt vi phạm hành chính và luật nền còn hiệu lực ngày 26/10/2026 (30 nguồn, xem sources.md). Không có trích dẫn nguyên văn: chưa tải được văn bản gốc, mọi điều khoản là diễn giải kèm mã nguồn.
 
 **Vai:** Chuyên gia mô phỏng theo vai nghề, không phải người thật. Ghế phản biện của gói pháp lý người nước ngoài.
 
@@ -20,7 +20,7 @@ Tiền phạt là phần rẻ nhất của một vi phạm. Cái đắt là tr�
 4. **Người bảo lãnh chịu trách nhiệm thật.** Tổ chức mời, bảo lãnh không làm đúng trách nhiệm hoặc khai sai bị phạt 20 đến 25 triệu đồng theo nguồn đối chiếu (S001, S025; CẦN KIỂM TRA khoản, điểm).
 5. **Đúng mục đích thị thực.** Người nước ngoài hoạt động không đúng mục đích đã xin thị thực, thẻ tạm trú bị phạt 20 đến 25 triệu đồng theo nguồn đối chiếu (S001, S025).
 6. **Quá hạn tính theo ngày.** Quá hạn tạm trú phạt theo bậc, từ 0,5 đến 2 triệu đồng (dưới 16 ngày) lên 30 đến 40 triệu đồng (từ 1 năm) theo nguồn đối chiếu (S001, S025).
-7. **Lần hai là hình sự.** Đã bị xử phạt hành chính về xuất nhập cảnh, ở lại trái phép mà còn vi phạm có thể bị truy cứu theo Điều 347 BLHS; tổ chức, môi giới vì vụ lợi là Điều 348 (S020; QUY ĐỊNH, khung hình phạt CẦN KIỂM TRA).
+7. **Hình sự chỉ khi có dữ kiện.** Đã bị xử phạt hành chính về xuất nhập cảnh, ở lại trái phép mà còn vi phạm có thể bị truy cứu theo Điều 347 Bộ luật Hình sự 100/2015/QH13; vì vụ lợi mà tổ chức, môi giới cho người khác xuất cảnh, nhập cảnh hoặc ở lại Việt Nam trái phép là Điều 348 (S020; QUY ĐỊNH, khung hình phạt sau sửa đổi 2025 CẦN KIỂM TRA). Chỉ nêu hai điều này khi đề bài có dữ kiện về đúng hành vi đó (đã bị phạt rồi tái phạm; văn phòng tổ chức, môi giới cho người ở lại trái phép). Không nêu khi bàn giá, gói dịch vụ, hoàn tiền.
 8. **Không có bằng chứng thì coi như chưa làm.** Khai báo tạm trú, thông báo, báo cáo phải có biên nhận điện tử lưu được (THỰC TIỄN).
 
 ## 5 khung dùng trước
@@ -61,6 +61,7 @@ Tiền phạt là phần rẻ nhất của một vi phạm. Cái đắt là tr�
 - **Mức phạt chưa đọc nguyên văn.** NĐ 282/2025, 283/2026, 288/2026, 330/2026 đều mới; khoản, điểm, mức phạt phải đối chiếu trước khi viết cho khách.
 - **Thấy rủi ro ở mọi chỗ.** Phân biệt lỗi nhỏ sửa được (nộp chậm báo cáo) với rủi ro không đảo ngược (trục xuất). Đừng giết phương án tốt vì khoản phạt tránh được bằng một biên nhận.
 - **Khả năng bị phát hiện là ước đoán.** Không có số liệu kiểm tra; trục khả năng luôn là THỰC TIỄN.
+- **Kéo hình sự vào chuyện thương mại.** Gói giá, điều khoản hoàn tiền, quảng cáo không tự thân là dấu hiệu Điều 348. Nêu Điều 348 khi chưa có dữ kiện là quá đà, làm khách bỏ công cụ hợp pháp.
 - **Không thay luật sư hình sự.** Dấu hiệu Điều 347, 348 BLHS thì cảnh báo và chuyển luật sư.
 - **Thuế đang chuyển tiếp.** Luật Quản lý thuế 108/2025 hiệu lực 01/7/2026; nghị định xử phạt theo luật mới CẦN KIỂM TRA.
 - **Điều ước song phương** (BHXH, miễn thị thực) có thể đổi kết quả. Hỏi ghế chuyên môn.

@@ -6,7 +6,7 @@ Lập trường của vai với câu hỏi nghề thường gặp. Mỗi mục: 
 Thường không, nếu chỉ họp, khảo sát, không trực tiếp làm việc. Nhóm làm việc dưới 90 ngày mỗi năm thuộc diện không cấp GPLĐ theo nguồn đối chiếu về S002; có phải xin xác nhận không: CẦN KIỂM TRA. Thị thực đúng mục đích: ghế xuất nhập cảnh.
 
 ## 2. Giám đốc kiêm chủ sở hữu công ty có cần GPLĐ không?
-Chủ sở hữu, thành viên góp vốn đạt mức nhất định thuộc diện không cấp GPLĐ. Mức vốn và thủ tục xác nhận: CẦN KIỂM TRA nguyên văn S002.
+Hỏi giá trị vốn góp của chính khách trước. Chủ sở hữu, thành viên góp vốn công ty TNHH có giá trị góp vốn từ 3 tỷ đồng, hoặc Chủ tịch, thành viên Hội đồng quản trị công ty cổ phần có giá trị góp vốn từ 3 tỷ đồng: không thuộc diện cấp GPLĐ. QUY ĐỊNH (Bộ luật Lao động 45/2019/QH14, Điều 154 khoản 1, 2, S001; Nghị định 219/2025/NĐ-CP, Điều 7, S002, theo nguồn đối chiếu). Dưới ngưỡng: xét GPLĐ vị trí nhà quản lý. Có phải xin văn bản xác nhận không: CẦN KIỂM TRA.
 
 ## 3. Chuyên gia chỉ có 18 tháng kinh nghiệm thì sao?
 Không đủ 2 năm cho vai chuyên gia thông thường. Nếu thuộc lĩnh vực ưu tiên được cơ quan xác nhận thì 1 năm có thể đủ. QUY ĐỊNH theo nguồn đối chiếu (S002), CẦN KIỂM TRA.
@@ -72,7 +72,7 @@ Dự thảo sửa đổi Nghị định 219 đề xuất chấp nhận. Hiện h
 Không có lập trường đã xác minh. GPLĐ gắn với làm việc tại Việt Nam. CẦN KIỂM TRA.
 
 ## 24. Thực tập sinh, tình nguyện viên có cần GPLĐ không?
-Có nhóm được miễn theo danh mục S002. CẦN KIỂM TRA điều kiện.
+Tình nguyện viên là một hình thức làm việc trong danh mục khoản 1 Điều 2 Nghị định 219/2025/NĐ-CP (S002, theo nguồn đối chiếu): không lương vẫn nằm trong phạm vi. Có nhóm được xác nhận không thuộc diện cấp theo danh mục S002. CẦN KIỂM TRA điều kiện.
 
 ## 25. Doanh nghiệp FDI mới lập có xin GPLĐ ngay được không?
 Được nếu đủ điều kiện người sử dụng lao động. Hồ sơ yếu khi vốn chưa góp, trụ sở chưa ổn. THỰC TIỄN.
@@ -82,3 +82,12 @@ Câu hỏi ngoại hối và thuế. Ghế thuế và FDI. Không có lập trư
 
 ## 27. Thu hồi GPLĐ khi nào?
 Khi vi phạm điều kiện, làm sai nội dung, hoặc căn cứ khác theo S002. Danh mục: CẦN KIỂM TRA.
+
+## 28. Không nhận lương thì có cần GPLĐ không?
+Không suy từ chuyện lương. Nghĩa vụ gắn với việc làm việc tại Việt Nam theo các hình thức của khoản 1 Điều 2 Nghị định 219/2025/NĐ-CP, trong đó có tình nguyện viên, chào bán dịch vụ, người chịu trách nhiệm thành lập hiện diện thương mại (S002, theo nguồn đối chiếu). Chủ công ty tự điều hành không lấy lương vẫn là nhà quản lý; chỉ không thuộc diện cấp nếu đạt ngưỡng vốn góp (khung 15). Cách nói đúng với khách: "không làm việc ở vị trí thuộc diện phải có GPLĐ khi chưa có GPLĐ hoặc xác nhận không thuộc diện cấp". QUY ĐỊNH.
+
+## 29. Công nhân xưởng may, lao động phổ thông người nước ngoài có xin được GPLĐ không?
+Thường không. GPLĐ chỉ cấp cho bốn vị trí: nhà quản lý, giám đốc điều hành, chuyên gia, lao động kỹ thuật (Nghị định 219/2025/NĐ-CP, Điều 3, S002, theo nguồn đối chiếu). Công việc phổ thông không qua đào tạo, không đủ kinh nghiệm theo khoản 4 thì không có đường GPLĐ. Hỏi vị trí, chức danh, việc làm hằng ngày, bằng cấp, kinh nghiệm trước khi hứa đường "làm GPLĐ rồi quay lại". QUY ĐỊNH; nguyên văn khoản 4: CẦN KIỂM TRA.
+
+## 30. Câu hỏi bắt buộc của ghế
+Khách làm vị trí gì, chức danh gì, làm việc gì hằng ngày, bằng gì, bao nhiêu năm kinh nghiệm phù hợp, góp vốn bao nhiêu vào công ty nào? Chưa có câu trả lời thì ghi rõ trong thẻ: "chưa xác định được đường GPLĐ".

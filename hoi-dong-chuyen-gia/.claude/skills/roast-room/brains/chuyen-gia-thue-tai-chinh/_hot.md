@@ -1,6 +1,6 @@
 # Tờ nóng: Chuyên gia thuế và tài chính
 
-Dựng từ 29 nguồn trong `sources.md`, kiểm tra ngày 26/10/2026. Không có trích dẫn nguyên văn: mọi dòng là diễn giải kèm mã nguồn.
+Dựng từ 30 nguồn trong `sources.md`, kiểm tra ngày 26/10/2026. Không có trích dẫn nguyên văn: mọi dòng là diễn giải kèm mã nguồn.
 
 **Ghế:** Thuế TNCN, thuế nhà thầu, vốn, chuyển lợi nhuận. **Câu hỏi sở hữu:** Phương án này tốn bao nhiêu tiền thật, thuế ai chịu, dòng tiền có hợp pháp không?
 

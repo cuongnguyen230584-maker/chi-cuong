@@ -18,21 +18,23 @@ Dựng từ Luật 47/2014/QH13 và các văn bản sửa đổi, nghị quyết
 - **Số nguồn:** 4 (S001, S002, S004, S005).
 
 ## 3. Ngưỡng vốn đầu tư cho ký hiệu ĐT *(không có tên chính thức)*
-- **Là gì:** ĐT1 vốn góp từ 100 tỷ đồng; ĐT2 từ 50 đến dưới 100 tỷ; ĐT3 từ 3 đến dưới 50 tỷ; ĐT4 dưới 3 tỷ; hoặc đầu tư vào ngành, địa bàn ưu đãi theo mức luật quy định (S002, S004).
-- **Các bước:** đọc IRC hoặc ERC, giấy tờ chứng minh vốn đã góp, so ngưỡng, chọn ký hiệu.
-- **Khi dùng:** khách là nhà đầu tư, thành viên góp vốn.
+- **Là gì (QUY ĐỊNH, diễn giải Luật 47/2014/QH13, Điều 8, sửa đổi bởi Luật 51/2019/QH14, S002, S004):** ĐT1 cấp cho nhà đầu tư nước ngoài và người đại diện tổ chức nước ngoài đầu tư tại Việt Nam có vốn góp từ 100 tỷ đồng trở lên, hoặc đầu tư vào ngành, nghề, địa bàn ưu đãi đầu tư do Chính phủ quyết định. ĐT2: vốn góp từ 50 tỷ đến dưới 100 tỷ đồng, hoặc đầu tư vào ngành, nghề khuyến khích đầu tư phát triển do Chính phủ quyết định. ĐT3: vốn góp từ 3 tỷ đến dưới 50 tỷ đồng. ĐT4: vốn góp dưới 3 tỷ đồng.
+- **Thời hạn đi kèm (QUY ĐỊNH, S002, S004):** thị thực ĐT1, ĐT2 không quá 5 năm; ĐT3 không quá 3 năm; ĐT4 không quá 12 tháng. Thẻ tạm trú: ĐT1 đến 10 năm, ĐT2 đến 5 năm, ĐT3 đến 3 năm; ĐT4 không được cấp thẻ (khung 2).
+- **Các bước:** đọc IRC hoặc ERC; giấy tờ chứng minh vốn đã góp; so ngưỡng; chọn ký hiệu; nếu khách đang ở Việt Nam bằng ký hiệu khác, chạy khung 17 (đường nhà đầu tư).
+- **Khi dùng:** khách là nhà đầu tư, thành viên góp vốn, chủ sở hữu, hoặc người đại diện phần vốn của tổ chức nước ngoài.
 - **Chấm điểm:** Vốn đăng ký chưa góp đủ là rủi ro bị hỏi lại. THỰC TIỄN: cơ quan thường xem chứng từ góp vốn.
-- **CẦN KIỂM TRA:** cách đối chiếu với Luật Đầu tư 2025 (thuộc ghế FDI). **Số nguồn:** 2.
+- **CẦN KIỂM TRA:** Luật 118/2025/QH15 có sửa Điều 8 không (S005); cách tính "vốn góp" (vốn đã góp hay vốn đăng ký) và đối chiếu với Luật Đầu tư 2025 (thuộc ghế FDI). Khi đã có số vốn góp, không ghi "ký hiệu ĐT cụ thể CẦN KIỂM TRA": ghi thẳng ký hiệu theo ngưỡng, kèm nhãn. **Số nguồn:** 2.
 
 ## 4. Kiểm tra chuyển đổi mục đích *(không có tên chính thức)*
 - **Là gì:** Quyết định khách được đổi ký hiệu tại Việt Nam hay phải xuất cảnh.
-- **Các bước:** Nguyên tắc là không đổi. Ngoại lệ (QUY ĐỊNH, diễn giải S002 Điều 7 khoản 4): nhà đầu tư hoặc đại diện tổ chức nước ngoài đầu tư tại Việt Nam; có giấy tờ chứng minh là cha, mẹ, vợ, chồng, con của người mời, bảo lãnh; được cơ quan, tổ chức bảo lãnh vào làm việc và có GPLĐ hoặc xác nhận không thuộc diện cấp GPLĐ; nhập cảnh bằng e-visa và có GPLĐ hoặc xác nhận không thuộc diện cấp GPLĐ. Đổi xong được cấp thị thực mới đúng ký hiệu.
+- **Các bước:** Nguyên tắc là không đổi. Ngoại lệ (QUY ĐỊNH, diễn giải Luật 47/2014/QH13 sửa đổi bởi Luật 51/2019/QH14, khoản 4 Điều 7, S002): (a) nhà đầu tư hoặc người đại diện tổ chức nước ngoài đầu tư tại Việt Nam, có giấy tờ chứng minh việc đầu tư theo pháp luật Việt Nam; (b) có giấy tờ chứng minh là cha, mẹ, vợ, chồng, con của cơ quan, tổ chức, cá nhân mời, bảo lãnh; (c) được cơ quan, tổ chức mời, bảo lãnh vào làm việc và có GPLĐ hoặc xác nhận không thuộc diện cấp GPLĐ; (d) nhập cảnh bằng thị thực điện tử và có GPLĐ hoặc xác nhận không thuộc diện cấp GPLĐ. Người được chuyển đổi được cấp thị thực mới có ký hiệu, thời hạn phù hợp mục đích mới; trình tự theo Điều 19 (khoản 5 Điều 7).
 - **Khi dùng:** khách đang ở Việt Nam muốn ở lại làm việc, cưới, đầu tư.
 - **Chấm điểm:** Thuộc ngoại lệ và đủ giấy tờ gốc thì đi. Không thuộc ngoại lệ thì kế hoạch xuất cảnh, nhập lại.
-- **CẦN KIỂM TRA:** Luật 118/2025 có sửa Điều 7 không. **Số nguồn:** 2 (S002, S004).
+- **Lưu ý:** Điểm (a) không đòi GPLĐ. Nhà đầu tư đang ở bằng e-visa hoặc miễn thị thực vẫn có thể thuộc ngoại lệ này. Xem khung 17. Văn bản này của não là S002 (Luật 51/2019/QH14, còn hiệu lực), khác S002 của ghế khác.
+- **CẦN KIỂM TRA:** Luật 118/2025/QH15 có sửa Điều 7 không (S005). **Số nguồn:** 2 (S002, S004).
 
 ## 5. Quy trình công văn nhập cảnh *(không có tên chính thức)*
-- **Các bước:** (1) Tổ chức bảo lãnh nộp hồ sơ giới thiệu con dấu, chữ ký lần đầu (mẫu NA16). (2) Nộp văn bản đề nghị (mẫu NA2 hoặc mẫu hiện hành theo TT 70/2026). (3) Cơ quan quản lý xuất nhập cảnh xem xét trong 5 ngày làm việc (S021). (4) Khách nhận thị thực tại cơ quan đại diện Việt Nam ở nước ngoài hoặc tại cửa khẩu nếu công văn ghi rõ.
+- **Các bước:** (1) Tổ chức bảo lãnh nộp hồ sơ giới thiệu con dấu, chữ ký lần đầu (mẫu NA16). (2) Nộp văn bản đề nghị (mẫu NA2 hoặc mẫu hiện hành theo TT 70/2026). (3) Cơ quan quản lý xuất nhập cảnh xem xét trong thời hạn luật định 5 ngày làm việc kể từ khi nhận đủ hồ sơ (Luật 47/2014/QH13, S001; QUY ĐỊNH; số điều, theo não vận hành là Điều 16: CẦN KIỂM TRA). (4) Khách nhận thị thực tại cơ quan đại diện Việt Nam ở nước ngoài hoặc tại cửa khẩu nếu công văn ghi rõ.
 - **CẦN KIỂM TRA:** số hiệu và tên mẫu sau TT 70/2026 (S019).
 - **Khi dùng:** LĐ, ĐT, DN, TT dài hạn. **Số nguồn:** 4 (S001, S018, S019, S021).
 
@@ -42,7 +44,7 @@ Dựng từ Luật 47/2014/QH13 và các văn bản sửa đổi, nghị quyết
 - **CẦN KIỂM TRA:** thời hạn xét e-visa theo luật, mức lệ phí e-visa theo TT 28/2026 (S022). **Số nguồn:** 5.
 
 ## 7. Thẩm định thẻ tạm trú *(không có tên chính thức)*
-- **Các bước:** (1) Ký hiệu có được cấp thẻ không (ĐT4, DL, EV thì không). (2) Giấy tờ gốc còn hạn bao lâu (GPLĐ, IRC, đăng ký kết hôn). (3) Hộ chiếu còn hạn đủ dài để thẻ ngắn hơn hộ chiếu ít nhất 30 ngày. (4) Đã khai báo tạm trú tại nơi ở. (5) Người bảo lãnh nộp hồ sơ. Thời hạn xem xét 5 ngày làm việc (S021).
+- **Các bước:** (1) Ký hiệu có được cấp thẻ không (ĐT4, DL, EV thì không). (2) Giấy tờ gốc còn hạn bao lâu (GPLĐ, IRC, đăng ký kết hôn). (3) Hộ chiếu còn hạn đủ dài để thẻ ngắn hơn hộ chiếu ít nhất 30 ngày. (4) Đã khai báo tạm trú tại nơi ở. (5) Người bảo lãnh nộp hồ sơ. QUY ĐỊNH: thời hạn xem xét 5 ngày làm việc kể từ khi nhận đủ hồ sơ (Luật 47/2014/QH13, Điều 37, S001). Đây là thời hạn luật định, không phải thời gian thực tế. Luật 118/2025/QH15 có sửa Điều 37 không: CẦN KIỂM TRA (S005).
 - **Chấm điểm:** Thời hạn thẻ bằng thời hạn ngắn nhất trong ba thứ: trần của ký hiệu, giấy tờ gốc, hộ chiếu trừ 30 ngày.
 - **Số nguồn:** 4 (S001, S004, S005, S021).
 
@@ -55,7 +57,8 @@ Dựng từ Luật 47/2014/QH13 và các văn bản sửa đổi, nghị quyết
 ## 9. Gia hạn tạm trú *(không có tên chính thức)*
 - **Là gì:** Kéo dài thời gian ở khi thị thực sắp hết, qua người bảo lãnh.
 - **Các bước:** xác định ký hiệu được gia hạn; người bảo lãnh nộp văn bản đề nghị; nộp trước ngày hết hạn.
-- **QUY ĐỊNH:** e-visa và miễn thị thực đơn phương không có cơ chế gia hạn như thị thực có bảo lãnh; muốn ở lâu phải đổi đường (S003, S009). Chi tiết điều kiện gia hạn từng ký hiệu: CẦN KIỂM TRA. **Số nguồn:** 4.
+- **QUY ĐỊNH:** gia hạn tạm trú do cơ quan, tổ chức, cá nhân mời, bảo lãnh đề nghị; cơ quan xem xét trong 5 ngày làm việc kể từ khi nhận đủ hồ sơ (Luật 47/2014/QH13, Điều 35, S001, theo nguồn đối chiếu).
+- **CẦN KIỂM TRA:** người vào bằng e-visa hoặc miễn thị thực đơn phương có được gia hạn tạm trú không, và trong điều kiện nào. Não chưa có văn bản cấm hay cho phép cụ thể. Vì vậy không viết "e-visa không gia hạn" như một QUY ĐỊNH. THỰC TIỄN của ghế: lên kế hoạch như thể không gia hạn được; muốn ở lâu thì chuyển đổi mục đích (khung 4) hoặc xuất cảnh xin đường khác. Chi tiết gia hạn từng ký hiệu: CẦN KIỂM TRA. **Số nguồn:** 4.
 
 ## 10. Thẻ thường trú *(không có tên chính thức)*
 - **Là gì:** Diện lâu dài cho người có công, nhà khoa học, chuyên gia, người được cha, mẹ, vợ, chồng, con là công dân Việt Nam thường trú bảo lãnh, người không quốc tịch tạm trú từ trước năm 2000 (S001, S004).
@@ -88,3 +91,12 @@ Dựng từ Luật 47/2014/QH13 và các văn bản sửa đổi, nghị quyết
 ## 16. Kiểm tra mốc văn bản *(không có tên chính thức)*
 - **Mốc:** 15/8/2023 (Luật 23/2023, e-visa 90 ngày); 15/3/2025 và 15/8/2025 (miễn thị thực 24 nước; thẻ miễn thị thực đặc biệt); 15/12/2025 (NĐ 282/2025); 01/4/2026 (lệ phí mới, TT 28/2026); 01/7/2026 (Luật 118/2025, mẫu TT 70/2026); 11/9/2026 (Apostille).
 - **Căn cứ:** S003, S009, S010, S011, S013, S005, S019, S022, S027. **Số nguồn:** 9.
+
+## 17. Đường nhà đầu tư: ký hiệu ĐT và chuyển đổi tại chỗ *(không có tên chính thức)*
+- **Là gì:** Lối đi cho khách góp vốn, làm chủ hoặc đại diện phần vốn của công ty tại Việt Nam, kể cả khi khách đang ở Việt Nam bằng e-visa, miễn thị thực hoặc ký hiệu khác. Ghế phải nêu lối này như một phương án mỗi khi khách là nhà đầu tư.
+- **Căn cứ (QUY ĐỊNH, diễn giải):** ngưỡng ĐT1 đến ĐT4 theo Luật 47/2014/QH13, Điều 8, sửa đổi bởi Luật 51/2019/QH14 (S002, khung 3); chuyển đổi mục đích cho nhà đầu tư theo điểm a khoản 4 Điều 7 (S002, khung 4); cấp thị thực mới theo khoản 5 Điều 7 và Điều 19.
+- **Điều kiện để đi:** (1) Khách là nhà đầu tư hoặc người đại diện tổ chức nước ngoài đầu tư tại Việt Nam. (2) Có giấy tờ chứng minh việc đầu tư theo pháp luật Việt Nam: IRC hoặc ERC ghi tên khách, chứng từ vốn đã góp (THỰC TIỄN: cơ quan thường xem chứng từ góp vốn qua tài khoản vốn đầu tư). (3) Doanh nghiệp nơi khách đầu tư đứng ra mời, bảo lãnh và đã có hồ sơ giới thiệu con dấu, chữ ký với cơ quan quản lý xuất nhập cảnh (khung 5). (4) Thị thực hiện tại còn hạn khi nộp; không có vi phạm cư trú chưa xử lý (khung 12, 14).
+- **Các bước:** đọc giá trị vốn góp; chọn ký hiệu ĐT theo khung 3; nộp đề nghị chuyển đổi, cấp thị thực ĐT tại cơ quan quản lý xuất nhập cảnh; nếu ĐT1 đến ĐT3 thì tính tiếp thẻ tạm trú (khung 7); ĐT4 chỉ có thị thực đến 12 tháng, không có thẻ.
+- **Việc làm đi kèm:** thị thực ĐT là tư cách cư trú, không thay nghĩa vụ lao động. Nếu khách trực tiếp điều hành, chuyển ghế lao động: góp vốn từ 3 tỷ đồng vào công ty TNHH (chủ sở hữu, thành viên góp vốn), hoặc là Chủ tịch, thành viên Hội đồng quản trị công ty cổ phần có giá trị góp vốn từ 3 tỷ đồng, thì không thuộc diện cấp GPLĐ (Nghị định 219/2025/NĐ-CP, Điều 7, theo nguồn đối chiếu, S016); dưới ngưỡng thì xét GPLĐ theo vị trí.
+- **Chấm điểm:** Khách có vốn góp đạt ĐT3 trở lên, đang ở Việt Nam hợp pháp, giấy tờ đầu tư đủ: phương án này thường là đường ngắn nhất, 8 đến 10. Vốn chưa góp thật: tối đa 4.
+- **CẦN KIỂM TRA:** sửa đổi của Luật 118/2025/QH15 với Điều 7, Điều 8 (S005); thành phần hồ sơ và mẫu sau Thông tư 70/2026/TT-BCA (S019); thời hạn giải quyết chuyển đổi tại chỗ. Không hứa ngày cấp. **Số nguồn:** 4 (S002, S004, S005, S016).

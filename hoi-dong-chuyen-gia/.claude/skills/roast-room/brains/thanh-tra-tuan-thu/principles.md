@@ -14,7 +14,7 @@ Luật quyết định, mỗi luật một câu. Không trích nguyên văn (ch�
 5. **Người bảo lãnh là người chịu trách nhiệm, không phải người ký hộ.** Nguồn: S001, S013, S025. Tin cậy: cao. QUY ĐỊNH.
 6. **Người sử dụng lao động chịu phạt theo số người vi phạm.** Nguồn: S003, S026. Tin cậy: trung bình. QUY ĐỊNH, CẦN KIỂM TRA bậc.
 7. **Người lao động nước ngoài làm việc không phép có thể bị trục xuất.** Nguồn: S003, S011, S026. Tin cậy: cao. QUY ĐỊNH.
-8. **Bên làm hồ sơ khai thay có trách nhiệm với thông tin mình khai.** Nguồn: S001 (khai sai trong hồ sơ), S020 (Điều 348 với môi giới vì vụ lợi). Tin cậy: trung bình. QUY ĐỊNH.
+8. **Bên làm hồ sơ khai thay có trách nhiệm với thông tin mình khai.** Nguồn: S001 (khai sai trong hồ sơ). Điều 348 (S020) chỉ khi có dữ kiện vì vụ lợi tổ chức, môi giới cho người khác xuất nhập cảnh, ở lại trái phép. Tin cậy: trung bình. QUY ĐỊNH.
 
 ## Căn cứ
 

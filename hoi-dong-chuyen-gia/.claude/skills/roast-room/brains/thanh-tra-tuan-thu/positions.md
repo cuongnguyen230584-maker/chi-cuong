@@ -32,11 +32,11 @@ Lập trường của vai với câu hỏi thường gặp. Mỗi mục: lập t
 
 ## Văn phòng dịch vụ (chính công ty khách)
 
-17. **Nhận làm hồ sơ cho khách khai mục đích không đúng.** Không bao giờ. Rủi ro Điều 348 BLHS với người môi giới vì vụ lợi. S020, S001. QUY ĐỊNH.
+17. **Nhận làm hồ sơ cho khách khai mục đích không đúng.** Không bao giờ. Khai sai trong hồ sơ mời, bảo lãnh bị phạt theo Nghị định 282/2025/NĐ-CP, Điều 21 (S001). Nếu văn phòng vì vụ lợi tổ chức, môi giới để người nước ngoài nhập cảnh hoặc ở lại trái phép thì có dấu hiệu Điều 348 Bộ luật Hình sự 100/2015/QH13 (S020). QUY ĐỊNH.
 18. **Quảng cáo "bao đậu", "ra thẻ 3 ngày".** Không. S027. QUY ĐỊNH (quảng cáo sai sự thật) + THỰC TIỄN.
 19. **Lưu hộ chiếu khách trên Zalo cá nhân nhân viên.** Không. S022, S023. QUY ĐỊNH.
 20. **Ghi "tư vấn pháp lý" trên biển hiệu khi không phải tổ chức hành nghề luật sư.** Rủi ro. Phạm vi được phép của doanh nghiệp tư vấn đầu tư và mức phạt theo NĐ 109/2026: CẦN KIỂM TRA. S024.
-21. **Ký hợp đồng dịch vụ có điều khoản "cam kết kết quả".** Không. THỰC TIỄN; kết quả do cơ quan có thẩm quyền quyết định.
+21. **Ký hợp đồng dịch vụ có điều khoản "cam kết kết quả".** Phân biệt hai loại. (a) Cam kết kết quả của cơ quan nhà nước ("bao đậu", "chắc chắn có thẻ trong 3 ngày"): văn phòng không kiểm soát được kết quả đó; quảng cáo như vậy có rủi ro quảng cáo sai sự thật theo Luật Quảng cáo 16/2012/QH13 sửa đổi bởi Luật 75/2025/QH15 (S027) và thông tin không trung thực với người tiêu dùng theo Luật 19/2023/QH15 (S030). Không dùng. (b) Cam kết hoàn phí dịch vụ của chính văn phòng khi hồ sơ không đạt: là thoả thuận dân sự giữa hai bên, được tự do thoả thuận theo Bộ luật Dân sự 91/2015/QH13 (S029, khoản 2 Điều 3: nguyên tắc tự do, tự nguyện cam kết, thoả thuận, trong giới hạn không vi phạm điều cấm của luật, không trái đạo đức xã hội). Không trái luật tự thân, miễn là quảng cáo và hợp đồng trung thực: ghi rõ điều kiện hoàn, phần nào hoàn, phí nhà nước không hoàn, không ngụ ý văn phòng quyết định được kết quả. QUY ĐỊNH + THỰC TIỄN.
 
 ## Tình huống khác
 
@@ -44,3 +44,6 @@ Lập trường của vai với câu hỏi thường gặp. Mỗi mục: lập t
 23. **Đóng phạt có cần lưu biên lai không?** Có, lưu vĩnh viễn trong hồ sơ khách. THỰC TIỄN.
 24. **Phạt hành chính có bị ghi lý lịch tư pháp không?** Chưa có lập trường; hỏi ghế tư pháp.
 25. **Thời hiệu xử phạt.** Lĩnh vực an ninh, trật tự 1 năm theo nguồn đối chiếu NĐ 282/2025; lao động, BHXH 1 năm theo NĐ 283/2026; Luật 88/2025 nâng thời hiệu một số lĩnh vực lên 2 năm. CẦN KIỂM TRA từng lĩnh vực. S001, S003, S010.
+
+26. **Gói trọn GPLĐ và thẻ tạm trú có hoàn phí khi bị từ chối: có phạm luật không?** Không tự thân. Đây là rủi ro tài chính của văn phòng, không phải rủi ro pháp lý hình sự. Ghế chỉ soát ba điều: quảng cáo không hứa kết quả của cơ quan (S027, S030); hợp đồng ghi đúng điều kiện hoàn (S029); hồ sơ vẫn trung thực, không vì muốn tránh hoàn tiền mà khai sai (S001). Không viện dẫn Điều 348 Bộ luật Hình sự khi không có dữ kiện tổ chức, môi giới xuất nhập cảnh, ở lại trái phép. QUY ĐỊNH + THỰC TIỄN.
+27. **Khi nào ghế nêu trách nhiệm hình sự.** Chỉ khi đề bài có dữ kiện cụ thể dẫn tới một tội danh, và luôn kèm điều luật: Điều 347 (đã bị xử phạt hành chính mà còn vi phạm xuất cảnh, nhập cảnh, ở lại trái phép), Điều 348 (vì vụ lợi tổ chức, môi giới cho người khác xuất cảnh, nhập cảnh, ở lại trái phép) của Bộ luật Hình sự 100/2015/QH13 (S020). Thiếu dữ kiện thì nói "chưa có dấu hiệu hình sự trên dữ kiện hiện có". QUY ĐỊNH.
