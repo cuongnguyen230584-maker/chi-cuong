@@ -90,3 +90,15 @@ test("ẩn danh thẻ ở vòng tranh luận và đổi lại tên khi lưu", as
   const n = nhan.buffett.match(/\d+/)[0];
   assert.match(hienDanh(st, "graham", `I DISAGREE MOST WITH: Ghế ${n}. Lý do…`), /I DISAGREE MOST WITH: Buffett\./);
 });
+
+test("tên luật kèm năm khớp với số hiệu ('Luật Đầu tư 2020' là 61/2020/QH14)", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kl4-"));
+  fs.mkdirSync(path.join(dir, "fdi"));
+  fs.writeFileSync(path.join(dir, "fdi", "sources.md"), [
+    "- S001 | Luật Đầu tư số 143/2025/QH15 | u | | | TÌNH TRẠNG: còn hiệu lực | k",
+    "- S002 | Luật Đầu tư số 61/2020/QH14 | u | | | TÌNH TRẠNG: hết hiệu lực từ 01/3/2026, đã thay thế bởi S001 | k",
+  ].join("\n"));
+  const idx = chiMucLuat(["fdi"], dir);
+  assert.deepEqual(kiemLuat("Theo Luật Đầu tư 2020, bên mua phải đăng ký góp vốn.", idx).het.map((x) => x.so), ["61/2020/QH14"]);
+  assert.deepEqual(kiemLuat("Theo Luật Đầu tư năm 2025, thủ tục như sau.", idx).con.map((x) => x.so), ["143/2025/QH15"]);
+});

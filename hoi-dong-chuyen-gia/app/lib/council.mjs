@@ -379,6 +379,7 @@ async function chairVerdict(st, finalScores, recommended, sua = "") {
     kill_criteria: S.str,
     revisit: S.str,
     lam_ngay: S.str,
+    rui_ro_khong_dao_nguoc: S.arr(S.str),
     can_cu: S.arr(S.obj({ noi_dung: S.str, van_ban: S.str, nhan: S.enum("QUY ĐỊNH", "THỰC TIỄN", "CẦN KIỂM TRA") })),
     can_xac_nhan: S.arr(S.obj({ viec: S.str, ai: S.str })),
     huong_ghe_neu: S.arr(S.obj({ huong: S.str, ghe: S.str, xu_ly: S.enum("đưa vào", "gạt"), ly_do: S.str })),
@@ -410,6 +411,7 @@ Write the verdict for the founder.
 - amendments: every Round 3 amendment, adopted or not, with the reason (empty in quick mode). Adopt when no seat objected or the argument went unanswered.
 - conditions, next_steps (with when), cheapest_test, kill_criteria, revisit: final, merged, checkable.
 - can_cu: ${st.goi?.loai === "vai-tro" ? "4 to 8" : "0 to 4"} rules this decision turns on, taken from the cards: each noi_dung is one sentence with the concrete content (the threshold, the number of days, the limit on extensions, the authority that decides, what is prohibited, the form a document must take), van_ban is the document number and article ("Nghị định 219/2025/NĐ-CP, Điều 3") or "" for practice, nhan is QUY ĐỊNH, THỰC TIỄN or CẦN KIỂM TRA as the card labeled it. Prefer prohibitions and hard numbers over general statements; this list is what a staff member reads to file correctly, so it is not shortened by the length limit.
+- rui_ro_khong_dao_nguoc: every consequence that cannot be undone if things go wrong (deportation, entry ban, licence revoked, criminal liability, loss of the right to stay), each one sentence with what triggers it and how to avoid it. Empty only if there is none. This list goes on the client sheet.
 - lam_ngay: the one action to take today, in one short line (it may belong to a different option than the main route, e.g. "Nộp gia hạn tạm trú hôm nay" while the main route is D).
 - can_xac_nhan: one merged list of everything a lawyer or the authority must confirm before filing (viec = what, ai = who: luật sư, Phòng Quản lý xuất nhập cảnh, Sở…). Put every "CẦN KIỂM TRA" item here once instead of repeating it across sections.
 - LENGTH: the whole verdict stays under 900 words. call at most 2 sentences; why 3 to 5 points of at most 2 sentences; fights at most 3; conditions at most 6; next_steps at most 7. Do not repeat a caveat in several sections: state it once in can_xac_nhan.
@@ -619,19 +621,32 @@ async function run(s) {
       v = await chairVerdict(st, finalScores, recommended, `SỬA LẠI BẢN TRƯỚC: bản kết luận vừa viết dẫn văn bản đã hết hiệu lực hoặc đã bị thay thế: ${het.map((x) => `${x.so}${x.ten ? ` (${x.ten})` : ""}`).join("; ")}. Viết lại toàn bộ kết luận, giữ nguyên ý, nhưng thay mỗi văn bản đó bằng văn bản thay thế có trong các thẻ hoặc trong cảnh báo KIỂM ĐIỀU LUẬT; nếu không biết văn bản thay thế thì bỏ số hiệu và ghi CẦN KIỂM TRA.`);
     }
   }
-  st.verdict = { ...v, recommended, scores: finalScores, spread: spreadF, confidence, support, votes, disclaimer: tuyenBo(st) };
-  st.verdict.kiem_so = kiemSo({ dauVao: dauVaoSo(st), soLieu: v.so_lieu, cacBan: cacBanSo(st.verdict, st), vanBan: vanBanKetLuan(v) });
-  if (st.luatIdx) {
-    // kiem_luat: mọi chỗ trong phiên (đề bài, thẻ, kết luận); kiem_luat_ket_luan: chỉ chữ của kết luận
-    st.verdict.kiem_luat_ket_luan = kiemLuat(vanBanKetLuan(v), st.luatIdx);
-    st.verdict.kiem_luat = gopKiemLuat([tongKiemLuat(st), st.verdict.kiem_luat_ket_luan]);
-  }
-  st.verdict.a_dua = chiSoADua(st);
-  st.verdict.ngay_phien = st.ngay;
-  if (support != null) st.verdict.support_math = congThucUngHo(st);
-  if (st.verdict.du_bao) st.verdict.du_bao.xac_suat = Math.max(0, Math.min(100, Math.round(Number(st.verdict.du_bao.xac_suat) || 0)));
-  emit(s, "verdict", { verdict: st.verdict, seats: verdictSeats(st, last) });
+  const chot = (v) => {
+    st.verdict = { ...v, recommended, scores: finalScores, spread: spreadF, confidence, support, votes, disclaimer: tuyenBo(st) };
+    st.verdict.kiem_so = kiemSo({ dauVao: dauVaoSo(st), soLieu: v.so_lieu, cacBan: cacBanSo(st.verdict, st), vanBan: vanBanKetLuan(v) });
+    if (st.luatIdx) {
+      // kiem_luat: mọi chỗ trong phiên (đề bài, thẻ, kết luận); kiem_luat_ket_luan: chỉ chữ của kết luận
+      st.verdict.kiem_luat_ket_luan = kiemLuat(vanBanKetLuan(v), st.luatIdx);
+      st.verdict.kiem_luat = gopKiemLuat([tongKiemLuat(st), st.verdict.kiem_luat_ket_luan]);
+    }
+    st.verdict.a_dua = chiSoADua(st);
+    st.verdict.ngay_phien = st.ngay;
+    if (support != null) st.verdict.support_math = congThucUngHo(st);
+    if (st.verdict.du_bao) st.verdict.du_bao.xac_suat = Math.max(0, Math.min(100, Math.round(Number(st.verdict.du_bao.xac_suat) || 0)));
+    emit(s, "verdict", { verdict: st.verdict, seats: verdictSeats(st, last) });
+  };
+  chot(v);
   await addChairView(s, st);
+  // gói vai nghề: Góc nhìn Chủ toạ chỉ ra điểm lệch thì kết luận được viết lại một lần cho các điểm đó
+  // (giữ phương án và nhãn theo điểm số); Góc nhìn cũ vẫn lưu để đối chiếu
+  const cv = [...s.events].reverse().find((e) => e.type === "chair_view")?.view;
+  if (st.goi?.loai === "vai-tro" && cv?.lech?.length && cv.dong_y !== "đồng ý") {
+    emit(s, "phase", { phase: "verdict", label: "Chủ toạ sửa kết luận theo các điểm lệch" });
+    try {
+      const v2 = await chairVerdict(st, finalScores, recommended, `SỬA LẠI BẢN TRƯỚC THEO GÓC NHÌN CỦA CHỦ TOẠ. Bản trước: ${JSON.stringify({ call: v.call, conditions: v.conditions, next_steps: v.next_steps, can_cu: v.can_cu })}. Các điểm lệch Chủ toạ chỉ ra: ${cv.lech.map((x, i) => `(${i + 1}) ${x}`).join(" ")} Sửa mọi điểm lệch có căn cứ trong các thẻ hoặc não (thứ tự thủ tục, văn bản hết hiệu lực, nghĩa vụ bị bỏ ngỏ); điểm nào không có căn cứ thì đưa vào can_xac_nhan. Giữ phương án đề xuất và nhãn.`);
+      chot({ ...v2, sua_theo_chu_toa: cv.lech });
+    } catch (e) { console.error("sửa theo Chủ toạ", e); }
+  }
   finishRun(s);
 }
 
@@ -756,6 +771,7 @@ function verdictMarkdown(st) {
   L.push("", "## Chỗ họ tranh cãi", "", ...v.fights.map((f) => `- **${f.crux}** ${f.story}`));
   L.push("", "## Ý kiến thiểu số", "", `${v.minority.seat}: "${v.minority.quote}" Để ý kiến này đúng thì: ${v.minority.would_have_to_be_true}`);
   if (v.amendments?.length) L.push("", "## Đề xuất sửa đổi", "", ...v.amendments.map((a) => `- ${a.seat}: ${a.amendment} ${a.adopted ? "Được chấp nhận" : "Không chấp nhận"}: ${a.reason}`));
+  if (v.rui_ro_khong_dao_nguoc?.length) L.push("", "## Rủi ro không đảo ngược được", "", ...v.rui_ro_khong_dao_nguoc.map((r) => `- ${r}`));
   if (v.can_cu?.length) L.push("", "## Căn cứ pháp lý chính", "", ...v.can_cu.map((c) => `- ${c.noi_dung}${c.van_ban ? ` (${c.van_ban})` : ""}: ${c.nhan}`));
   L.push("", "## Điều kiện", "", ...v.conditions.map((c, i) => `${i + 1}. ${c}`));
   L.push("", "## Việc làm tiếp theo", "", ...v.next_steps.map((n) => `- **${n.when}:** ${n.action}`));

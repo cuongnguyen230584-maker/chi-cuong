@@ -96,6 +96,15 @@ export function chiMucLuat(slugs, dir = BRAINS_DIR) {
     if (!cu || (x.trang_thai === "het" && cu.trang_thai !== "het") || (!cu.trang_thai && x.trang_thai)) ho.set(h, x);
   }
   idx.ho = ho;
+  // bí danh "tên luật + năm" ("Luật Đầu tư 2020" → 61/2020/QH14), dựng từ tên nguồn có tên riêng
+  const biDanh = new Map();
+  for (const x of idx.values()) {
+    const p = x.so.split("/");
+    if (p.length !== 3 || !/^QH/.test(p[2]) || !x.ten) continue;
+    const ten = tenLuat(x.ten);
+    if (ten) { const k = `${ten}:${p[1]}`; const cu = biDanh.get(k); if (!cu || (x.trang_thai === "het" && cu.trang_thai !== "het")) biDanh.set(k, x); }
+  }
+  idx.biDanh = biDanh;
   return idx;
 }
 
@@ -108,6 +117,15 @@ function chiNhacLaHet(text, so) {
   const lan = [...t.matchAll(new RegExp(`(?<![\\d/])${goc.replace("/", "\\/")}(?![\\d])`, "g"))];
   return lan.length > 0 && lan.every((m) => PHU_DINH.test(t.slice(Math.max(0, m.index - 40), m.index + goc.length + 90)));
 }
+
+// Tên riêng của một luật, viết thường: "Luật Đầu tư số 61/2020/QH14" → "luật đầu tư". Luật sửa đổi không có tên riêng.
+function tenLuat(ten) {
+  const m = String(ten).normalize("NFC").match(/^((?:Bộ luật|Luật)\s+[^\d(]+?)(?:\s+số)?\s+\d/u);
+  if (!m) return "";
+  const t = m[1].toLowerCase().replace(/\s+/g, " ").trim();
+  return /sửa đổi|bổ sung|^luật$|^bộ luật$/.test(t) ? "" : t;
+}
+const BI_DANH = /(?<![\p{L}])((?:Bộ luật|Luật)\s+[\p{L} ,]{2,40}?)\s+(?:năm\s+)?(\d{4})(?![\/\d\p{L}])/gu;
 
 /** Kết quả dò một đoạn chữ: văn bản đã xác minh còn hiệu lực, đã hết hiệu lực (viện dẫn làm căn cứ), chỉ được
  * nhắc là đã hết hiệu lực (nhac_het, không phải lỗi), và ngoài nguồn / chưa rõ. */
@@ -123,6 +141,11 @@ export function kiemLuat(text, idx) {
   const day = soHieuTrong(text);
   for (const so of day) xep(so, idx.get(so));
   const hoDay = new Set(day.map(hoCua));
+  // "Luật Đầu tư 2020": tên luật kèm năm, không có số hiệu
+  for (const m of String(text ?? "").normalize("NFC").matchAll(BI_DANH)) {
+    const x = idx.biDanh?.get(`${m[1].toLowerCase().replace(/\s+/g, " ").trim()}:${m[2]}`);
+    if (x && !hoDay.has(hoCua(x.so))) { hoDay.add(hoCua(x.so)); xep(x.so, x); }
+  }
   for (const t of soHieuTat(text)) {
     if (hoDay.has(t.ho)) continue; // cùng văn bản đã viết đầy đủ ở chỗ khác
     const x = idx.ho?.get(t.ho);

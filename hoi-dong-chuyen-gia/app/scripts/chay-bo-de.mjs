@@ -37,17 +37,19 @@ export function chamPhien(ca, phien) {
   const v = [...ev].reverse().find((e) => e.type === "verdict")?.verdict;
   if (!v) return { diem: 0, toi_da: 1, loi: ["không có kết luận"] };
   const chu = chuKetLuan(v);
-  const thap = chu.normalize("NFC").toLowerCase();
+  // chuẩn hoá ngày: "11/09/2026" và "11/9/2026" là một
+  const ngay = (t) => String(t).normalize("NFC").toLowerCase().replace(/(?<!\d)0(\d)\//g, "$1/");
+  const thap = ngay(chu);
   const loi = [];
   let diem = 0, toiDa = 0;
   for (const nhom of ca.phai_co || []) {
     toiDa++;
-    if (nhom.some((w) => thap.includes(String(w).normalize("NFC").toLowerCase()))) diem++;
+    if (nhom.some((w) => thap.includes(ngay(w)))) diem++;
     else loi.push(`thiếu: ${nhom.join(" / ")}`);
   }
   for (const w of ca.khong_duoc || []) {
     toiDa++;
-    if (thap.includes(String(w).normalize("NFC").toLowerCase())) loi.push(`có điểm cấm: ${w}`);
+    if (thap.includes(ngay(w))) loi.push(`có điểm cấm: ${w}`);
     else diem++;
   }
   const kiemTra = [
