@@ -1,12 +1,31 @@
 # Hội đồng chuyên gia
 
-Một "hội đồng quản trị" gồm 12 cố vấn AI ngồi quanh một chiếc bàn tròn và tranh luận quyết định kinh doanh của bạn, bằng tiếng Việt. Mỗi cố vấn được dựng từ tác phẩm công khai của một người thật: Jeff Bezos, Paul Graham, Alex Hormozi, Gary Vaynerchuk, Dan Martell, Gino Wickman, Warren Buffett, Naval Ravikant, Codie Sanchez, Leila Hormozi, Sara Blakely. Elon Musk làm Chủ toạ.
+Một hội đồng chuyên gia AI ngồi quanh bàn tròn và tranh luận quyết định của bạn bằng tiếng Việt. Hội đồng chạy theo **gói ngành**:
+
+- **Pháp lý người nước ngoài & FDI** (mặc định): 8 chuyên gia ẩn danh theo vai nghề và một Chủ toạ luật sư điều hành. Các vai gồm Luật sư đầu tư FDI, Chuyên gia xuất nhập cảnh, Chuyên gia lao động nước ngoài, Chuyên viên tư pháp – hành chính, Chuyên gia thuế – tài chính, Thanh tra – tuân thủ, Giám đốc vận hành dịch vụ, Chuyên gia khách hàng – thị trường. Não mỗi ghế dựng từ văn bản pháp luật hiện hành, kèm tình trạng hiệu lực của từng văn bản.
+- **Kinh doanh – khởi nghiệp**: 12 cố vấn mô phỏng từ tác phẩm công khai (Bezos, Paul Graham, Hormozi, Buffett, Naval…). Elon Musk làm Chủ toạ.
+- **Gói ngành mới** cho ngành bất kỳ: chạy `/nganh-moi <ngành>` trong Claude Code (xem `docs/goi-nganh-spec.md`).
 
 ![Phòng họp](docs/room.jpg)
 
 Do Yankundart phát triển.
 
-> Các cố vấn là mô phỏng, dựng từ tác phẩm công khai của từng người. Họ không phải người thật và không phát ngôn thay những người đó. Đây là công cụ để suy nghĩ, không phải lời khuyên tài chính, pháp lý hay y khoa.
+> Các thành viên hội đồng là mô phỏng, không phải người thật. Nội dung là phân tích tham khảo, không thay thế ý kiến của luật sư hoặc kết quả giải quyết của cơ quan có thẩm quyền. Kiểm tra lại hiệu lực văn bản trước khi nộp hồ sơ.
+
+Phái sinh từ [Roast Room](https://github.com/nateherkai/roast-room) của Nate Herk / AI Automation Society (MIT), qua bản Việt hoá của Yankundart (MIT).
+
+## Điểm khác biệt của gói pháp lý
+
+- **Máy kiểm điều luật.** Hệ thống dò mọi số hiệu văn bản trong thẻ của từng ghế, trong kết luận và trong Góc nhìn Chủ toạ, kể cả dạng viết tắt như "NĐ 144/2021". Sau đó đối chiếu với nguồn đã xác minh của các não. Văn bản hết hiệu lực bị gắn cờ, và Chủ toạ phải viết lại kết luận. Văn bản chưa xác minh tình trạng bị gắn nhãn CẦN KIỂM TRA.
+- **Ba nhãn bắt buộc** cho mọi khẳng định pháp lý: QUY ĐỊNH (kèm số hiệu, điều, khoản), THỰC TIỄN, CẦN KIỂM TRA. Hệ thống không cam kết kết quả hay thời gian trả lời của cơ quan.
+- **Chống a dua.** Các ghế đọc thẻ của nhau không kèm trọng số, theo thứ tự xáo riêng cho từng ghế. Kết luận báo chỉ số a dua và thẻ tự mâu thuẫn. Mọi hướng do ghế nêu thêm phải được đưa vào kết luận hoặc gạt đi có lý do.
+- **Pre-mortem và hậu quả không đảo ngược** (trục xuất, cấm nhập cảnh, thu hồi giấy phép) được nêu ngay từ vòng 1.
+- **Dự báo có xác suất.** Ví dụ "Khách có thẻ tạm trú trước 30/11: 65%". Khi xem lại phiếu, anh/chị điền kết quả thật; `node app/scripts/cham-brier.mjs` chấm độ chính xác của hội đồng theo thời gian.
+- **Phiếu khách một trang** (nút "Phiếu khách"): khuyến nghị, bước có hạn, rủi ro, mục cần kiểm tra, ô người duyệt và nhãn "AI hỗ trợ soạn". Phiếu không có điểm hay tranh luận nội bộ.
+- **Tính hạn** (nút "Tính hạn"): cộng ngày làm việc, trừ cuối tuần và ngày lễ theo Điều 112 Bộ luật Lao động. Tết và Giỗ Tổ tính theo âm lịch. Lịch nghỉ chính thức của từng năm khai trong `nghi-le.json`.
+- **Che dữ liệu cá nhân.** Số hộ chiếu, số định danh, ngày sinh, email, điện thoại bị che trước khi gửi lên AI (Luật Bảo vệ dữ liệu cá nhân 2025).
+
+**Giới hạn hiện tại:** não pháp lý được dựng qua tìm kiếm web, vì môi trường dựng không mở được trang văn bản gốc (vbpl.vn, congbao.chinhphu.vn…). Do đó não chưa có trích dẫn nguyên văn; các điểm chỉ thấy ở nguồn thứ cấp đều ghi CẦN KIỂM TRA. Nên đối chiếu nguyên văn trước khi dùng cho hồ sơ thật.
 
 ## Một phiên họp diễn ra thế nào
 
@@ -97,6 +116,8 @@ Thư ký đứng sau Chủ toạ. Cô không có ghế và không bỏ phiếu.
 | `HOI_BRAIN=nho` | Chủ toạ chỉ nạp phần tóm tắt và nguyên tắc khi hỏi gốc. Dùng khi lượt hỏi quá chậm. |
 | `CHAIR_SEAT` | Đổi Chủ toạ sang ghế khác (mặc định `musk`). |
 | `CHAIR_VIEW_TIMEOUT_MS` | Thời gian tối đa cho "Góc nhìn Chủ toạ" (mặc định 300000). |
+| `COUNCIL_BACKEND=cli` | Dùng Claude Code đang đăng nhập trên máy, không cần `CLAUDE_CODE_OAUTH_TOKEN`. |
+| `TEN_DON_VI` | Tên đơn vị in trên "Phiếu khách". |
 
 **Đổi logo:** thay hai file `app/public/brand/logo.png` (vuông, khoảng 512×512) và `app/public/brand/favicon.png` (khoảng 128×128) bằng logo của bạn, giữ nguyên tên file. Logo hiện ở góc trang, giữa bàn và đầu file PDF.
 
@@ -127,7 +148,14 @@ node --test app/test/*.test.mjs
 
 Test dùng một Claude giả (`app/test/fake-claude.mjs`), không gọi AI thật và không ghi vào `sessions/` hay `phieu/` thật.
 
+**Bộ đề chuẩn** (`docs/bo-de-chuan.json`): các ca thật của gói pháp lý, kèm điểm bắt buộc và điểm cấm. Chạy bằng hội đồng thật (tốn hạn mức Claude) khi phòng đang mở:
+
+```bash
+node app/scripts/chay-bo-de.mjs            # chạy và chấm
+node app/scripts/chay-bo-de.mjs --cham-lai true   # chỉ chấm lại các phiên đã có
+```
+
 ## Giấy phép và nguồn
 
-- **Mã nguồn:** giấy phép MIT, © 2026 Yankundart. Xem `LICENSE`. Thông báo bản quyền của mã bên thứ ba có trong dự án nằm ở `THIRD_PARTY_NOTICES.md`.
+- **Mã nguồn:** giấy phép MIT. Gốc © 2026 AI Automation Society (Roast Room), bản Việt © 2026 Yankundart. Xem `LICENSE`. Thông báo bản quyền của mã bên thứ ba có trong dự án nằm ở `THIRD_PARTY_NOTICES.md`.
 - **Câu trích trong các bộ não:** thuộc về tác giả của chúng. Chúng chỉ là trích đoạn ngắn để bình luận và học tập.
