@@ -33,21 +33,51 @@ export function boMaNguon(t) {
     .trim();
 }
 
-/** Bỏ báo nhầm của máy dò số: số nằm trong số hiệu văn bản (283/2026/NĐ-CP), "Điều 21", "khoản 4", "34 tỉnh". */
+/** Bỏ báo nhầm của máy dò số: số nằm trong số hiệu văn bản (283/2026/NĐ-CP), "Điều 21", "Điều 7, 8 và 37", "khoản 4", "34 tỉnh". */
 export function soChuaNguonThat(list) {
   return (list || []).filter((x) => {
     const so = String(x?.so ?? "").trim(), doan = String(x?.doan ?? "");
     if (!/^\d+$/.test(so) || !doan) return true;
-    const re = (p) => new RegExp(p.replace("#", so), "i").test(doan);
-    return !(re("(?:^|[^\\d/])#/\\d{4}") || re("\\d/#(?:/|\\b)") || re("(?:Điều|khoản|điểm|Chương|Mục)\\s+#\\b") || re("\\b#\\s+tỉnh"));
+    const re = (p) => new RegExp(p.replaceAll("#", so), "i").test(doan);
+    return !(re("(?:^|[^\\d/])#/\\d{4}") || re("\\d/#(?:/|\\b)") || re("(?:Điều|khoản|điểm|Chương|Mục)\\s+#\\b")
+      || re("(?:Điều|khoản|điểm)\\s+\\d+(?:\\s*(?:,|và|hoặc)\\s*\\d+)*\\s*(?:,|và|hoặc)\\s*#\\b") || re("\\b#\\s+tỉnh"));
   });
 }
 
-const clean = (t) => String(t ?? "").replace(/\s*\((?:S\d+|source[^)]*)[^)]*\)/gi, "").replace(/\*\*/g, "").replace(/[—–]/g, ", ").replace(/\s+/g, " ").trim();
-const dateLine = (id) => {
+// ---------------------------------------------------------------- ngày của phiên (giờ Việt Nam)
+/** Hôm nay theo giờ Việt Nam, dd/mm/yyyy (không theo đồng hồ hay múi giờ của máy đang mở trang). */
+export function homNayVN(now = new Date()) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit", year: "numeric" }).formatToParts(now).map((x) => [x.type, x.value]));
+  return `${p.day}/${p.month}/${p.year}`;
+}
+/** Ngày của phiên: verdict.ngay_phien (server ghi theo giờ VN), rồi ngày đầu mã phiên (yyyy-mm-dd-…), rồi hôm nay giờ VN.
+ * `v` là kết luận (verdict.verdict) hoặc cả event verdict. */
+export function ngayPhien(v, id = "") {
+  const vv = v?.verdict || v || {};
+  const n = String(vv.ngay_phien || "").trim();
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(n)) return n;
   const m = String(id || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
-  const d = m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date();
-  return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : homNayVN();
+}
+
+/** Kiểm luật của chữ kết luận (kiem_luat_ket_luan); phiên cũ chưa có thì lấy kiem_luat toàn phiên.
+ * Văn bản trong nhac_het (chỉ được nhắc là đã hết hiệu lực) không bao giờ là lỗi. */
+export function kiemLuatKetLuan(v = {}) {
+  const kl = v?.kiem_luat_ket_luan || v?.kiem_luat;
+  if (!kl) return null;
+  const nhacHet = kl.nhac_het || [];
+  const nhac = new Set(nhacHet.map((x) => x?.so));
+  return { con: kl.con || [], het: (kl.het || []).filter((x) => !nhac.has(x?.so)), ngoai: kl.ngoai || [], nhac_het: nhacHet, phamVi: v.kiem_luat_ket_luan ? "ket_luan" : "phien" };
+}
+
+const clean = (t) => String(t ?? "").replace(/\s*\((?:S\d+|source[^)]*)[^)]*\)/gi, "").replace(/\*\*/g, "").replace(/[—–]/g, ", ").replace(/\s+/g, " ").trim();
+// Câu kết thúc ở . ! ? … (rồi khoảng trắng) hoặc 。！？; không cắt sau "TP." hay giữa "3.5".
+const tachCau = (t) => String(t || "").trim().split(/(?<!\b(?:TP|Tp|Mr|Mrs|Ms|Dr|No|St|v\.v)\.)(?<=[.!?…]["”)]?)\s+(?=\S)|(?<=[。！？])/u).map((s) => s.trim()).filter(Boolean);
+/** Những câu trọn vẹn đầu tiên, tổng không quá `max` ký tự; luôn giữ trọn câu đầu (không bao giờ cắt giữa câu). */
+export const cauTron = (t, max = Infinity) => {
+  let out = "";
+  for (const c of tachCau(t)) { if (out && out.length + 1 + c.length > max) break; out = out ? `${out} ${c}` : c; }
+  return out;
 };
 const firstSentences = (t, max) => {
   const parts = String(t || "").match(/[^.!?]+[.!?]+["”)]?\s*|[^.!?]+$/g) || [String(t || "")];
@@ -73,7 +103,9 @@ function loadLib() {
 const fileCache = {};
 async function fetchBase64(url) {
   if (fileCache[url]) return fileCache[url];
-  const buf = new Uint8Array(await (await fetch(url)).arrayBuffer());
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`Không tải được ${url.split("/").pop()} (${r.status})`);
+  const buf = new Uint8Array(await r.arrayBuffer());
   let bin = "";
   for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
   return (fileCache[url] = btoa(bin));
@@ -84,6 +116,23 @@ async function addFonts(doc) {
     doc.addFileToVFS(file, await fetchBase64(`/brand/fonts/${file}`));
     doc.addFont(file, "Montserrat", style);
   }
+}
+
+// Montserrat has no Chinese or Korean glyphs. A Chinese or Korean phiếu loads Noto Sans SC / KR (TrueType,
+// static, and they also cover every Vietnamese letter) from jsDelivr only when asked for; the browser caches it.
+const CJK_FONT = {
+  zh: { pkg: "@expo-google-fonts/noto-sans-sc@0.4.3", ten: "NotoSansSC", nhan: "tiếng Trung" },
+  ko: { pkg: "@expo-google-fonts/noto-sans-kr@0.4.3", ten: "NotoSansKR", nhan: "tiếng Hàn" },
+};
+export const CJK_FONT_URLS = Object.fromEntries(Object.entries(CJK_FONT).map(([k, f]) => [k, ["400Regular", "700Bold"].map((w) => `https://cdn.jsdelivr.net/npm/${f.pkg}/${w}/${f.ten}_${w}.ttf`)]));
+async function addCjkFonts(doc, lang) {
+  const f = CJK_FONT[lang];
+  let b64;
+  try { b64 = await Promise.all(CJK_FONT_URLS[lang].map(fetchBase64)); }
+  catch { throw new Error(`Không tải được phông chữ ${f.nhan} (cần mạng tới cdn.jsdelivr.net)`); }
+  doc.addFileToVFS(`${f.ten}-Regular.ttf`, b64[0]); doc.addFont(`${f.ten}-Regular.ttf`, f.ten, "normal");
+  doc.addFileToVFS(`${f.ten}-Bold.ttf`, b64[1]); doc.addFont(`${f.ten}-Bold.ttf`, f.ten, "bold");
+  return f.ten;
 }
 
 /** `tuyenBo`: lời miễn trừ của gói (verdict.disclaimer ưu tiên). `vaiTro`: gói chuyên gia theo vai nghề, nên mã S0xx trần bị bỏ. */
@@ -165,7 +214,7 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
   // ---------------------------------------------------------------- header
   doc.addImage(logo, "PNG", M, y - 4, 34, 34, "logo", "SLOW");
   font(15, "bold", C.ink); doc.text("Hội đồng chuyên gia", W - M, y + 12, { align: "right" });
-  font(8.5, "normal", C.mute); doc.text(`Báo cáo kết luận · ${dateLine(id)}`, W - M, y + 25, { align: "right" });
+  font(8.5, "normal", C.mute); doc.text(`Báo cáo kết luận · ${ngayPhien(v, id)}`, W - M, y + 25, { align: "right" });
   y += 40;
   doc.setDrawColor(...C.ink); doc.setLineWidth(1.2); doc.line(M, y, W - M, y);
   y += 26;
@@ -179,6 +228,10 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
   const rounds = v.votes ? 3 : 2;
   para(`${setup.mode === "quick" ? "Hội đồng nhanh" : "Hội đồng đầy đủ"} · ${n} ${ai} · ${rounds} vòng`, { size: 9.5, color: C.mute, gap: 4 });
   if (setup.decision) para(setup.decision, { size: 10.5, color: C.soft, gap: 8 });
+  // what to do first can differ from the top-scoring option (file the extension today, investor route later)
+  const oChinh = options.find((o) => o.id === v.recommended);
+  if (v.lam_ngay) para(`Làm ngay: ${v.lam_ngay}`, { size: 11.5, style: "semibold", color: C.ink, gap: 3 });
+  if (oChinh) para(`Đường chính: phương án ${oChinh.id}, ${oChinh.label}`, { size: 10.5, style: "semibold", color: C.soft, gap: 6 });
 
   // ---------------------------------------------------------------- the verdict box
   const label = String(v.label || "").toUpperCase();
@@ -199,21 +252,25 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
   by += callLines.length * lh(12.5) + 8;
   font(9.5, "normal", C.mute); doc.text(meta, M + 16, by + 9.5);
   y += boxH + 8;
+  if (v.support != null) para(`Mức ủng hộ đề xuất ${soVi(v.support)}/10${v.support_math ? ` = ${soVi(v.support_math)}` : ""} (trung bình có trọng số điểm các thành viên cho đề xuất ở vòng bỏ phiếu; khác điểm phương án).`, { size: 8.5, color: C.mute, gap: 4 });
+  const lech = (chairView?.lech || []).filter(Boolean);
+  if (lech.length) para(`Chủ toạ không đồng ý ở: ${lech.join("; ")}. Xem mục Góc nhìn Chủ toạ.`, { size: 10.5, style: "semibold", color: [180, 83, 9], gap: 6 });
 
   // ---------------------------------------------------------------- numbers and their sources
   const ks = v.kiem_so;
-  const ksChuToa = chairView?.kiem_so;
-  if (ks?.so_lieu?.length || soChuaNguonThat(ks?.chua_nguon).length || soChuaNguonThat(ksChuToa?.chua_nguon).length) {
+  // the Chair's own unsourced numbers are flagged in his section, not at the top of the council's verdict
+  if (ks?.so_lieu?.length || soChuaNguonThat(ks?.chua_nguon).length) {
     section("Số dùng trong kết luận");
-    const chua = [...soChuaNguonThat(ks?.chua_nguon).map((x) => x.so), ...soChuaNguonThat(ksChuToa?.chua_nguon).map((x) => `${x.so} (Góc nhìn Chủ toạ)`)];
+    const chua = soChuaNguonThat(ks?.chua_nguon).map((x) => x.so);
     if (chua.length) para(`Chưa có nguồn: ${chua.join(", ")}`, { size: 10.5, style: "semibold", color: [180, 83, 9], gap: 6 });
     for (const e of (ks?.so_lieu || []).slice(0, 14)) bullet(e.so, `${e.y} (${e.loai}${e.nguon ? `: nguồn ${e.nguon}` : ""})${e.trang_thai === "khong_thay" ? " — không thấy trong số liệu" : ""}`);
   }
 
   // ---------------------------------------------------------------- văn bản pháp luật được viện dẫn
-  const kl = v.kiem_luat;
+  const kl = kiemLuatKetLuan(v);
   if (kl && (kl.het?.length || kl.ngoai?.length)) {
     section("Kiểm điều luật");
+    if (kl.phamVi === "phien") para("Phiên cũ: máy kiểm cả đề bài và các thẻ, không riêng chữ kết luận.", { size: 8.5, color: C.mute, gap: 4 });
     if (kl.het?.length) para(`Hết hiệu lực hoặc đã bị thay thế, không dùng làm căn cứ: ${kl.het.map((x) => x.so).join(", ")}`, { size: 10.5, style: "semibold", color: [180, 83, 9], gap: 6 });
     if (kl.ngoai?.length) para(`Chưa có trong nguồn đã xác minh, CẦN KIỂM TRA: ${kl.ngoai.map((x) => x.so).join(", ")}`, { size: 10.5, style: "semibold", color: [180, 83, 9], gap: 6 });
   }
@@ -256,6 +313,8 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
     for (const l of (cv.ly_do || []).slice(0, 4)) bullet(l.khung, ghi(`${l.y}${l.nguon && !(vaiTro && /^S\d+$/i.test(String(l.nguon).trim())) ? ` (nguồn ${l.nguon})` : ""}`));
     if (cv.bo_buoc) bullet("Nên xoá", ghi(cv.bo_buoc));
     if (cv.thu_nhanh) bullet("Thử nhanh", ghi(cv.thu_nhanh));
+    const chuaCT = soChuaNguonThat(chairView?.kiem_so?.chua_nguon).map((x) => x.so);
+    if (chuaCT.length) para(`Số chưa có nguồn trong góc nhìn này: ${chuaCT.join(", ")}`, { size: 9.5, color: [180, 83, 9], gap: 4 });
   }
 
 
