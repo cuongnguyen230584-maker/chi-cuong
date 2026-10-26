@@ -1,4 +1,4 @@
-import { downloadVerdictPdf, downloadPhieuKhach, soVi, boMaNguon, soChuaNguonThat, TUYEN_BO_CHUNG } from "./pdf.js";
+import { downloadVerdictPdf, downloadPhieuKhach, soVi, boMaNguon, soChuaNguonThat, TUYEN_BO_CHUNG, ngayPhien, homNayVN, kiemLuatKetLuan, NGON_NGU_PHIEU } from "./pdf.js";
 import { loiVi } from "./loi-vi.js";
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -463,7 +463,9 @@ function bindUI() {
   $("#waitHistory").addEventListener("click", openHistory);
   document.addEventListener("click", async (e) => {
     if (e.target.closest("[data-pdf]")) savePdf(e.target.closest("[data-pdf]"));
-    if (e.target.closest("[data-phieu]")) savePhieu(e.target.closest("[data-phieu]"));
+    if (e.target.closest("[data-phieu]")) chonNgonNguPhieu(e.target.closest("[data-phieu]"));
+    const hb = e.target.closest("[data-han-so]");
+    if (hb) moTinhHan({ tu: hb.dataset.hanTu, so: Number(hb.dataset.hanSo), loai: hb.dataset.hanLoai, tinhLuon: true });
     const ht = e.target.closest("[data-hop-tiep]");
     if (ht && !ht.disabled) hopTiep(ht);
   });
@@ -474,17 +476,13 @@ function bindUI() {
     $$("#historyFilter [data-loc]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     veLichSu();
   });
-  $("#hanBtn")?.addEventListener("click", () => {
-    if (!$("#hanTu").value) { const d = new Date(); $("#hanTu").value = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; }
-    $("#hanDialog").showModal();
-  });
-  $("#hanForm")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const out = $("#hanKetQua");
-    try {
-      const r = await postJson("/api/tinh-han", { tu: $("#hanTu").value, so: Number($("#hanSo").value), loai: $("#hanLoai").value });
-      out.innerHTML = `<p class="han-han">Hạn: <b>${esc(r.han)}</b></p>${r.cac_ngay_nghi.length ? `<p class="muted">Ngày nghỉ lễ đã trừ: ${r.cac_ngay_nghi.map(esc).join("; ")}</p>` : ""}<p class="muted">${esc(r.ghi_chu)}</p>`;
-    } catch (err) { out.innerHTML = `<p class="so-canh">${esc(loiVi(err.message || err))}</p>`; }
+  $("#hanBtn")?.addEventListener("click", () => moTinhHan({ tu: $("#hanTu").value || homNayVN() }));
+  $("#hanLoai")?.addEventListener("change", hanTheoLoai);
+  $("#hanForm")?.addEventListener("submit", (e) => { e.preventDefault(); tinhHanNgay(); });
+  $("#phieuLang")?.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-lang]"); if (!b) return;
+    $("#phieuDialog").close();
+    if (state.phieuBtn) savePhieu(state.phieuBtn, b.dataset.lang);
   });
   $("#newBtn").addEventListener("click", () => { reset(); moiUsage(); });
   $("#verdictSheet").addEventListener("click", (e) => { if (e.target.id === "verdictSheet" || e.target.closest("[data-close]")) $("#verdictSheet").hidden = true; });
@@ -549,7 +547,7 @@ function reset() {
   $("#hoi").hidden = true;
   $("#hoi").innerHTML = "";
   $("#ask").disabled = false;
-  Object.assign(state, { session: null, options: [], weights: {}, active: [], round: 0, cards: { 1: {}, 2: {}, 3: {} }, replaying: false, verdict: null, links: [], speaking: null, setup: null, wait: null, chairView: null, ended: false });
+  Object.assign(state, { session: null, options: [], weights: {}, active: [], round: 0, cards: { 1: {}, 2: {}, 3: {} }, replaying: false, verdict: null, links: [], speaking: null, setup: null, wait: null, chairView: null, ended: false, usagePhien: null });
   hideWait();
   $("#stage").classList.remove("live");
   $("#topic").hidden = true;
@@ -603,7 +601,7 @@ function attach(id) {
       return;
     }
     if (ev.type === "delta") return; // seats speak from their finished cards
-    if (ev.type === "usage") return refreshUsage();
+    if (ev.type === "usage") { if (ev.phien && ev.usage) state.usagePhien = ev.usage; return refreshUsage(); }
     if (ev.type === "seat_error") return toast(`${state.byKey[ev.seat]?.short || ev.seat} gặp lỗi: ${loiVi(ev.error)}`);
     player.push(ev);
   };
@@ -1513,7 +1511,9 @@ async function replay(id) {
   try { j = await taiPhien(id); } catch (e) { toast(`Không phát lại được phiên: ${e.message}`); return; }
   begin(id);
   state.replaying = true;
-  $("#usage").textContent = ""; // a past session's tokens are not this page's
+  // a session that recorded its own usage (usage event with phien: true) shows it; older ones counted the whole server
+  state.usagePhien = [...j.events].reverse().find((e) => e.type === "usage" && e.phien && e.usage)?.usage || null;
+  refreshUsage();
   state.expectChairView = j.events.some((e) => e.type === "chair_view");
   for (const ev of j.events) {
     if (["delta", "usage", "seat_error", "end", "phieu"].includes(ev.type)) continue; // the phiếu note belongs to the live run
@@ -1614,7 +1614,7 @@ async function phienDeIn(id) {
 }
 const goiCuaPhien = (setup) => goiCua(setup?.nganh) || (setup?.seats || []).map((k) => goiCua(state.byKey[k]?.nganh?.[0])).find(Boolean) || null;
 
-async function inPdf(btn, busy, make) {
+async function inPdf(btn, busy, make, loi = "Không tạo được PDF: ") {
   btn.disabled = true;
   const old = btn.textContent;
   btn.textContent = busy;
@@ -1626,14 +1626,32 @@ async function inPdf(btn, busy, make) {
     await make({ ...p, byKey: state.byKey, tuyenBo: p.verdict.verdict?.disclaimer || g?.tuyen_bo || "", vaiTro, donVi: state.donVi || "" });
   } catch (e) {
     console.error(e);
-    toast("Không tạo được PDF: " + loiVi(e.message || e));
+    toast(loi + loiVi(e.message || e));
   } finally {
     btn.disabled = false;
     btn.textContent = old;
   }
 }
 const savePdf = (btn) => inPdf(btn, "Đang tạo PDF...", downloadVerdictPdf);
-const savePhieu = (btn) => inPdf(btn, "Đang tạo phiếu...", downloadPhieuKhach);
+const savePhieu = (btn, ngonNgu = "vi") => inPdf(btn, ngonNgu === "vi" ? "Đang tạo phiếu..." : "Đang dịch phiếu...",
+  (p) => downloadPhieuKhach({ ...p, ngonNgu, dich: (noiDung, lang) => dichPhieu(p.id, noiDung, lang) }), "Không tạo được phiếu khách: ");
+/** "Phiếu khách" asks which language first: Vietnamese is the original, the others are reference translations. */
+function chonNgonNguPhieu(btn) {
+  state.phieuBtn = btn;
+  $("#phieuLang").innerHTML = Object.entries(NGON_NGU_PHIEU).map(([k, t]) => `<button type="button" class="${k === "vi" ? "pill" : "ghost"}" data-lang="${k}" lang="${k}">${esc(t)}</button>`).join("");
+  $("#phieuDialog").showModal();
+}
+/** POST /api/dich-phieu { id, ngon_ngu, noi_dung } → { noi_dung }: the same keys as noi_dung, the strings translated. */
+async function dichPhieu(id, noiDung, ngonNgu) {
+  let r;
+  try { r = await fetch("/api/dich-phieu", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, ngon_ngu: ngonNgu, noi_dung: noiDung }) }); }
+  catch { throw new Error("Không kết nối được máy chủ để dịch phiếu"); }
+  const j = await r.json().catch(() => null);
+  if (r.status === 404 || r.status === 405) throw new Error("Máy chủ chưa có chức năng dịch phiếu. Tải bản tiếng Việt, hoặc cập nhật máy chủ rồi thử lại.");
+  if (!r.ok) throw new Error(j?.error || `Máy chủ báo lỗi ${r.status} khi dịch phiếu`);
+  if (!j?.noi_dung || typeof j.noi_dung !== "object") throw new Error("Máy chủ trả bản dịch sai định dạng");
+  return j.noi_dung;
+}
 
 // ------------------------------------------------------------- misc
 let toastTimer;
@@ -1654,15 +1672,22 @@ async function moiUsage() {
   $("#usage").textContent = "";
 }
 async function refreshUsage() {
+  if (state.usagePhien) return hienUsage(state.usagePhien, "Phiên này");
   if (state.replaying) { $("#usage").textContent = ""; return; }
   const raw = await layUsage();
   if (!raw) return;
   const base = state.usageGoc || {};
   // the server restarted (its counters went back): count from zero again
   const u = Object.fromEntries(USAGE_KEYS.map((k) => [k, (raw[k] || 0) - ((raw.calls || 0) >= (base.calls || 0) ? base[k] || 0 : 0)]));
-  if (!u.calls || state.replaying) { $("#usage").textContent = ""; return; }
+  if (!u.calls || state.replaying || state.usagePhien) { if (!state.usagePhien) $("#usage").textContent = ""; return; }
+  hienUsage(u, "Câu hỏi này");
+}
+function hienUsage(u, nhan) {
+  if (!u?.calls) { $("#usage").textContent = ""; return; }
   const k = (n) => (n >= 1e6 ? `${(n / 1e6).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} triệu` : `${Math.round(n / 1000).toLocaleString("vi-VN")} nghìn`);
-  $("#usage").textContent = `Câu hỏi này: ${u.calls} lượt gọi · ${k(u.input + u.cacheRead + u.cacheWrite)} token vào · ${k(u.output)} token ra`;
+  const vao = (u.input || 0) + (u.cacheRead || 0) + (u.cacheWrite || 0);
+  const usd = u.usd ?? u.chi_phi_usd;
+  $("#usage").textContent = `${nhan}: ${u.calls} lượt gọi · ${k(vao)} token vào · ${k(u.output || 0)} token ra${typeof usd === "number" ? ` · khoảng ${usd.toLocaleString("vi-VN", { maximumFractionDigits: 2 })} USD` : ""}`;
 }
 
 boot();

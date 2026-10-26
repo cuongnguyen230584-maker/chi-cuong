@@ -79,13 +79,6 @@ export const cauTron = (t, max = Infinity) => {
   for (const c of tachCau(t)) { if (out && out.length + 1 + c.length > max) break; out = out ? `${out} ${c}` : c; }
   return out;
 };
-const firstSentences = (t, max) => {
-  const parts = String(t || "").match(/[^.!?]+[.!?]+["”)]?\s*|[^.!?]+$/g) || [String(t || "")];
-  let out = "";
-  for (const p of parts) { if (out && (out + p).length > max) break; out += p; }
-  out = out.trim();
-  return out.length > max + 40 ? out.slice(0, max + 39).replace(/\s+\S*$/, "") + "…" : out;
-};
 
 let libReady = null;
 function loadLib() {
@@ -372,20 +365,33 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
 }
 
 // ---------------------------------------------------------------- Phiếu khách (one A4 page for the client)
-// Only what the client needs: the recommendation, what to do by when, the main conditions, the risks,
-// what a lawyer must still check, and who approved it. No scores, no internal debate, no source codes.
+// Only what the client needs: what to do today, the recommendation, what to do by when, the main conditions,
+// the risks, what a lawyer or the authority must still confirm, and who approved it. No scores, no internal
+// debate, no source codes, no seat names, no AI-room jargon. Never a sentence cut in half.
 const KHACH_THAY = [
   [/\s+(?:tại|ở|theo)\s+điều kiện(?:\s+số)?\s+\d+(?:\s+(?:và|,)\s+(?:điều kiện\s+)?\d+)*/gi, ""],
   [/người sáng lập/gi, (m) => (m[0] === "N" ? "Lãnh đạo văn phòng" : "lãnh đạo văn phòng")],
   [/\bfounder\b/gi, "lãnh đạo văn phòng"],
   [/^(?:RỦI RO KHÔNG ĐẢO NGƯỢC[^:.]*[:.]|Rủi ro không đảo ngược(?: được)? nêu trước\.)\s*/i, ""],
+  // "Phụ trách: Vận hành, Tuân thủ." names AI seats, not people in the office
+  [/[\s(]*(?:Người\s+)?[Pp]hụ trách(?:\s+chính)?\s*:\s*[^.;\n)]*\)?(?:[.;]|$)/g, " "],
+  [/,\s*(?:người thứ hai|có người|người)\s+kiểm chéo\b/gi, ""],
 ];
-const choKhach = (t) => {
+// a sentence with one of these is about how the council works, not about the client's case: it goes
+const NOI_BO_CAU = /nhãn chưa đo|gắn nhãn|dòng hồ sơ|mắt xích|kiểm chéo|(?<!\p{L})ghế(?!\p{L})|thành viên hội đồng|hội đồng(?!\s+(?:quản trị|thành viên|nhân dân|trọng tài))|Chủ to[ạa]|Chủ tọa|(?<!\p{L})vòng (?:1|2|3|mở đầu|tranh luận|bỏ phiếu)(?!\p{L})|^Chưa có số(?!\p{L})|GIẢ ĐỊNH|người phụ trách/iu;
+/** "(Tuân thủ, Vận hành)" made only of seat names goes. */
+const boTenGhe = (x, ten) => {
+  if (!ten?.length) return x;
+  const la = (s) => ten.some((n) => n.toLowerCase() === s.trim().toLowerCase());
+  return x.replace(/\s*\(([^()]*)\)/g, (m, inner) => (inner.trim() && inner.split(/\s*(?:,|;|và)\s*/).every(la) ? "" : m));
+};
+const choKhach = (t, ten = []) => {
   let x = boMaNguon(clean(t));
   for (const [re, to] of KHACH_THAY) x = x.replace(re, to);
-  return x.replace(/^\p{Ll}/u, (c) => c.toUpperCase());
+  x = tachCau(boTenGhe(x, ten)).filter((c) => !NOI_BO_CAU.test(c)).join(" ");
+  return x.replace(/[ \t]{2,}/g, " ").replace(/\s+([,.;:)])/g, "$1").trim().replace(/^\p{Ll}/u, (c) => c.toUpperCase());
 };
-const cauDauTien = (t) => (String(t || "").match(/[^.!?]+[.!?]*/) || [""])[0];
+const cauDauTien = (t) => tachCau(t)[0] || "";
 const LA_RUI_RO = /rủi ro không đảo ngược|trục xuất|cấm nhập cảnh|hình sự/i;
 const LA_KIEM_TRA = /^Đây là phân tích tham khảo\.?\s*/i;
 const LA_LUAT_SU = /(?:ý kiến|xác nhận)[^.]{0,40}luật sư|luật sư[^.]{0,40}(?:xác nhận|ý kiến)/i;
@@ -393,39 +399,52 @@ const LA_NOI_BO = /^(?:Chưa có số|GIẢ ĐỊNH)\b/i;
 // "Cổng ngành: Trong 14 ngày…" → "Trong 14 ngày…": nhãn nội bộ ngắn đầu câu không giúp gì cho khách
 const boNhanDau = (t) => String(t || "").replace(/^(?:[\p{Lu}][\p{Ll}]*)(?:\s[\p{L}]+){0,3}:\s+(?=\p{Lu})/u, "");
 const tuCua = (t) => new Set(String(t || "").toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 2));
-/** A condition that mostly repeats a next step adds nothing on a one-page sheet. */
-const lapVoi = (c, buoc) => { const w = tuCua(c); if (!w.size) return false; const b = tuCua(buoc.join(" ")); return [...w].filter((x) => b.has(x)).length / w.size > 0.6; };
+/** A line that mostly repeats lines already on the sheet adds nothing on one page. */
+const lapVoi = (c, ds) => { const w = tuCua(c); if (!w.size) return false; const b = tuCua(ds.join(" ")); return [...w].filter((x) => b.has(x)).length / w.size > 0.6; };
 
-/** The phiếu's content, as plain data (no jsPDF), so it can be tested and shown. */
-export function noiDungPhieuKhach({ setup = {}, verdict: ev = {}, tuyenBo = "" } = {}) {
+/** Seat display names of a session (for scrubbing them from the client's text). */
+export function tenCacGhe(setup = {}, byKey = {}) {
+  const keys = [...(setup.seats || []), ...Object.keys(byKey || {})];
+  return [...new Set(keys.flatMap((k) => [byKey?.[k]?.name, byKey?.[k]?.short]).filter((x) => x && String(x).length > 2))];
+}
+
+/** The phiếu's content, as plain data (no jsPDF), so it can be tested, shown and translated. */
+export function noiDungPhieuKhach({ setup = {}, verdict: ev = {}, tuyenBo = "", tenGhe = [] } = {}) {
   const v = ev.verdict || {};
-  const buoc = (v.next_steps || []).slice(0, 5).map((s) => ({ han: choKhach(s.when), viec: firstSentences(choKhach(s.action), 230) }));
+  const ck = (t) => choKhach(t, tenGhe);
+  const buoc = (v.next_steps || []).map((s) => ({ han: ck(s.when), viec: cauTron(ck(s.action), 320) })).filter((b) => b.viec).slice(0, 5);
   const conds = (v.conditions || []).map((c) => boNhanDau(String(c || "")));
   const kiemTraGoc = conds.filter((c) => !LA_NOI_BO.test(c) && (LA_KIEM_TRA.test(c) || LA_LUAT_SU.test(cauDauTien(c)) || /CẦN KIỂM TRA/.test(cauDauTien(c))));
   const ruiRoGoc = conds.filter((c) => LA_RUI_RO.test(c) && !kiemTraGoc.includes(c) && !LA_NOI_BO.test(c));
-  const ruiRo = ruiRoGoc.slice(0, 2).map((c) => firstSentences(choKhach(c), 380));
-  if (v.kill_criteria) ruiRo.push(`Điểm dừng: ${firstSentences(choKhach(v.kill_criteria), 360)}`);
+  const ruiRo = ruiRoGoc.slice(0, 2).map((c) => cauTron(ck(c), 380)).filter(Boolean);
+  if (v.kill_criteria && ck(v.kill_criteria)) ruiRo.push(`Điểm dừng: ${cauTron(ck(v.kill_criteria), 360)}`);
   const dieuKien = conds.filter((c) => !ruiRoGoc.includes(c) && !kiemTraGoc.includes(c) && !LA_NOI_BO.test(c) && !lapVoi(c, buoc.map((b) => b.viec)))
-    .slice(0, 3).map((c) => firstSentences(choKhach(c), 240));
-  const kl = v.kiem_luat || {};
+    .map((c) => cauTron(ck(c), 240)).filter(Boolean).slice(0, 3);
+  // only what the verdict's own text cites (kiem_luat_ket_luan); a law merely mentioned as repealed is not an error,
+  // and the list of every law still in force is no use to a client
+  const kl = kiemLuatKetLuan(v) || {};
+  const ai = (x) => (x && !tenGhe.some((n) => n.toLowerCase() === String(x).trim().toLowerCase()) ? ck(x) : "");
+  const xacNhan = [].concat(v.can_xac_nhan || []).map((x) => (typeof x === "string" ? ck(x) : x?.viec ? `${ck(x.viec)}${ai(x.ai) ? ` (${ai(x.ai)})` : ""}` : "")).filter(Boolean);
+  const tuDieuKien = kiemTraGoc.map((c) => cauTron(ck(String(c).replace(LA_KIEM_TRA, "")), 300)).filter((c) => c && !lapVoi(c, xacNhan));
   const canKiemTra = [
     ...(kl.het || []).map((x) => `${x.so}: đã hết hiệu lực hoặc bị thay thế, không dùng làm căn cứ.`),
-    ...(kl.ngoai || []).map((x) => `${x.so}: chưa có trong nguồn đã xác minh, CẦN KIỂM TRA.`),
-    ...((kl.con || []).length ? [`Văn bản được viện dẫn, cần kiểm lại điều, khoản và hiệu lực trước khi nộp hồ sơ: ${kl.con.map((x) => x.so).join("; ")}.`] : []),
-    ...kiemTraGoc.map((c) => firstSentences(choKhach(String(c).replace(LA_KIEM_TRA, "")), 300)),
+    ...(kl.ngoai || []).map((x) => `${x.so}: chưa có trong nguồn đã đối chiếu, luật sư cần kiểm tra trước khi dùng.`),
+    ...xacNhan,
+    ...tuDieuKien,
   ].filter(Boolean);
   const duBao = [].concat(v.du_bao || []).filter((d) => d && d.ket_qua)
-    .map((d) => `${choKhach(d.ket_qua)}: khả năng ${soVi(d.xac_suat)}%${d.han ? ` (xem lại ${choKhach(d.han)})` : ""}.`);
+    .map((d) => `${ck(d.ket_qua).replace(/[.。]+$/, "")}: khả năng ${soVi(d.xac_suat)}%${d.han ? ` (xem lại ${ck(d.han)})` : ""}.`);
   const o = (setup.options || []).find((x) => x.id === v.recommended);
   const label = String(v.label || "").toUpperCase();
   return {
-    tieuDe: choKhach(setup.title || "Phiếu tư vấn"),
+    tieuDe: ck(setup.title || "Phiếu tư vấn") || "Phiếu tư vấn",
     nhan: VERDICT_VI[label] || label,
     nhanGoc: label,
-    phuongAn: o ? `Phương án ${o.id}: ${choKhach(o.label)}` : "",
+    lamNgay: v.lam_ngay ? cauTron(ck(v.lam_ngay), 260) : "",
+    phuongAn: o ? `Phương án ${o.id}: ${ck(o.label)}` : "",
     // "Chọn phương án A: <the option's label>. …" repeats the line above it: start at what follows
     khuyenNghi: (() => {
-      const call = choKhach(v.call), dau = cauDauTien(call);
+      const call = ck(v.call), dau = cauDauTien(call);
       const chu = (t) => String(t || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
       const nhac = o && chu(dau).includes(chu(o.label).slice(0, 30));
       return nhac && call.length > dau.length + 20 ? call.slice(dau.length).trim() : call;
@@ -439,31 +458,102 @@ export function noiDungPhieuKhach({ setup = {}, verdict: ev = {}, tuyenBo = "" }
   };
 }
 
-export async function downloadPhieuKhach({ setup, verdict, id, tuyenBo = "", donVi = "" }) {
+// ---------------------------------------------------------------- the phiếu in the client's language
+// POST /api/dich-phieu { id, ngon_ngu, noi_dung } → { noi_dung }: noi_dung is phieuDeDich(…) below, and the
+// answer carries the same keys with translated strings. Fixed labels are translated here, not by the model.
+export const NGON_NGU_PHIEU = { vi: "Tiếng Việt", en: "English", zh: "中文", ko: "한국어" };
+const NHAN_PHIEU = {
+  vi: {
+    tieuDe: "PHIẾU TƯ VẤN", guiKhach: "Tài liệu gửi khách", khuyenNghi: "KHUYẾN NGHỊ", lamNgay: "Làm ngay",
+    buoc: "Việc cần làm và hạn", dieuKien: "Điều kiện chính", ruiRo: "Rủi ro cần lưu ý", kiemTra: "CẦN KIỂM TRA trước khi nộp hồ sơ", duBao: "Dự báo",
+    nguoiDuyet: "Người duyệt", ngay: "Ngày", ai: ["Nội dung do AI hỗ trợ soạn,", "đã", "chưa được người có thẩm quyền duyệt."], chan: "Hội đồng chuyên gia · Phiếu khách",
+    banDich: "", nhan: VERDICT_VI,
+  },
+  en: {
+    tieuDe: "ADVICE SHEET", guiKhach: "Client copy", khuyenNghi: "RECOMMENDATION", lamNgay: "Do today",
+    buoc: "Next steps and deadlines", dieuKien: "Key conditions", ruiRo: "Risks to note", kiemTra: "TO BE CONFIRMED before filing", duBao: "Forecast",
+    nguoiDuyet: "Approved by", ngay: "Date", ai: ["Drafted with AI assistance;", "has", "has not been reviewed by an authorised person."], chan: "Hội đồng chuyên gia · Client sheet",
+    banDich: "Reference translation; the Vietnamese version is the original.",
+    nhan: { "GO": "PROCEED", "GO WITH CONDITIONS": "PROCEED WITH CONDITIONS", "RESHAPE": "REVISE THE PLAN", "WAIT": "WAIT", "DON'T DO IT": "DO NOT PROCEED" },
+  },
+  zh: {
+    tieuDe: "咨询意见书", guiKhach: "致客户文件", khuyenNghi: "建议", lamNgay: "今日须办",
+    buoc: "后续事项与期限", dieuKien: "主要条件", ruiRo: "需注意的风险", kiemTra: "提交前须核实事项", duBao: "预测",
+    nguoiDuyet: "审核人", ngay: "日期", ai: ["本内容由AI辅助起草，", "已经", "未经有权人员审核。"], chan: "Hội đồng chuyên gia · 客户意见书",
+    banDich: "参考译文；以越南语版本为准。",
+    nhan: { "GO": "可以推进", "GO WITH CONDITIONS": "有条件推进", "RESHAPE": "调整方案", "WAIT": "暂缓", "DON'T DO IT": "不建议进行" },
+  },
+  ko: {
+    tieuDe: "자문 의견서", guiKhach: "고객 송부용", khuyenNghi: "권고", lamNgay: "오늘 할 일",
+    buoc: "다음 단계와 기한", dieuKien: "주요 조건", ruiRo: "유의할 위험", kiemTra: "제출 전 확인 필요 사항", duBao: "전망",
+    nguoiDuyet: "검토자", ngay: "날짜", ai: ["AI의 도움으로 작성된 내용입니다.", "권한 있는 담당자 검토 완료", "미검토"], chan: "Hội đồng chuyên gia · 고객 의견서",
+    banDich: "참고용 번역본이며, 베트남어 원본이 우선합니다.",
+    nhan: { "GO": "진행", "GO WITH CONDITIONS": "조건부 진행", "RESHAPE": "방안 조정", "WAIT": "보류", "DON'T DO IT": "진행 불가" },
+  },
+};
+export const nhanPhieu = (lang) => NHAN_PHIEU[lang] || NHAN_PHIEU.vi;
+const BAN_GOC_VI = "Bản dịch tham khảo; bản tiếng Việt là bản gốc.";
+
+/** What goes to the translator: every text field of the phiếu, nothing the page computes itself. */
+export function phieuDeDich(d) {
+  const { nhan, nhanGoc, ...rest } = d;
+  return rest;
+}
+/** Lay the server's translation over the Vietnamese content: same keys, same order; a missing string keeps the Vietnamese. */
+export function ghepBanDich(goc, dich) {
+  const s = (a, b) => (typeof b === "string" && b.trim() ? b.trim() : a);
+  const arr = (a = [], b) => a.map((x, i) => s(x, Array.isArray(b) ? b[i] : undefined));
+  const out = {
+    ...goc,
+    tieuDe: s(goc.tieuDe, dich?.tieuDe), lamNgay: s(goc.lamNgay, dich?.lamNgay), phuongAn: s(goc.phuongAn, dich?.phuongAn), khuyenNghi: s(goc.khuyenNghi, dich?.khuyenNghi),
+    buoc: goc.buoc.map((b, i) => ({ han: s(b.han, dich?.buoc?.[i]?.han), viec: s(b.viec, dich?.buoc?.[i]?.viec) })),
+    dieuKien: arr(goc.dieuKien, dich?.dieuKien), ruiRo: arr(goc.ruiRo, dich?.ruiRo), canKiemTra: arr(goc.canKiemTra, dich?.canKiemTra), duBao: arr(goc.duBao, dich?.duBao),
+    tuyenBo: s(goc.tuyenBo, dich?.tuyenBo),
+  };
+  if (JSON.stringify(phieuDeDich(out)) === JSON.stringify(phieuDeDich(goc))) throw new Error("Máy chủ trả về bản dịch rỗng");
+  return out;
+}
+
+/** `ngonNgu`: vi | en | zh | ko. `dich(noiDung, ngonNgu)` returns the translated content (app.js calls /api/dich-phieu). */
+export async function downloadPhieuKhach({ setup, verdict, id, tuyenBo = "", donVi = "", byKey = {}, ngonNgu = "vi", dich = null }) {
+  const lang = NHAN_PHIEU[ngonNgu] ? ngonNgu : "vi";
+  const L = nhanPhieu(lang);
+  let d = noiDungPhieuKhach({ setup, verdict, tuyenBo, tenGhe: tenCacGhe(setup, byKey) });
+  if (lang !== "vi") {
+    if (!dich) throw new Error("Chưa có chức năng dịch phiếu");
+    d = ghepBanDich(d, await dich(phieuDeDich(d), lang));
+  }
+  d.nhan = L.nhan[d.nhanGoc] || d.nhan;
+  const ngay = ngayPhien(verdict, id);
+
   await loadLib();
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "a4", compress: true });
-  await addFonts(doc);
+  let FAM = "Montserrat";
+  if (CJK_FONT[lang]) FAM = await addCjkFonts(doc, lang);
+  else await addFonts(doc);
+  const sty = (style) => (FAM === "Montserrat" ? style : style === "normal" ? "normal" : "bold");
   const logo = "data:image/png;base64," + (await fetchBase64("/brand/logo.png"));
-  const d = noiDungPhieuKhach({ setup, verdict, tuyenBo });
   const W = 595.28, H = 841.89, M = 46, CW = W - M * 2;
+  const note = L.banDich ? `${L.banDich} · ${BAN_GOC_VI}` : "";
 
-  // Lay the page out at scale `s` and trim level `lv`; with draw=false it only measures. Returns the bottom y.
+  // Lay the page out at scale `s` and trim level `lv` (0 = everything, 4 = the essentials); with draw=false it
+  // only measures. Trimming drops whole sentences and whole lines, never part of a sentence. Returns the bottom y.
   const ve = (s, lv, draw) => {
     let y = M;
-    const font = (size, style = "normal", color = C.ink) => { doc.setFont("Montserrat", style); doc.setFontSize(size); doc.setTextColor(...color); };
+    const font = (size, style = "normal", color = C.ink) => { doc.setFont(FAM, sty(style)); doc.setFontSize(size); doc.setTextColor(...color); };
     const split = (t, w, size, style = "normal") => { font(size, style); return doc.splitTextToSize(String(t || ""), w); };
     const lh = (size) => size * 1.36;
     const text = (ls, x, yy, size, style, color, opt = {}) => { if (draw) { font(size, style, color); doc.text(ls, x, yy, { lineHeightFactor: 1.36, ...opt }); } };
-    const cut = (t, n) => (lv ? firstSentences(t, n) : t);
+    const cut = (t, n) => (lv === 0 ? t : cauTron(t, lv >= 3 ? 0 : lv === 2 ? n * 0.75 : n));
     const sz = (n) => n * s;
 
     // header
     if (draw) doc.addImage(logo, "PNG", M, y - 2, 26, 26, "logo", "SLOW");
     // tên đơn vị phát hành phiếu (TEN_DON_VI trong .env), cạnh logo
     if (donVi) text(split(donVi, CW / 2 - 40, 8.5, "semibold"), M + 34, y + 8, 8.5, "semibold", C.ink);
-    text("PHIẾU TƯ VẤN", W - M, y + 9, sz(12), "bold", C.ink, { align: "right" });
-    text(`Tài liệu gửi khách · ${dateLine(null)}`, W - M, y + 21, 8, "normal", C.mute, { align: "right" });
+    text(L.tieuDe, W - M, y + 9, sz(12), "bold", C.ink, { align: "right" });
+    text(`${L.guiKhach} · ${ngay}`, W - M, y + 21, 8, "normal", C.mute, { align: "right" });
     y += 32;
     if (draw) { doc.setDrawColor(...C.ink); doc.setLineWidth(1); doc.line(M, y, W - M, y); }
     y += sz(14);
@@ -471,29 +561,40 @@ export async function downloadPhieuKhach({ setup, verdict, id, tuyenBo = "", don
     text(tl, M, y + sz(15), sz(17), "bold", C.ink);
     y += tl.length * lh(sz(17)) + sz(6);
 
-    // the recommendation
+    // the recommendation, led by what to do today
+    const lam = d.lamNgay ? split(`${L.lamNgay}: ${cut(d.lamNgay, 200)}`, CW - 28, sz(10.5), "bold") : [];
     const call = split(cut(d.khuyenNghi, 260), CW - 28, sz(10), "normal");
     const pa = d.phuongAn ? split(d.phuongAn, CW - 28, sz(10.5), "semibold") : [];
-    const boxH = sz(14) + sz(22) + sz(8) + pa.length * lh(sz(10.5)) + (pa.length ? sz(3) : 0) + call.length * lh(sz(10)) + sz(12);
+    const boxH = sz(14) + sz(22) + sz(8) + lam.length * lh(sz(10.5)) + (lam.length ? sz(4) : 0) + pa.length * lh(sz(10.5)) + (pa.length ? sz(3) : 0) + call.length * lh(sz(10)) + sz(12);
     if (draw) {
       doc.setFillColor(...C.tint); doc.roundedRect(M, y, CW, boxH, 8, 8, "F");
       font(sz(11), "bold");
       const bw = doc.getTextWidth(d.nhan) + 18;
       doc.setFillColor(...labelColor(d.nhanGoc)); doc.roundedRect(M + 14, y + sz(12), bw, sz(22), 5, 5, "F");
       font(sz(11), "bold", C.ink); doc.text(d.nhan, M + 14 + 9, y + sz(12) + sz(15));
-      font(7.5, "semibold", C.mute); doc.setCharSpace(1.1); doc.text("KHUYẾN NGHỊ", M + 14 + bw + 10, y + sz(12) + sz(14)); doc.setCharSpace(0);
+      font(7.5, "semibold", C.mute); doc.setCharSpace(FAM === "Montserrat" ? 1.1 : 0); doc.text(L.khuyenNghi, M + 14 + bw + 10, y + sz(12) + sz(14)); doc.setCharSpace(0);
     }
     let by = y + sz(14) + sz(22) + sz(8);
+    if (lam.length) {
+      if (draw) { doc.setFillColor(...C.accent); doc.rect(M + 14, by + sz(1), 2.5, lam.length * lh(sz(10.5)) - sz(2), "F"); }
+      text(lam, M + 22, by + sz(10), sz(10.5), "bold", C.ink);
+      by += lam.length * lh(sz(10.5)) + sz(4);
+    }
     text(pa, M + 14, by + sz(10), sz(10.5), "semibold", C.ink);
     by += pa.length * lh(sz(10.5)) + (pa.length ? sz(3) : 0);
     text(call, M + 14, by + sz(9.5), sz(10), "normal", C.soft);
-    y += boxH + sz(10);
+    y += boxH + sz(4);
+    const ghiChu = () => { if (!note) return; const nl = split(note, CW - 10, sz(7), "normal"); text(nl, M + 10, y + sz(7), sz(7), "normal", C.mute); y += nl.length * lh(sz(7)) + sz(2); };
+    ghiChu();
+    y += sz(6);
 
     const head = (t) => {
       y += sz(6);
       if (draw) { doc.setFillColor(...C.accent); doc.rect(M, y + 1, 3, sz(11), "F"); }
       text(t, M + 10, y + sz(10), sz(10.5), "bold", C.ink);
-      y += sz(17);
+      y += sz(15);
+      ghiChu();
+      y += sz(2);
     };
     const item = (lead, body, mark) => {
       const pre = lead ? `${lead}: ` : "";
@@ -510,7 +611,7 @@ export async function downloadPhieuKhach({ setup, verdict, id, tuyenBo = "", don
         return;
       }
       const first = split(body, CW - ind - pw, sz(9.5));
-      const rest = first.length > 1 ? split(first.slice(1).join(" "), CW - ind, sz(9.5)) : [];
+      const rest = first.length > 1 ? split(first.slice(1).join(FAM === "Montserrat" || lang === "ko" ? " " : ""), CW - ind, sz(9.5)) : [];
       if (draw) mark(y);
       if (pre) text(pre, M + ind, y + sz(9.5), sz(9.5), "semibold", C.ink);
       text(first[0] || "", M + ind + pw, y + sz(9.5), sz(9.5), "normal", C.soft);
@@ -520,52 +621,52 @@ export async function downloadPhieuKhach({ setup, verdict, id, tuyenBo = "", don
     const dot = (yy) => { doc.setFillColor(...C.accent); doc.circle(M + 4, yy + sz(6), 1.9, "F"); };
     const num = (n) => (yy) => { font(sz(9), "bold", C.accent); doc.text(`${n}.`, M + 1, yy + sz(9.5)); };
 
-    const nBuoc = [5, 4, 3][lv], nDk = [3, 2, 2][lv], nRr = [3, 3, 2][lv], nKt = [6, 4, 3][lv];
-    if (d.buoc.length) { head("Việc cần làm và hạn"); d.buoc.slice(0, Math.max(3, nBuoc)).forEach((b, i) => item(b.han, cut(b.viec, 170), num(i + 1))); }
-    if (d.dieuKien.length) { head("Điều kiện chính"); d.dieuKien.slice(0, nDk).forEach((t) => item("", cut(t, 170), dot)); }
-    if (d.ruiRo.length) { head("Rủi ro cần lưu ý"); d.ruiRo.slice(-nRr).forEach((t) => item("", cut(t, 190), dot)); }
-    if (d.canKiemTra.length) { head("CẦN KIỂM TRA trước khi nộp hồ sơ"); d.canKiemTra.slice(0, nKt).forEach((t) => item("", cut(t, 220), dot)); }
-    if (d.duBao.length) { head("Dự báo"); d.duBao.slice(0, 2).forEach((t) => item("", t, dot)); }
+    const nBuoc = [5, 5, 4, 3, 3][lv], nDk = [3, 2, 2, 1, 0][lv], nRr = [3, 3, 2, 2, 1][lv], nKt = [6, 5, 4, 3, 2][lv], nDb = [2, 2, 1, 1, 0][lv];
+    if (d.buoc.length) { head(L.buoc); d.buoc.slice(0, nBuoc).forEach((b, i) => item(b.han, cut(b.viec, 170), num(i + 1))); }
+    if (d.dieuKien.length && nDk) { head(L.dieuKien); d.dieuKien.slice(0, nDk).forEach((t) => item("", cut(t, 170), dot)); }
+    if (d.ruiRo.length) { head(L.ruiRo); d.ruiRo.slice(-nRr).forEach((t) => item("", cut(t, 190), dot)); }
+    if (d.canKiemTra.length) { head(L.kiemTra); d.canKiemTra.slice(0, nKt).forEach((t) => item("", cut(t, 220), dot)); }
+    if (d.duBao.length && nDb) { head(L.duBao); d.duBao.slice(0, nDb).forEach((t) => item("", t, dot)); }
 
     // approval: a person signs off before this goes to the client
     y += sz(12);
     if (draw) { doc.setDrawColor(...C.rule); doc.setLineWidth(0.75); doc.line(M, y, W - M, y); }
     y += sz(16);
-    text("Người duyệt: ______________________________", M, y, sz(10), "semibold", C.ink);
-    text("Ngày: ____ / ____ / ________", W - M, y, sz(10), "semibold", C.ink, { align: "right" });
+    text(`${L.nguoiDuyet}: ______________________________`, M, y, sz(10), "semibold", C.ink);
+    text(`${L.ngay}: ____ / ____ / ________`, W - M, y, sz(10), "semibold", C.ink, { align: "right" });
     y += sz(18);
     font(sz(9), "normal");
-    const t1 = "Nội dung do AI hỗ trợ soạn,", t2 = "đã", t3 = "chưa được người có thẩm quyền duyệt.";
+    const [t1, t2, t3] = L.ai;
     let x = M;
     text(t1, x, y, sz(9), "normal", C.soft); x += doc.getTextWidth(t1) + 8;
     const box = (xx) => { if (draw) { doc.setDrawColor(...C.soft); doc.setLineWidth(0.8); doc.rect(xx, y - sz(7.5), sz(8), sz(8)); } return xx + sz(8) + 4; };
-    x = box(x); text(t2, x, y, sz(9), "normal", C.soft); x += doc.getTextWidth(t2) + 4 + 6;
-    text("/", x, y, sz(9), "normal", C.mute); x += doc.getTextWidth("/") + 6;
+    x = box(x); text(t2, x, y, sz(9), "normal", C.soft); font(sz(9), "normal"); x += doc.getTextWidth(t2) + 4 + 6;
+    text("/", x, y, sz(9), "normal", C.mute); font(sz(9), "normal"); x += doc.getTextWidth("/") + 6;
     x = box(x); text(t3, x, y, sz(9), "normal", C.soft);
     y += sz(10);
     return y;
   };
 
   // the footer (the pack's disclaimer) sits at the bottom; the content must end above it
-  doc.setFont("Montserrat", "normal"); doc.setFontSize(7.5);
+  doc.setFont(FAM, "normal"); doc.setFontSize(7.5);
   const foot = doc.splitTextToSize(d.tuyenBo, CW);
   const footTop = H - 30 - foot.length * 10;
   let pick = null;
-  for (const lv of [0, 1, 2]) {
-    for (const s of [1, 0.94, 0.88, 0.82, 0.76]) if (ve(s, lv, false) <= footTop - 8) { pick = { s, lv }; break; }
+  for (const lv of [0, 1, 2, 3, 4]) {
+    for (const s of [1, 0.94, 0.88, 0.82, 0.76, 0.7]) if (ve(s, lv, false) <= footTop - 8) { pick = { s, lv }; break; }
     if (pick) break;
   }
-  pick ||= { s: 0.72, lv: 2 };
+  pick ||= { s: 0.66, lv: 4 };
   ve(pick.s, pick.lv, true);
   doc.setDrawColor(...C.rule); doc.setLineWidth(0.75); doc.line(M, footTop, W - M, footTop);
-  doc.setFont("Montserrat", "normal"); doc.setFontSize(7.5); doc.setTextColor(...C.mute);
+  doc.setFont(FAM, "normal"); doc.setFontSize(7.5); doc.setTextColor(...C.mute);
   doc.text(foot, M, footTop + 12, { lineHeightFactor: 1.33 });
-  doc.setFont("Montserrat", "semibold");
-  doc.text("Hội đồng chuyên gia · Phiếu khách", W - M, H - 18, { align: "right" });
+  doc.setFont(FAM, sty("semibold"));
+  doc.text(L.chan, W - M, H - 18, { align: "right" });
   // never more than one page
   while (doc.getNumberOfPages() > 1) doc.deletePage(doc.getNumberOfPages());
 
-  const name = `Phieu khach - ${String(setup.title || id || "phieu").replace(/[\\/:*?"<>|]+/g, "").slice(0, 80)}.pdf`;
+  const name = `Phieu khach${lang === "vi" ? "" : ` (${lang.toUpperCase()})`} - ${String(setup.title || id || "phieu").replace(/[\\/:*?"<>|]+/g, "").slice(0, 80)}.pdf`;
   doc.save(name);
-  return { name, scale: pick.s, level: pick.lv };
+  return { name, scale: pick.s, level: pick.lv, ngonNgu: lang, ngay };
 }
