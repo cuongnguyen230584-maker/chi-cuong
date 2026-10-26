@@ -99,11 +99,23 @@ export function chiMucLuat(slugs, dir = BRAINS_DIR) {
   return idx;
 }
 
-/** Kết quả dò một đoạn chữ: văn bản đã xác minh còn hiệu lực, đã hết hiệu lực, và ngoài nguồn / chưa rõ. */
+// Nhắc một văn bản để nói nó đã hết hiệu lực ("NĐ 09/2018 đã bị thay bằng NĐ 342/2026") là dùng đúng,
+// không phải viện dẫn làm căn cứ: mọi lần xuất hiện của số hiệu đều có chữ phủ định ở gần thì không gắn cờ.
+const PHU_DINH = /hết hiệu lực|bị thay|đã thay|thay thế|thay bằng|bãi bỏ|không còn hiệu lực|không dùng|không được dùng|hết tác dụng/i;
+function chiNhacLaHet(text, so) {
+  const t = String(text ?? "").normalize("NFC");
+  const goc = so.split("/").slice(0, 2).join("/");
+  const lan = [...t.matchAll(new RegExp(`(?<![\\d/])${goc.replace("/", "\\/")}(?![\\d])`, "g"))];
+  return lan.length > 0 && lan.every((m) => PHU_DINH.test(t.slice(Math.max(0, m.index - 40), m.index + goc.length + 90)));
+}
+
+/** Kết quả dò một đoạn chữ: văn bản đã xác minh còn hiệu lực, đã hết hiệu lực (viện dẫn làm căn cứ), chỉ được
+ * nhắc là đã hết hiệu lực (nhac_het, không phải lỗi), và ngoài nguồn / chưa rõ. */
 export function kiemLuat(text, idx) {
-  const r = { con: [], het: [], ngoai: [] };
+  const r = { con: [], het: [], ngoai: [], nhac_het: [] };
   const xep = (so, x) => {
     if (!x) r.ngoai.push({ so });
+    else if (x.trang_thai === "het" && chiNhacLaHet(text, so)) r.nhac_het.push({ so, ten: x.ten, nguon: x.nguon });
     else if (x.trang_thai === "het") r.het.push({ so, ten: x.ten, nguon: x.nguon });
     else if (!x.trang_thai) r.ngoai.push({ so, ten: x.ten, nguon: x.nguon, chua_ro: true });
     else r.con.push({ so, ten: x.ten, nguon: x.nguon });
@@ -121,8 +133,8 @@ export function kiemLuat(text, idx) {
 
 /** Gộp nhiều kết quả dò (các thẻ, kết luận) thành một, không trùng số hiệu. */
 export function gopKiemLuat(list) {
-  const r = { con: [], het: [], ngoai: [] };
-  for (const k of list.filter(Boolean)) for (const loai of ["con", "het", "ngoai"]) for (const x of k[loai] || []) if (!r[loai].some((y) => y.so === x.so)) r[loai].push(x);
+  const r = { con: [], het: [], ngoai: [], nhac_het: [] };
+  for (const k of list.filter(Boolean)) for (const loai of ["con", "het", "ngoai", "nhac_het"]) for (const x of k[loai] || []) if (!r[loai].some((y) => y.so === x.so)) r[loai].push(x);
   return r;
 }
 

@@ -41,7 +41,7 @@ export function chamPhien(ca, phien) {
     else diem++;
   }
   const kiemTra = [
-    ["không dẫn văn bản hết hiệu lực", !(v.kiem_luat?.het?.length)],
+    ["kết luận không dẫn văn bản hết hiệu lực", !((v.kiem_luat_ket_luan || v.kiem_luat)?.het?.length)],
     ["không có mã S0xx trần trong kết luận", !/\bS\d{3}\b(?!:)/.test(chu.replace(/[^()]*?\d+\/\d{4}[^()]*?\(S\d{3}[^)]*\)/g, ""))],
     ["có dự báo xác suất", Boolean(v.du_bao?.ket_qua && Number.isFinite(v.du_bao.xac_suat))],
     ["hướng ghế nêu thêm đều có lý do", (v.huong_ghe_neu || []).every((h) => h.ly_do && h.ly_do.length > 10)],

@@ -66,3 +66,15 @@ test("thẻ tự mâu thuẫn và máy dò số bỏ qua viện dẫn luật", a
   assert.deepEqual(theMauThuan(st, 2), [{ seat: "tuanthu", chon: "A", cao_nhat: "D" }]);
   assert.deepEqual(soTrong("Theo NĐ 282/2025/NĐ-CP Điều 21 khoản 3, Luật Đầu tư 143/2025, DN1 sang ĐT3, phạt 30 triệu").map((x) => x.so), ["30 triệu"]);
 });
+
+test("nhắc văn bản là đã bị thay thì không bị coi là viện dẫn", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kl3-"));
+  fs.mkdirSync(path.join(dir, "fdi"));
+  fs.writeFileSync(path.join(dir, "fdi", "sources.md"), "- S018 | Nghị định 09/2018/NĐ-CP | u | | | TÌNH TRẠNG: hết hiệu lực từ 18/10/2026 | k\n");
+  const idx = chiMucLuat(["fdi"], dir);
+  const a = kiemLuat("Nghị định 09/2018/NĐ-CP đã bị thay bằng Nghị định 342/2026/NĐ-CP từ 18/10/2026.", idx);
+  assert.equal(a.het.length, 0);
+  assert.equal(a.nhac_het[0]?.so, "09/2018/NĐ-CP");
+  const b = kiemLuat("Xin giấy phép bán lẻ theo Nghị định 09/2018/NĐ-CP, Điều 5.", idx);
+  assert.equal(b.het[0]?.so, "09/2018/NĐ-CP");
+});

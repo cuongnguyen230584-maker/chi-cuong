@@ -34,7 +34,7 @@ You never argue a side and never add your own pillar. You run the room and keep 
 // Kèm cảnh báo của máy kiểm điều luật (văn bản hết hiệu lực hoặc ngoài nguồn đã xác minh) tính tới vòng vừa xong.
 const luatNganh = (st) => (st.goi?.luat_nganh ? `\n\nLUẬT NGÀNH (${st.goi.ten}), BẮT BUỘC:\n${st.goi.luat_nganh}` : "") + (st.luatIdx && canhBaoLuat(tongKiemLuat(st)) ? `\n\n${canhBaoLuat(tongKiemLuat(st))}` : "");
 /** Kết quả kiểm điều luật gộp qua mọi thẻ đã có. */
-export const tongKiemLuat = (st) => gopKiemLuat([1, 2, 3].flatMap((r) => Object.values(st.cards?.[r] || {}).map((c) => c.kiem_luat)));
+export const tongKiemLuat = (st) => gopKiemLuat([st.kiemDeBai, ...[1, 2, 3].flatMap((r) => Object.values(st.cards?.[r] || {}).map((c) => c.kiem_luat))]);
 /** Lời miễn trừ của phiên: theo gói ngành, mặc định là lời của bản gốc. */
 export const tuyenBo = (st) => st?.goi?.tuyen_bo || DISCLAIMER;
 
@@ -512,6 +512,8 @@ async function run(s) {
     for (const k of full) if (st.seats.length < 4 && !st.seats.includes(k)) st.seats.push(k);
   }
   st.board = st.seats.slice(); // later Chair calls only see the seats at the table
+  // đề bài của Chủ toạ cũng được kiểm: văn bản hết hiệu lực ở đây được cảnh báo cho mọi ghế ngay từ vòng 1
+  if (st.luatIdx) st.kiemDeBai = kiemLuat([st.decision, st.brief, ...st.options.map((o) => o.label), ...(st.assumptions || [])].join("\n"), st.luatIdx);
   emit(s, "setup", { title: st.title, decision: st.decision, brief: st.brief, options: st.options, assumptions: st.assumptions, weights: st.weights, seats: st.seats, mode: s.mode, nganh: g.key, chair });
 
   emit(s, "phase", { phase: "round1", label: "Vòng 1: quan điểm mở đầu" });
@@ -560,7 +562,11 @@ async function run(s) {
   }
   st.verdict = { ...v, recommended, scores: finalScores, spread: spreadF, confidence, support, votes, disclaimer: tuyenBo(st) };
   st.verdict.kiem_so = kiemSo({ dauVao: dauVaoSo(st), soLieu: v.so_lieu, cacBan: cacBanSo(st.verdict, st), vanBan: vanBanKetLuan(v) });
-  if (st.luatIdx) st.verdict.kiem_luat = gopKiemLuat([tongKiemLuat(st), kiemLuat(vanBanKetLuan(v), st.luatIdx)]);
+  if (st.luatIdx) {
+    // kiem_luat: mọi chỗ trong phiên (đề bài, thẻ, kết luận); kiem_luat_ket_luan: chỉ chữ của kết luận
+    st.verdict.kiem_luat_ket_luan = kiemLuat(vanBanKetLuan(v), st.luatIdx);
+    st.verdict.kiem_luat = gopKiemLuat([tongKiemLuat(st), st.verdict.kiem_luat_ket_luan]);
+  }
   st.verdict.a_dua = chiSoADua(st);
   if (st.verdict.du_bao) st.verdict.du_bao.xac_suat = Math.max(0, Math.min(100, Math.round(Number(st.verdict.du_bao.xac_suat) || 0)));
   emit(s, "verdict", { verdict: st.verdict, seats: verdictSeats(st, last) });
