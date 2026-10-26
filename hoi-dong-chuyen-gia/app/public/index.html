@@ -28,8 +28,8 @@
       <li data-step="verdict">Kết luận</li>
     </ol>
     <div class="top-actions">
-      <span class="usage" id="usage" title="Số lượt gọi và token AI đã dùng cho câu hỏi đang mở"></span>
-      <button class="ghost" id="hanBtn" type="button" title="Tính hạn giải quyết theo ngày làm việc, trừ cuối tuần và ngày lễ">Tính hạn</button>
+      <span class="usage" id="usage" title="Số lượt gọi và token AI của phiên đang xem"></span>
+      <button class="ghost" id="hanBtn" type="button" title="Tính hạn giải quyết hồ sơ, hạn thủ tục, hoặc ngày cuối được ở theo thị thực">Tính hạn</button>
       <button class="ghost" id="historyBtn" type="button">Phiên cũ</button>
       <button class="ghost" id="newBtn" type="button" hidden>Câu hỏi mới</button>
     </div>
@@ -136,14 +136,21 @@
 
   <dialog id="hanDialog" class="card-dialog">
     <h3>Tính hạn</h3>
-    <p class="muted">Hạn giải quyết hồ sơ tính từ ngày nhận đủ hồ sơ hợp lệ. Ngày làm việc trừ thứ Bảy, Chủ nhật và ngày lễ.</p>
+    <p class="muted" id="hanMoTa">Hạn giải quyết hồ sơ tính từ ngày nhận đủ hồ sơ hợp lệ. Ngày làm việc trừ thứ Bảy, Chủ nhật và ngày lễ.</p>
     <form id="hanForm" class="han-form">
-      <label>Ngày nhận đủ hồ sơ <input id="hanTu" placeholder="dd/mm/yyyy" inputmode="numeric" required></label>
+      <label>Loại hạn <select id="hanLoai"><option value="lam-viec">Ngày làm việc (hạn giải quyết hồ sơ)</option><option value="lich">Ngày lịch (hạn thủ tục, lùi khi rơi vào ngày nghỉ)</option><option value="luu-tru">Hạn lưu trú/thị thực (không lùi theo ngày nghỉ)</option></select></label>
+      <label><span id="hanTuNhan">Ngày nhận đủ hồ sơ hợp lệ</span> <input id="hanTu" placeholder="dd/mm/yyyy" inputmode="numeric" required></label>
       <label>Số ngày <input id="hanSo" type="number" min="0" max="3650" value="5" required></label>
-      <label>Loại ngày <select id="hanLoai"><option value="lam-viec">Ngày làm việc</option><option value="lich">Ngày lịch</option></select></label>
       <button class="convene" type="submit">Tính</button>
     </form>
     <div id="hanKetQua" class="han-kq" aria-live="polite"></div>
+    <form method="dialog"><button class="ghost">Đóng</button></form>
+  </dialog>
+
+  <dialog id="phieuDialog" class="card-dialog phieu-dialog" aria-labelledby="phieuTitle">
+    <h3 id="phieuTitle">Phiếu khách</h3>
+    <p class="muted">Chọn ngôn ngữ của phiếu. Bản tiếng Việt là bản gốc; bản dịch do máy chủ dịch, mỗi mục ghi rõ là bản dịch tham khảo. Người duyệt đọc lại trước khi gửi khách.</p>
+    <div class="lang-pick" id="phieuLang" role="group" aria-label="Ngôn ngữ của phiếu"></div>
     <form method="dialog"><button class="ghost">Đóng</button></form>
   </dialog>
 

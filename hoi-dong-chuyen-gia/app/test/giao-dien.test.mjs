@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { soVi, boMaNguon, soChuaNguonThat, noiDungPhieuKhach, TUYEN_BO_CHUNG } from "../public/pdf.js";
+import { soVi, boMaNguon, soChuaNguonThat, noiDungPhieuKhach, TUYEN_BO_CHUNG, ngayPhien, kiemLuatKetLuan, cauTron, phieuDeDich, ghepBanDich, nhanPhieu, NGON_NGU_PHIEU, CJK_FONT_URLS, tenCacGhe } from "../public/pdf.js";
 
 const PUB = new URL("../public/", import.meta.url);
 const doc = (f) => readFileSync(new URL(f, PUB), "utf8");
@@ -31,6 +31,7 @@ test("soChuaNguonThat: bỏ báo nhầm ở số hiệu văn bản, số điều
     { so: "34", doan: "…theo địa giới 34 tỉnh sau sắp xếp…" },
     { so: "4", doan: "…Điều 7, khoản 4). Khách chưa…" },
     { so: "15", doan: "…tỷ lệ hồ sơ bị trả lại khoảng 15 hồ sơ mỗi tháng…" },
+    { so: "37", doan: "…Điều 7, 8 và 37 Luật 47/2014/QH13…" },
   ];
   assert.deepEqual(soChuaNguonThat(ds).map((x) => x.so), ["15"]);
   assert.deepEqual(soChuaNguonThat(undefined), []);
@@ -83,7 +84,7 @@ test("noiDungPhieuKhach: khuyến nghị, 3–5 bước có hạn, rủi ro, vi�
   assert.ok(!p.ruiRo.join(" ").startsWith("Rủi ro không đảo ngược được nêu trước"));
   assert.deepEqual(p.dieuKien, ["Văn phòng không hỗ trợ phương án C."]);
   assert.ok(p.canKiemTra.some((x) => x.startsWith("144/2021/NĐ-CP: đã hết hiệu lực")));
-  assert.ok(p.canKiemTra.some((x) => x.includes("47/2014/QH13")));
+  assert.ok(!p.canKiemTra.some((x) => x.includes("47/2014/QH13")), "no block listing every law still in force");
   assert.ok(p.canKiemTra.some((x) => x.startsWith("Luật sư phải xác nhận mức phạt")));
   assert.deepEqual(p.duBao, ["Cơ quan nhận hồ sơ trình diện trong 3 ngày: khả năng 62,5% (xem lại 30/10/2026)."]);
   assert.equal(p.tuyenBo, TB_PL);
@@ -121,4 +122,103 @@ test("giao diện: gói nhớ trong localStorage có bọc try/catch, mặc đ�
     const before = app.slice(Math.max(0, m.index - 30), m.index);
     assert.match(before, /try \{/, "every localStorage call sits inside try");
   }
+});
+
+// ---------------------------------------------------------------- vòng 2
+const V2 = {
+  ...VERDICT,
+  verdict: {
+    ...VERDICT.verdict,
+    ngay_phien: "27/10/2026",
+    lam_ngay: "Nộp hồ sơ gia hạn thị thực ngay hôm nay.",
+    next_steps: [
+      { when: "Hôm nay", action: "Đối chiếu ngày hết hạn trên thị thực. Phụ trách: Vận hành, Tuân thủ." },
+      { when: "Trước 02/11/2026", action: "Có biên nhận gia hạn, người thứ hai kiểm chéo." },
+      { when: "Trong 3 ngày", action: "Vẽ hai nhánh dòng hồ sơ cho ghế Tuân thủ." },
+      { when: "Trong 5 ngày làm việc", action: "Nhận kết quả (Tuân thủ, Vận hành). Chủ tọa họp lại." },
+    ],
+    kiem_luat: { con: [{ so: "47/2014/QH13" }], het: [{ so: "09/2018/NĐ-CP" }, { so: "144/2021/NĐ-CP" }], ngoai: [], nhac_het: [{ so: "144/2021/NĐ-CP" }] },
+    kiem_luat_ket_luan: { con: [{ so: "47/2014/QH13" }], het: [], ngoai: [], nhac_het: [{ so: "144/2021/NĐ-CP" }] },
+    can_xac_nhan: [{ viec: "Mức phạt quá hạn theo số ngày thực tế", ai: "Luật sư" }, { viec: "Nhận hồ sơ gia hạn khi giấy phép lao động đang chờ", ai: "Phòng Quản lý xuất nhập cảnh" }],
+    du_bao: { ket_qua: "Khách có thẻ tạm trú trước 31/12/2026.", xac_suat: 40, han: "31/12/2026" },
+  },
+};
+const TEN = ["Thanh tra – Tuân thủ", "Tuân thủ", "Giám đốc Vận hành dịch vụ", "Vận hành"];
+
+test("ngayPhien: ngày phiên của server, rồi ngày đầu mã phiên; không theo đồng hồ máy", () => {
+  assert.equal(ngayPhien(V2, "2026-10-26-abc"), "27/10/2026");
+  assert.equal(ngayPhien({ verdict: {} }, "2026-10-27-mvpm4op2-giu-cu-tru"), "27/10/2026");
+  assert.equal(ngayPhien({}, "2026-01-05-x"), "05/01/2026");
+  assert.match(ngayPhien({}, ""), /^\d{2}\/\d{2}\/\d{4}$/);
+});
+
+test("kiemLuatKetLuan: ưu tiên kiểm của chữ kết luận; nhac_het không bao giờ là lỗi; phiên cũ lấy kiem_luat", () => {
+  const k = kiemLuatKetLuan(V2.verdict);
+  assert.equal(k.phamVi, "ket_luan");
+  assert.deepEqual(k.het, []);
+  const cu = kiemLuatKetLuan({ kiem_luat: V2.verdict.kiem_luat });
+  assert.equal(cu.phamVi, "phien");
+  assert.deepEqual(cu.het.map((x) => x.so), ["09/2018/NĐ-CP"]); // 144/2021 is only mentioned as repealed
+  assert.equal(kiemLuatKetLuan({}), null);
+});
+
+test("cauTron: không bao giờ cắt giữa câu, không dấu …", () => {
+  const t = "Câu một có 3.5 tỷ đồng tại TP. Hồ Chí Minh. Câu hai dài hơn một chút. Câu ba.";
+  assert.equal(cauTron(t, 10), "Câu một có 3.5 tỷ đồng tại TP. Hồ Chí Minh.");
+  assert.equal(cauTron(t, 75), "Câu một có 3.5 tỷ đồng tại TP. Hồ Chí Minh. Câu hai dài hơn một chút.");
+  assert.equal(cauTron("完成。然后提交。", 3), "完成。");
+});
+
+test("phiếu khách vòng 2: làm ngay, ngày phiên, cần xác nhận, không tên ghế hay thuật ngữ nội bộ, không khối số hiệu", () => {
+  const p = noiDungPhieuKhach({ setup: SETUP, verdict: V2, tenGhe: TEN });
+  assert.equal(p.lamNgay, "Nộp hồ sơ gia hạn thị thực ngay hôm nay.");
+  const all = JSON.stringify(p);
+  assert.doesNotMatch(all, /Phụ trách|Vận hành|Tuân thủ|kiểm chéo|dòng hồ sơ|\bghế\b|Chủ t[ọo]/);
+  assert.doesNotMatch(all, /…/);
+  assert.equal(p.buoc[0].viec, "Đối chiếu ngày hết hạn trên thị thực.");
+  assert.equal(p.buoc[1].viec, "Có biên nhận gia hạn.");
+  assert.equal(p.buoc.length, 3); // the step that was only internal jargon is gone
+  assert.equal(p.buoc[2].viec, "Nhận kết quả.");
+  assert.ok(p.canKiemTra.includes("Mức phạt quá hạn theo số ngày thực tế (Luật sư)"));
+  assert.ok(p.canKiemTra.some((x) => /Phòng Quản lý xuất nhập cảnh/.test(x)));
+  assert.ok(!p.canKiemTra.some((x) => /144\/2021|09\/2018|47\/2014/.test(x)), "laws only mentioned as repealed, or merely cited, are not client checks");
+  assert.deepEqual(p.duBao, ["Khách có thẻ tạm trú trước 31/12/2026: khả năng 40% (xem lại 31/12/2026)."]); // no ".:"
+});
+
+test("phiếu song ngữ: gửi đúng các khoá, ghép bản dịch, nhãn cố định dịch sẵn", () => {
+  const p = noiDungPhieuKhach({ setup: SETUP, verdict: V2, tenGhe: TEN });
+  const gui = phieuDeDich(p);
+  assert.deepEqual(Object.keys(gui).sort(), ["buoc", "canKiemTra", "dieuKien", "duBao", "khuyenNghi", "lamNgay", "phuongAn", "ruiRo", "tieuDe", "tuyenBo"]);
+  const dich = JSON.parse(JSON.stringify(gui));
+  dich.tieuDe = "Overstayed temporary residence"; dich.buoc[0].viec = "Check the expiry date on the visa.";
+  const g = ghepBanDich(p, dich);
+  assert.equal(g.tieuDe, "Overstayed temporary residence");
+  assert.equal(g.buoc[0].viec, "Check the expiry date on the visa.");
+  assert.equal(g.buoc[1].viec, p.buoc[1].viec);
+  assert.equal(g.nhanGoc, "GO WITH CONDITIONS");
+  assert.throws(() => ghepBanDich(p, {}), /rỗng/);
+  assert.deepEqual(Object.keys(NGON_NGU_PHIEU), ["vi", "en", "zh", "ko"]);
+  for (const l of ["en", "zh", "ko"]) {
+    const L = nhanPhieu(l);
+    assert.ok(L.banDich && L.nhan["GO WITH CONDITIONS"] && L.buoc && L.kiemTra && L.ai.length === 3, l);
+  }
+  for (const l of ["zh", "ko"]) for (const u of CJK_FONT_URLS[l]) assert.match(u, /^https:\/\/cdn\.jsdelivr\.net\/npm\/@[^/]+\/[^@/]+@\d+\.\d+\.\d+\/.+\.ttf$/);
+  assert.deepEqual(tenCacGhe({ seats: ["a"] }, { a: { name: "Thanh tra – Tuân thủ", short: "Tuân thủ" } }), ["Thanh tra – Tuân thủ", "Tuân thủ"]);
+});
+
+test("giao diện vòng 2: làm ngay, bất đồng Chủ toạ, mức ủng hộ, tính hạn lưu trú, chọn ngôn ngữ phiếu, chi phí theo phiên", () => {
+  const app = doc("app.js"), html = doc("index.html"), pdf = doc("pdf.js");
+  assert.match(app, /Làm ngay/);
+  assert.match(app, /Đường chính/);
+  assert.match(app, /Chủ toạ không đồng ý ở:/);
+  assert.match(app, /support_math/);
+  assert.match(app, /kiemLuatKetLuan\(v\)/);
+  assert.match(app, /data-han-so/);
+  assert.match(app, /nutHanThe\(c\.text\)/);
+  assert.match(app, /\/api\/dich-phieu/);
+  assert.match(app, /ev\.phien/);
+  assert.match(html, /<option value="luu-tru">Hạn lưu trú\/thị thực \(không lùi theo ngày nghỉ\)<\/option>/);
+  assert.match(html, /id="phieuDialog"/);
+  assert.doesNotMatch(pdf, /dateLine\(null\)/); // the phiếu prints the session's date, not the download day
+  assert.match(pdf, /ngayPhien\(verdict, id\)/);
 });

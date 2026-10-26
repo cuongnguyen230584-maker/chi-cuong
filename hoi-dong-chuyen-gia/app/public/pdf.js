@@ -245,7 +245,8 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
   by += callLines.length * lh(12.5) + 8;
   font(9.5, "normal", C.mute); doc.text(meta, M + 16, by + 9.5);
   y += boxH + 8;
-  if (v.support != null) para(`Mức ủng hộ đề xuất ${soVi(v.support)}/10${v.support_math ? ` = ${soVi(v.support_math)}` : ""} (trung bình có trọng số điểm các thành viên cho đề xuất ở vòng bỏ phiếu; khác điểm phương án).`, { size: 8.5, color: C.mute, gap: 4 });
+  // server: "(3×8 + 3×7 + …) / 12: điểm ủng hộ nghị quyết ở vòng bỏ phiếu, khác điểm phương án"
+  if (v.support != null) para(`Mức ủng hộ đề xuất ${soVi(v.support)}/10${v.support_math ? ` = ${soVi(v.support_math)}` : ": trung bình có trọng số điểm các thành viên cho đề xuất ở vòng bỏ phiếu, khác điểm phương án"}.`, { size: 8.5, color: C.mute, gap: 4 });
   const lech = (chairView?.lech || []).filter(Boolean);
   if (lech.length) para(`Chủ toạ không đồng ý ở: ${lech.join("; ")}. Xem mục Góc nhìn Chủ toạ.`, { size: 10.5, style: "semibold", color: [180, 83, 9], gap: 6 });
 
@@ -611,7 +612,10 @@ export async function downloadPhieuKhach({ setup, verdict, id, tuyenBo = "", don
         return;
       }
       const first = split(body, CW - ind - pw, sz(9.5));
-      const rest = first.length > 1 ? split(first.slice(1).join(FAM === "Montserrat" || lang === "ko" ? " " : ""), CW - ind, sz(9.5)) : [];
+      // the rest re-wraps at full width from where the first line stopped (no join: Chinese has no spaces to join on)
+      const b0 = String(body || "");
+      const tail = first.length > 1 ? (b0.startsWith(first[0]) ? b0.slice(first[0].length).trim() : first.slice(1).join(" ")) : "";
+      const rest = tail ? split(tail, CW - ind, sz(9.5)) : [];
       if (draw) mark(y);
       if (pre) text(pre, M + ind, y + sz(9.5), sz(9.5), "semibold", C.ink);
       text(first[0] || "", M + ind + pw, y + sz(9.5), sz(9.5), "normal", C.soft);

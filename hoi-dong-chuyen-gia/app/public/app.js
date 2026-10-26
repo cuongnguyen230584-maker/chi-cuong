@@ -1004,12 +1004,14 @@ function openCard(seat, round) {
   const c = state.cards[r]?.[seat];
   $("#cardBody").innerHTML = `
     <div class="card-head"><img src="${avatar(seat)}" alt=""><div><div class="label">${esc(pillarOf(s))}</div><h3>${esc(s.name)}</h3><p class="muted" style="margin:0">Câu hỏi phụ trách: ${esc(questionOf(s))}</p></div></div>
-    ${rounds.length > 1 ? `<p style="margin:0 0 6px">${rounds.slice().reverse().map((x) => `<button class="ghost" data-r="${x}" style="margin-right:6px">${ROUND_NAME[x]}</button>`).join("")}</p>` : ""}
-    ${c ? `<pre>${esc(theVi(c.text))}</pre>${c.quotes.length ? `<ul class="qcheck">${c.quotes.map((q) => `<li class="${q.verified ? "" : "bad"}">"${esc(shorten(q.quote, 110))}" (${q.source}) ${q.verified ? "có trong bộ não" : "không tìm thấy trong bộ não"}</li>`).join("")}</ul>` : ""}` : `<p class="muted">Ghế này chưa lên tiếng.</p>`}
+    ${rounds.length > 1 ? `<p class="card-tabs" role="tablist">${rounds.slice().reverse().map((x) => `<button type="button" class="ghost${x === r ? " on" : ""}" role="tab" aria-selected="${x === r}" data-r="${x}">${ROUND_NAME[x]}</button>`).join("")}</p>` : ""}
+    ${c ? `${nutHanThe(c.text)}<pre>${esc(theVi(c.text))}</pre>${c.quotes.length ? `<ul class="qcheck">${c.quotes.map((q) => `<li class="${q.verified ? "" : "bad"}">"${esc(shorten(q.quote, 110))}" (${q.source}) ${q.verified ? "có trong bộ não" : "không tìm thấy trong bộ não"}</li>`).join("")}</ul>` : ""}` : `<p class="muted">Ghế này chưa lên tiếng.</p>`}
     <p class="muted card-note">${esc(loiGhe(s))}</p>`;
   $$("#cardBody [data-r]").forEach((b) => b.addEventListener("click", () => openCard(seat, Number(b.dataset.r))));
   const dlg = $("#cardDialog");
   if (!dlg.open) dlg.showModal();
+  // the tab now shown keeps the focus ring, so a phone never shows the ring on another tab (the old tap position)
+  $("#cardBody [data-r].on")?.focus({ preventScroll: true });
 }
 
 // ------------------------------------------------------------- verdict
@@ -1037,7 +1039,10 @@ function onVerdict(ev) {
   const txt = (t) => esc(boS(t)); // full text, bare S0xx dropped for role packs
   const chuaNguon = soChuaNguonThat(v.kiem_so?.chua_nguon);
   const steps = v.next_steps || [];
-  const stepLi = (n) => `<li><b>${esc(n.when)}</b> ${txt(clean(n.action))}</li>`;
+  const ngay = ngayPhien(v, state.session);
+  const stepLi = (n) => `<li><b>${esc(n.when)}</b> ${txt(clean(n.action))}${nutHan(`${n.when} ${n.action}`, ngay, n.when)}</li>`;
+  const oChinh = state.options.find((o) => o.id === v.recommended);
+  const kl = kiemLuatKetLuan(v);
   // On a phone the long parts fold away, so the summary (label, decision, next steps) fits a screen or two.
   const hep = matchMedia("(max-width: 820px)").matches;
   const nSteps = hep ? 3 : 5;
@@ -1047,6 +1052,7 @@ function onVerdict(ev) {
   const minHtml = v.minority?.quote ? `<div class="minority"><div class="who">${mk ? `<img class="av" src="${avatar(mk)}" alt="">` : ""}${esc(seatName(v.minority.seat))}</div><q>${txt(clean(v.minority.quote))}</q>${v.minority.would_have_to_be_true ? `<p class="muted">Để ý kiến này đúng thì: ${txt(v.minority.would_have_to_be_true)}</p>` : ""}</div>` : "";
   const scoreHtml = `<div class="v-opts">${state.options.map((o) => `
         <div class="opt ${o.id === v.recommended ? "lead" : ""}"><span class="id">${o.id}</span><span class="label">${esc(o.label)}</span><span class="val">${soVi(v.scores[o.id]?.score)}</span><span class="bar"><i style="width:${(v.scores[o.id]?.score || 0) * 10}%"></i></span></div>`).join("")}</div>
+        ${v.support != null ? `<p class="v-meta"><b>Mức ủng hộ đề xuất ${soVi(v.support)}/10</b>${v.support_math ? ` = ${esc(soVi(v.support_math))}.` : `. <span class="muted">Trung bình có trọng số điểm các ghế cho đề xuất ở vòng bỏ phiếu, nên có thể khác điểm phương án ${esc(v.recommended || "")}.</span>`}</p>` : ""}
         <p class="v-meta">Độ tin cậy ${soVi(v.confidence)}/10${v.votes ? ` · ${v.votes.endorse || 0} đồng ý, ${v.votes.amend || 0} sửa đổi, ${v.votes.dissent || 0} phản đối${v.votes.chua_ro ? `, ${v.votes.chua_ro} chưa đọc được phiếu` : ""}` : ""}</p>`;
   const bangDiem = `<table class="scorecard"><thead><tr><th>Ghế</th><th>Trọng số</th>${state.options.map((o) => `<th>${o.id}</th>`).join("")}<th>Ý chính của họ</th></tr></thead><tbody>
           ${seats.map((x) => { const s = state.byKey[x.key]; return `<tr><td><span class="who"><img class="av" src="${avatar(x.key)}" alt="">${esc(s?.short || x.key)}</span></td><td class="n">${soVi(x.weight)}</td>${state.options.map((o) => `<td class="n">${soVi(x.optionScores?.[o.id])}</td>`).join("")}<td class="line">${short(boS(x.oneLine), 150)}</td></tr>`; }).join("")}
@@ -1057,13 +1063,15 @@ function onVerdict(ev) {
       <div><div class="label">Kết luận của hội đồng</div><span class="v-label ${labelClass(v.label)}">${esc(verdictVi(v.label))}</span></div>
       <div class="actions"><button class="pill" type="button" data-pdf>Tải PDF</button><button class="pill alt" type="button" data-phieu title="Một trang A4 gửi khách: khuyến nghị, việc cần làm, rủi ro, việc cần kiểm tra, chỗ ký duyệt">Phiếu khách</button><button class="ghost" data-close>Quay lại bàn</button></div>
     </div>
+    ${v.lam_ngay || oChinh ? `<div class="v-head">${v.lam_ngay ? `<p class="v-lam-ngay"><span class="k">Làm ngay</span>${txt(v.lam_ngay)}</p>` : ""}${oChinh ? `<p class="v-duong"><span class="k">Đường chính</span>Phương án ${esc(oChinh.id)}: ${esc(oChinh.label)}</p>` : ""}</div>` : ""}
     <p class="v-call">${txt(v.call)}</p>
+    <div id="vLech">${lechHtml(state.chairView)}</div>
     ${v.override_note ? `<p class="v-meta">${txt(v.override_note)}</p>` : ""}
     <div class="v-sum">
       <div class="v-sec"><h3>Bước tiếp theo</h3><ol class="v-steps">${steps.slice(0, nSteps).map(stepLi).join("")}</ol>
         ${steps.length > nSteps ? `<details class="v-more-steps"><summary>Thêm ${steps.length - nSteps} bước</summary><ol class="v-steps" start="${nSteps + 1}">${steps.slice(nSteps).map(stepLi).join("")}</ol></details>` : ""}
         ${v.kill_criteria ? `<p class="v-meta"><b>Dừng nếu:</b> ${txt(v.kill_criteria)}</p>` : ""}
-        ${[].concat(v.du_bao || []).filter((d) => d?.ket_qua).map((d) => `<p class="v-meta"><b>Dự báo:</b> ${esc(d.ket_qua)}: <b>${soVi(d.xac_suat)}%</b>${d.han ? ` (hạn ${esc(d.han)})` : ""}. <span class="muted">${esc(d.co_so || "")}</span></p>`).join("")}</div>
+        ${[].concat(v.du_bao || []).filter((d) => d?.ket_qua).map((d) => `<p class="v-meta"><b>Dự báo:</b> ${esc(String(d.ket_qua).replace(/[.]+$/, ""))}: <b>${soVi(d.xac_suat)}%</b>${d.han ? ` (hạn ${esc(d.han)})` : ""}. <span class="muted">${esc(d.co_so || "")}</span></p>`).join("")}</div>
     </div>
     <div class="v-folds">
       ${fold("Vì sao", whyHtml)}
@@ -1072,7 +1080,7 @@ function onVerdict(ev) {
       ${minHtml ? fold("Ý kiến thiểu số", minHtml) : ""}
       ${(v.fights || []).length ? fold("Chỗ họ tranh cãi", `<ul>${v.fights.map((f) => `<li><b>${txt(f.crux)}</b> ${txt(f.story)}</li>`).join("")}</ul>`) : ""}
       ${soLieuHtml(v.kiem_so, chuaNguon) ? fold("Số dùng trong kết luận", soLieuHtml(v.kiem_so, chuaNguon), { cls: "v-so" }) : ""}
-      ${kiemLuatHtml(v.kiem_luat, v.a_dua) ? fold("Kiểm điều luật", kiemLuatHtml(v.kiem_luat, v.a_dua), { cls: "v-so" }) : ""}
+      ${kiemLuatHtml(kl, v.a_dua) ? fold("Kiểm điều luật", kiemLuatHtml(kl, v.a_dua), { cls: "v-so" }) : ""}
       ${(v.conditions || []).length ? fold("Điều kiện", `<ol>${v.conditions.map((c) => `<li>${txt(c)}</li>`).join("")}</ol>`, { open: false, wide: true }) : ""}
       ${fold("Bảng điểm từng ghế", bangDiem, { open: false, wide: true })}
       ${v.cheapest_test || v.revisit ? fold("Cách thử rẻ nhất và lịch xem lại", `${v.cheapest_test ? `<p>${txt(v.cheapest_test)}</p>` : ""}${v.revisit ? `<p><b>Xem lại vào:</b> ${txt(v.revisit)}</p>` : ""}`, { open: false, wide: true }) : ""}
@@ -1083,7 +1091,7 @@ function onVerdict(ev) {
   $("#verdictBody").innerHTML = html;
   const plate = $("#plate");
   plate.hidden = false;
-  plate.innerHTML = `<div class="label">Kết luận của hội đồng</div><span class="v-label ${labelClass(v.label)}">${esc(verdictVi(v.label))}</span><p>${esc(firstSentences(clean(v.call), 150))}</p><div class="row"><button type="button" id="plateOpen">Đọc kết luận</button><button type="button" data-pdf>Tải PDF</button><button type="button" data-phieu>Phiếu khách</button><button type="button" class="alt" id="plateReplay">Phát lại hội đồng này</button></div>${chuaNguon.length ? `<p class="plate-so">${chuaNguon.length} số trong kết luận chưa có nguồn. Bấm "Đọc kết luận" để xem.</p>` : ""}${hopTiepHtml()}`;
+  plate.innerHTML = `<div class="label">Kết luận của hội đồng</div><span class="v-label ${labelClass(v.label)}">${esc(verdictVi(v.label))}</span>${v.lam_ngay ? `<p class="plate-lam"><b>Làm ngay:</b> ${esc(firstSentences(clean(v.lam_ngay), 140))}</p>` : ""}<p>${esc(firstSentences(clean(v.call), 150))}</p>${plateLechHtml(state.chairView)}<div class="row"><button type="button" id="plateOpen">Đọc kết luận</button><button type="button" data-pdf>Tải PDF</button><button type="button" data-phieu>Phiếu khách</button><button type="button" class="alt" id="plateReplay">Phát lại hội đồng này</button></div>${chuaNguon.length ? `<p class="plate-so">${chuaNguon.length} số trong kết luận chưa có nguồn. Bấm "Đọc kết luận" để xem.</p>` : ""}${hopTiepHtml()}`;
   $("#plateOpen").addEventListener("click", () => ($("#verdictSheet").hidden = false));
   $("#plateReplay").addEventListener("click", () => replay(state.session));
   $("#playbar").hidden = true;
@@ -1131,22 +1139,42 @@ function soLieuHtml(ks, chua = soChuaNguonThat(ks?.chua_nguon)) {
 }
 
 // Máy kiểm điều luật (gói theo vai nghề) và chỉ số a dua: cảnh báo để đọc kỹ, không phải bằng chứng sai.
+/** `kl` from kiemLuatKetLuan(v): only the verdict's own text when the session has kiem_luat_ket_luan. A law the
+ * verdict mentions only to say it is repealed (nhac_het) is right, not an error. */
 function kiemLuatHtml(kl, aDua) {
   const L = [];
   if (kl) {
+    if (kl.nhac_het?.length) L.push(`<p class="so-note">Được nhắc đúng là đã hết hiệu lực (không phải lỗi): ${kl.nhac_het.map((x) => esc(x.so)).join("; ")}.</p>`);
     if (kl.het?.length) L.push(`<p class="so-canh"><b>Văn bản hết hiệu lực hoặc đã bị thay thế, không dùng làm căn cứ:</b> ${kl.het.map((x) => `<span class="so-co">${esc(x.so)}</span>${x.ten ? ` <span class="muted">${esc(x.ten)}</span>` : ""}`).join(" · ")}</p>`);
     if (kl.ngoai?.length) L.push(`<p class="so-canh"><b>Chưa có trong nguồn đã xác minh, CẦN KIỂM TRA:</b> ${kl.ngoai.map((x) => `<span class="so-co">${esc(x.so)}</span>`).join(" · ")}</p>`);
     if (!kl.het?.length && !kl.ngoai?.length) L.push(`<p class="so-note">${kl.con?.length ? `${kl.con.length} văn bản được viện dẫn có trong nguồn đã đối chiếu và chưa thấy ghi hết hiệu lực: ${kl.con.map((x) => esc(x.so)).join("; ")}.` : "Máy kiểm không thấy số hiệu văn bản viết đủ nào trong kết luận."}</p>`);
+    if (kl.phamVi === "phien") L.push(`<p class="muted kl-pham-vi">Phiên cũ: máy kiểm cả đề bài và các thẻ của ghế, không riêng chữ kết luận.</p>`);
     L.push(`<p class="muted kl-pham-vi">Phạm vi đã kiểm: số hiệu viết đủ và tình trạng hiệu lực theo nguồn đã đối chiếu. Chưa kiểm điều, khoản, nội dung trích dẫn và số hiệu viết tắt. Luật sư cần xác nhận trước khi nộp hồ sơ.</p>`);
   }
   if (aDua?.doi_theo) L.push(`<p class="muted">Chỉ số a dua: ${aDua.doi_theo}/${aDua.khac_so_dong} ghế mở đầu khác số đông đã đổi sang phương án ${esc(aDua.so_dong)} (${aDua.ghe.map(esc).join(", ")}). Đọc lại lý do đổi ở vòng tranh luận.</p>`);
   return L.join("");
 }
 
+/** chair_view.lech: the points where the Chair's own view contradicts the verdict. Shown right under the call. */
+const lechCua = (cv) => (cv?.lech || []).map((x) => clean(String(x || ""))).filter(Boolean);
+function lechHtml(cv) {
+  const lech = lechCua(cv);
+  if (lech.length) return `<div class="v-lech" role="note"><b>Chủ toạ không đồng ý ở:</b><ul>${lech.map((x) => `<li>${esc(boS(x))}</li>`).join("")}</ul><span>Kết luận trên là của hội đồng. Đọc mục "Góc nhìn Chủ toạ" và quyết định điểm nào là chốt trước khi dùng.</span></div>`;
+  if (/không đồng ý/i.test(cv?.view?.dong_y || "")) return `<div class="v-lech" role="note"><b>Chủ toạ không đồng ý với kết luận này.</b> <span>Đọc mục "Góc nhìn Chủ toạ" trước khi dùng.</span></div>`;
+  return "";
+}
+function plateLechHtml(cv) {
+  const n = lechCua(cv).length;
+  return n ? `<p class="plate-lech">Chủ toạ không đồng ý ở ${n} điểm của kết luận. Bấm "Đọc kết luận" để xem.</p>` : "";
+}
+
 async function onChairView(ev) {
   state.chairView = ev;
   const v = ev.view;
   if ($("#vChair .v-fold-body")) $("#vChair .v-fold-body").innerHTML = chairViewHtml(ev);
+  if ($("#vLech")) $("#vLech").innerHTML = lechHtml(ev);
+  $("#plate .plate-lech")?.remove();
+  $("#plate .row")?.insertAdjacentHTML("beforebegin", plateLechHtml(ev));
   const line = v ? `${DONG_Y_VI[v.dong_y] || v.dong_y}. ${clean(v.nhan_dinh)}` : "Chưa có góc nhìn Chủ toạ.";
   $("#plate .plate-chair")?.remove();
   $("#plate .row")?.insertAdjacentHTML("beforebegin", `<p class="plate-chair"><b>Góc nhìn Chủ toạ:</b> ${esc(firstSentences(line, 200))}</p>`);
@@ -1687,7 +1715,89 @@ function hienUsage(u, nhan) {
   const k = (n) => (n >= 1e6 ? `${(n / 1e6).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} triệu` : `${Math.round(n / 1000).toLocaleString("vi-VN")} nghìn`);
   const vao = (u.input || 0) + (u.cacheRead || 0) + (u.cacheWrite || 0);
   const usd = u.usd ?? u.chi_phi_usd;
-  $("#usage").textContent = `${nhan}: ${u.calls} lượt gọi · ${k(vao)} token vào · ${k(u.output || 0)} token ra${typeof usd === "number" ? ` · khoảng ${usd.toLocaleString("vi-VN", { maximumFractionDigits: 2 })} USD` : ""}`;
+  // short in the top bar; the split in/out sits in the tooltip
+  $("#usage").textContent = `${nhan}: ${u.calls} lượt gọi · ${k(vao + (u.output || 0))} token${typeof usd === "number" ? ` · ~${usd.toLocaleString("vi-VN", { maximumFractionDigits: 2 })} USD` : ""}`;
+  $("#usage").title = `${nhan}: ${u.calls} lượt gọi AI, ${k(vao)} token vào (gồm cache), ${k(u.output || 0)} token ra.`;
+}
+
+// ------------------------------------------------------------- tính hạn
+// Three kinds: working days (a procedure's legal deadline), calendar days (a deadline that rolls to the next
+// working day, Bộ luật Dân sự Điều 148), and a stay/visa end date that never rolls: the date on the visa is the last day.
+const THU = ["Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+const docNgayVN = (t) => { const m = String(t || "").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); return m ? new Date(Date.UTC(+m[3], +m[2] - 1, +m[1])) : null; };
+const vnNgay = (d) => `${String(d.getUTCDate()).padStart(2, "0")}/${String(d.getUTCMonth() + 1).padStart(2, "0")}/${d.getUTCFullYear()}`;
+/** Hạn lưu trú: ngày bắt đầu + số ngày, không lùi theo ngày nghỉ. */
+function hanLuuTru(tu, so) {
+  const d = docNgayVN(tu);
+  if (!d) throw new Error("Ngày bắt đầu không hợp lệ (dùng dd/mm/yyyy)");
+  d.setUTCDate(d.getUTCDate() + Math.max(0, Math.floor(so || 0)));
+  return { han: vnNgay(d), cac_ngay_nghi: [], loai: "luu-tru", ghi_chu: "" };
+}
+const GHI_LOAI = {
+  "lam-viec": ["Ngày nhận đủ hồ sơ hợp lệ", "Hạn giải quyết hồ sơ tính từ ngày nhận đủ hồ sơ hợp lệ. Ngày làm việc trừ thứ Bảy, Chủ nhật và ngày lễ."],
+  "lich": ["Ngày bắt đầu", "Hạn thực hiện thủ tục tính theo ngày lịch. Hạn rơi vào ngày nghỉ thì lùi sang ngày làm việc kế tiếp (Bộ luật Dân sự, Điều 148). Không dùng cho hạn thị thực, tạm trú."],
+  "luu-tru": ["Ngày bắt đầu (ngày nhập cảnh, ngày cấp, hoặc hôm nay)", "Hạn lưu trú, thị thực, thẻ tạm trú không lùi theo ngày nghỉ: ngày ghi trên giấy là ngày cuối được ở, kể cả khi rơi vào cuối tuần hay ngày lễ. Nộp gia hạn trước ngày đó, tính cả những ngày cơ quan nghỉ."],
+};
+function hanTheoLoai() {
+  const [nhan, mo] = GHI_LOAI[$("#hanLoai").value] || GHI_LOAI["lam-viec"];
+  $("#hanTuNhan").textContent = nhan;
+  $("#hanMoTa").textContent = mo;
+  $("#hanKetQua").innerHTML = "";
+}
+function moTinhHan({ tu = "", so, loai, tinhLuon = false } = {}) {
+  if (tu) $("#hanTu").value = tu;
+  if (so != null && !Number.isNaN(so)) $("#hanSo").value = so;
+  if (loai && GHI_LOAI[loai]) $("#hanLoai").value = loai;
+  hanTheoLoai();
+  const dlg = $("#hanDialog");
+  if (!dlg.open) dlg.showModal();
+  if (tinhLuon) tinhHanNgay();
+}
+async function tinhHanNgay() {
+  const out = $("#hanKetQua");
+  const tu = $("#hanTu").value, so = Number($("#hanSo").value), loai = $("#hanLoai").value;
+  try {
+    let r;
+    if (loai === "luu-tru") {
+      // the server takes loai "luu-tru"; one that does not know it answers another kind, so the page counts it itself
+      const sv = await postJson("/api/tinh-han", { tu, so, loai }).catch(() => null);
+      r = sv?.loai === "luu-tru" ? sv : hanLuuTru(tu, so);
+    } else r = await postJson("/api/tinh-han", { tu, so, loai });
+    const d = docNgayVN(r.han);
+    const ghi = String(r.ghi_chu || "").replace(/\s*\(khai vào nghi-le\.json[^)]*\)/, "").replace(/Dùng lịch nghỉ lễ chính thức đã khai trong nghi-le\.json\./, "Dùng lịch nghỉ lễ chính thức.");
+    const canh = loai === "luu-tru" ? GHI_LOAI["luu-tru"][1] : loai === "lich" ? "Hạn thị thực, tạm trú không lùi: chọn loại \"Hạn lưu trú/thị thực\"." : "";
+    out.innerHTML = `<p class="han-han">${loai === "luu-tru" ? "Ngày cuối được ở" : "Hạn"}: <b>${esc(r.han)}</b>${d ? ` <span class="muted">(${THU[d.getUTCDay()]})</span>` : ""}</p>${(r.cac_ngay_nghi || []).length ? `<p class="muted">Ngày nghỉ lễ đã trừ: ${r.cac_ngay_nghi.map(esc).join("; ")}</p>` : ""}${canh ? `<p class="han-canh">${esc(canh)}</p>` : ""}${ghi ? `<p class="muted">${esc(ghi)}</p>` : ""}`;
+  } catch (err) { out.innerHTML = `<p class="so-canh">${esc(loiVi(err.message || err))}</p>`; }
+}
+const LA_LUU_TRU = /thị thực|tạm trú|lưu trú|cư trú|quá hạn|e-?visa|\bDN\d|\bĐT\d|\bLĐ\d/i;
+/** "trong 5 ngày làm việc", "còn 20 ngày" → { so, loai }; null when the text names no number of days. */
+function soNgayTrong(text, ngu = text) {
+  const m = String(text || "").match(/(\d{1,4})\s*ngày(\s+làm\s+việc)?(?!\s*\/)/i);
+  if (!m || !Number(m[1]) || Number(m[1]) > 3650) return null;
+  return { so: Number(m[1]), loai: m[2] ? "lam-viec" : LA_LUU_TRU.test(ngu) ? "luu-tru" : "lich", khop: m[0] };
+}
+const tenLoai = (l) => (l === "lam-viec" ? "ngày làm việc" : l === "luu-tru" ? "ngày, hạn lưu trú" : "ngày lịch");
+const nutHanHtml = (tu, x, nhan) => `<button type="button" class="han-mini" data-han-tu="${esc(tu)}" data-han-so="${x.so}" data-han-loai="${x.loai}" title="Tính hạn: từ ${esc(tu)} cộng ${x.so} ${tenLoai(x.loai)}">${esc(nhan)}</button>`;
+/** A small "Tính hạn" next to a step that names a number of days, filled with the session's date (or the step's own "từ dd/mm/yyyy"). */
+function nutHan(text, ngay, when = "") {
+  const x = soNgayTrong(text);
+  if (!x) return "";
+  const tu = (String(when).match(/(?:từ|kể từ)\s+(\d{1,2}\/\d{1,2}\/\d{4})/i) || [])[1] || ngay;
+  return ` ${nutHanHtml(tu, x, "Tính hạn")}`;
+}
+/** In a seat's card: one button per distinct number of days it names (at most four), from the session's date. */
+function nutHanThe(text) {
+  const ngay = ngayPhien(state.verdict?.verdict, state.session);
+  const seen = new Set(), nut = [];
+  for (const m of String(text || "").matchAll(/(\d{1,4})\s*ngày(\s+làm\s+việc)?(?!\s*\/)/gi)) {
+    const ctx = String(text).slice(Math.max(0, m.index - 80), m.index + 40);
+    const x = soNgayTrong(m[0], ctx);
+    if (!x || seen.has(x.so + x.loai)) continue;
+    seen.add(x.so + x.loai);
+    nut.push(nutHanHtml(ngay, x, `${x.so} ${tenLoai(x.loai)}`));
+    if (nut.length === 4) break;
+  }
+  return nut.length ? `<p class="card-han"><span class="muted">Tính hạn từ ${esc(ngay)}:</span> ${nut.join(" ")}</p>` : "";
 }
 
 boot();
