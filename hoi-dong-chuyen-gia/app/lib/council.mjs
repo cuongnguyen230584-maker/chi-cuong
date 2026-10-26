@@ -5,6 +5,7 @@ import * as ai from "./anthropic.mjs";
 import { S } from "./anthropic.mjs";
 import { SESSIONS_DIR, env } from "./env.mjs";
 import { LUAT_SO, kiemSo } from "./luat-so.mjs";
+import { goi, chuToa, gheCua, banMacDinh } from "./nganh.mjs";
 
 export const MODELS = {
   seat: env("SEAT_MODEL") || "claude-sonnet-5-5",
@@ -18,9 +19,18 @@ export const tableBoard = (pick, seatKeys, defaults, chair) => (pick ? seatKeys 
 // The board comes from the roster: the saved default board, or every seat it lists.
 const chairSystem = (st) => {
   const seats = st.board.map((k) => byKey[k]);
-  return `You are the Chair of a Hội đồng chuyên gia council: ${seats.length} simulated advisors built from the public work of ${seats.map((x) => `${x.name} (${x.pillar.toLowerCase()})`).join(", ")}.
-You never argue a side and never add your own pillar. You run the room, keep score, and write in plain English: short sentences, no em dashes, no hype, no tee-ups like "here's the thing", no filler. Seat keys (for key fields only): ${seats.map((x) => x.key).join(", ")}. Whenever you write a seat's name in prose or in a seat field, use its display name: ${seats.map((x) => x.short).join(", ")}. Viết mọi chữ hiển thị (title, decision, brief, options, verdict) bằng tiếng Việt khi câu hỏi bằng tiếng Việt.`;
+  const g = st.goi || goi();
+  const ai = g.loai === "vai-tro"
+    ? `${seats.length} simulated expert roles (not real people), each built from current law, official procedures and professional practice: ${seats.map((x) => `${x.name} (${x.pillar.toLowerCase()})`).join(", ")}`
+    : `${seats.length} simulated advisors built from the public work of ${seats.map((x) => `${x.name} (${x.pillar.toLowerCase()})`).join(", ")}`;
+  return `You are the Chair of a Hội đồng chuyên gia council (gói ngành: ${g.ten}): ${ai}.
+You never argue a side and never add your own pillar. You run the room, keep score, and write in plain English: short sentences, no em dashes, no hype, no tee-ups like "here's the thing", no filler. Seat keys (for key fields only): ${seats.map((x) => x.key).join(", ")}. Whenever you write a seat's name in prose or in a seat field, use its display name: ${seats.map((x) => x.short).join(", ")}. Viết mọi chữ hiển thị (title, decision, brief, options, verdict) bằng tiếng Việt khi câu hỏi bằng tiếng Việt.${luatNganh(st)}`;
 };
+
+// Luật riêng của gói ngành (nganh/<key>.md, mục "Luật ngành"), gửi cho Chủ toạ và mọi ghế.
+const luatNganh = (st) => (st.goi?.luat_nganh ? `\n\nLUẬT NGÀNH (${st.goi.ten}), BẮT BUỘC:\n${st.goi.luat_nganh}` : "");
+/** Lời miễn trừ của phiên: theo gói ngành, mặc định là lời của bản gốc. */
+export const tuyenBo = (st) => st?.goi?.tuyen_bo || DISCLAIMER;
 
 export const DISCLAIMER = "Simulated advisors built from each person's public work. They are not the people and do not speak for them.";
 
@@ -35,7 +45,7 @@ function slugify(t) {
 // A follow-up council (họp tiếp) also carries parent, lan, goc_prompt, phieu, bo_sung and
 // bo_sung_truoc: the council it follows, which meeting this is, the first brief, the phiếu every
 // meeting writes into, this meeting's addition and the earlier ones.
-const LINK = ["parent", "lan", "goc_prompt", "phieu", "bo_sung", "bo_sung_truoc"];
+const LINK = ["parent", "lan", "goc_prompt", "phieu", "bo_sung", "bo_sung_truoc", "nganh"];
 function newSession(prompt, mode, extra = {}) {
   const id = `${new Date().toISOString().slice(0, 10)}-${Date.now().toString(36)}`;
   const s = { id, prompt, mode, status: "running", events: [], subs: new Set(), started: Date.now(), state: {} };
@@ -100,7 +110,7 @@ QUESTION FOR THE FOUNDER: the one question you would ask before signing off.
 
 Rules: argue from your pillar first. Quote only verbatim lines from your brain, with the source id. Do not hedge to sound balanced; the Chair balances the council.
 
-${LUAT_SO}`;
+${LUAT_SO}${luatNganh(st)}`;
 }
 
 function cardsBlock(st, round) {
@@ -139,7 +149,7 @@ MY CONDITIONS FOR YES: up to three, concrete and checkable (a number, a date, a 
 
 Rules: engage the actual arguments on the table. Move only for a better argument, never to be agreeable. If everyone agrees with you, attack the weakest part of your own case. A rebuttal built on a number with no source loses to one built on a sourced number.
 
-${LUAT_SO}`;
+${LUAT_SO}${luatNganh(st)}`;
 }
 
 function round3Prompt(st, seat) {
@@ -173,7 +183,7 @@ FINAL PILLAR SCORE: n/10
 AMENDMENT OR DISSENT: one or two sentences. Blank if you endorse.
 ONE LINE FOR THE FOUNDER: the thing from your pillar they must not forget.
 
-${LUAT_SO}`;
+${LUAT_SO}${luatNganh(st)}`;
 }
 
 // ---------------------------------------------------------------- scoring
@@ -349,7 +359,8 @@ const CHAIR_VIEW = S.obj({
  * phiếu as they are: the page just says there is no view. */
 export async function addChairView(s, st, json = ai.json, { timeoutMs = Number(env("CHAIR_VIEW_TIMEOUT_MS")) || 300000 } = {}) {
   emit(s, "phase", { phase: "chair_view", label: "The Chair is giving his own view" });
-  const key = chairSeat();
+  const key = st.chair || chairSeat();
+  if (!byKey[key]) return;
   const v = st.verdict;
   const last = st.rounds.at(-1);
   // a hung call must not hold the phiếu and the next council hostage (the CLI child is left to finish on its own)
@@ -372,7 +383,7 @@ KẾT LUẬN CỦA HỘI ĐỒNG (đã chốt theo điểm, không đổi): ${v.
 Bạn là Chủ toạ của hội đồng này, nói bằng kiến thức của chính mình (não ở trên). Bạn không bỏ phiếu và không đổi kết luận của hội đồng. Viết tiếng Việt, câu ngắn, xưng "tôi", gọi người hỏi là "bạn":
 - dong_y: bạn đồng ý, đồng ý có điều kiện, hay không đồng ý với kết luận.
 - nhan_dinh: tối đa 2 câu, dưới 50 từ, ý chính của bạn (câu này được đọc to ở bàn).
-- ly_do: 2 đến 4 lý do, mỗi lý do tối đa 3 câu, có con số khi có. Mỗi lý do gắn một khung của bạn (khung, tên ngắn) và một mã nguồn S0xx có trong não (nguon). Muốn trích nguyên văn thì để câu tiếng Anh trong ngoặc kép, ngay sau là (S0xx), dưới 45 từ, chép đúng từng chữ trong não.
+- ly_do: 2 đến 4 lý do, mỗi lý do tối đa 3 câu, có con số khi có. Mỗi lý do gắn một khung của bạn (khung, tên ngắn) và một mã nguồn S0xx có trong não (nguon). Muốn trích nguyên văn thì để câu đó trong ngoặc kép, đúng ngôn ngữ như trong não, ngay sau là (S0xx), dưới 45 từ, chép đúng từng chữ.
 - bo_buoc: một yêu cầu hoặc một bước nên xoá, kèm người sở hữu nếu biết.
 - thu_nhanh: thí nghiệm nhanh nhất theo bạn, có con số và hạn.
 - so_lieu: mọi con số về doanh nghiệp này bạn viết ở trên (không tính ngày tháng, mã nguồn S0xx, điểm của hội đồng): so là con số đúng như bạn viết, y là nó đo cái gì, loai là "đề bài", "số liệu" (nguon = nguồn ghi trong tờ SỐ LIỆU), "tính" (nguon = phép tính, chỉ từ số đề bài và SỐ LIỆU) hoặc "giả định" (nguon = cách kiểm trong 30 ngày). Số kể về công ty của chính bạn không thuộc doanh nghiệp này, không kê.
@@ -436,7 +447,10 @@ async function run(s) {
   // (there is no one to ask in the room, so "ask" picks like "auto" here)
   loadRoster();
   const pick = BOARD.mode !== "default";
-  const st = (s.state = { prompt: s.prompt, mode: s.mode, pick, board: tableBoard(pick, SEATS.map((x) => x.key), defaultBoard(), chairSeat()), cards: { 1: {}, 2: {}, 3: {} }, scores: {}, rounds: [] });
+  const g = goi(s.nganh);
+  s.nganh = g.key;
+  const chair = chuToa(g);
+  const st = (s.state = { prompt: s.prompt, mode: s.mode, pick, goi: g, chair, board: tableBoard(pick, gheCua(g), banMacDinh(g), chair), cards: { 1: {}, 2: {}, 3: {} }, scores: {}, rounds: [] });
   emit(s, "phase", { phase: "setup", label: "The Chair is reading your question" });
   const setup = await chairSetup(st);
   Object.assign(st, {
@@ -452,7 +466,7 @@ async function run(s) {
     for (const k of full) if (st.seats.length < 4 && !st.seats.includes(k)) st.seats.push(k);
   }
   st.board = st.seats.slice(); // later Chair calls only see the seats at the table
-  emit(s, "setup", { title: st.title, decision: st.decision, brief: st.brief, options: st.options, assumptions: st.assumptions, weights: st.weights, seats: st.seats, mode: s.mode });
+  emit(s, "setup", { title: st.title, decision: st.decision, brief: st.brief, options: st.options, assumptions: st.assumptions, weights: st.weights, seats: st.seats, mode: s.mode, nganh: g.key, chair });
 
   emit(s, "phase", { phase: "round1", label: "Round 1: opening positions" });
   st.rounds.push(1);
@@ -490,7 +504,7 @@ async function run(s) {
 
   emit(s, "phase", { phase: "verdict", label: "The Chair is writing the verdict" });
   const v = await chairVerdict(st, finalScores, recommended);
-  st.verdict = { ...v, recommended, scores: finalScores, spread: spreadF, confidence, support, votes, disclaimer: DISCLAIMER };
+  st.verdict = { ...v, recommended, scores: finalScores, spread: spreadF, confidence, support, votes, disclaimer: tuyenBo(st) };
   st.verdict.kiem_so = kiemSo({ dauVao: dauVaoSo(st), soLieu: v.so_lieu, cacBan: cacBanSo(st.verdict, st), vanBan: vanBanKetLuan(v) });
   emit(s, "verdict", { verdict: st.verdict, seats: verdictSeats(st, last) });
   await addChairView(s, st);
@@ -583,7 +597,7 @@ function verdictMarkdown(st) {
   if (v.amendments?.length) L.push("", "## Amendments", "", ...v.amendments.map((a) => `- ${a.seat}: ${a.amendment} ${a.adopted ? "Adopted" : "Not adopted"}: ${a.reason}`));
   L.push("", "## Conditions", "", ...v.conditions.map((c, i) => `${i + 1}. ${c}`));
   L.push("", "## What to do next", "", ...v.next_steps.map((n) => `- **${n.when}:** ${n.action}`));
-  L.push("", `**Cheapest test:** ${v.cheapest_test}`, `**Kill criteria:** ${v.kill_criteria}`, `**Revisit:** ${v.revisit}`, "", "---", DISCLAIMER, "");
+  L.push("", `**Cheapest test:** ${v.cheapest_test}`, `**Kill criteria:** ${v.kill_criteria}`, `**Revisit:** ${v.revisit}`, "", "---", tuyenBo(st), "");
   return L.join("\n");
 }
 

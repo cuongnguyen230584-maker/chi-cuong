@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { APP_ROOT, REPO_ROOT, env } from "./lib/env.mjs";
 import { loadRoster, BOARD } from "./lib/seats.mjs";
+import { goiChoTrang, goi } from "./lib/nganh.mjs";
 import { startCouncil, getSession, subscribe, listSaved, loadSaved, MODELS, chairSeat } from "./lib/council.mjs";
 import { usage } from "./lib/anthropic.mjs";
 import * as watch from "./lib/watch.mjs";
@@ -58,14 +59,14 @@ const server = http.createServer(async (req, res) => {
       // the secretary stands behind the Chair and reads out the numbers; not a seat, never votes
       const tk = Object.fromEntries(["base", "open", "mid", "blink"].map((sh) => [sh, frame("thuky", sh)]).filter(([, f]) => f).map(([sh, f]) => [sh, `/portraits/${f}`]));
       const thu_ky = { key: "thuky", name: "Thư ký", short: "Thư ký", initials: "TK", color: "#7c8fa6", portraits: tk };
-      return send(res, 200, { seats, board: BOARD, models: MODELS, runner: RUNNER, chair: chairSeat(), thu_ky, hasKey: Boolean(env("ANTHROPIC_API_KEY") || env("CLAUDE_CODE_OAUTH_TOKEN")) });
+      return send(res, 200, { seats, nganh: goiChoTrang(), board: BOARD, models: MODELS, runner: RUNNER, chair: chairSeat(), thu_ky, hasKey: Boolean(env("ANTHROPIC_API_KEY") || env("CLAUDE_CODE_OAUTH_TOKEN")) });
     }
     if (p === "/api/usage") return send(res, 200, usage);
     if (p === "/api/hoi" && req.method === "POST") {
-      const { cau_hoi } = await readJson(req);
+      const { cau_hoi, nganh } = await readJson(req);
       const q = String(cau_hoi ?? "").trim().slice(0, 2000);
       if (q.length < 5) return send(res, 400, { error: "Bạn nhập câu hỏi dài hơn một chút." });
-      return send(res, 200, await hoiGoc.start(q));
+      return send(res, 200, await hoiGoc.start(q, nganh ? String(nganh).slice(0, 60) : ""));
     }
     const vong = p.match(/^\/api\/hoi\/([^/]+)\/(tra-loi|chot)$/);
     if (vong && req.method === "POST") {
@@ -87,14 +88,15 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/council" && req.method === "POST") {
       if (RUNNER !== "api") return send(res, 403, { error: "This room is a viewer. Run /roast-room in Claude Code, or set COUNCIL_RUNNER=api in .env." });
-      const { prompt, mode, hoi_id } = await readJson(req);
+      const { prompt, mode, hoi_id, nganh } = await readJson(req);
       if (!prompt || prompt.trim().length < 10) return send(res, 400, { error: "Give the council a real decision (at least a sentence)." });
       // hỏi state lives in memory: after a restart the phiếu could not be written, so say so instead of running unrecorded
       const hoi = hoi_id ? hoiGoc.get(String(hoi_id)) : null;
       if (hoi_id && !hoi) return send(res, 409, { error: "Phiên hỏi đã hết hạn (server vừa khởi động lại). Hỏi lại từ đầu.", code: "hoi_het_han" });
       // checked after the body is read, with no await before `running` is set, so two requests cannot both start one
       if (dangHop()) return send(res, 409, { error: "A council is already in session. Wait for its verdict." });
-      const s = startCouncil(prompt.trim().slice(0, 4000), mode === "quick" ? "quick" : "full");
+      // gói ngành: của lượt hỏi gốc nếu có, không thì gói trang gửi lên (gói lạ thành gói mặc định)
+      const s = startCouncil(prompt.trim().slice(0, 4000), mode === "quick" ? "quick" : "full", { nganh: goi(hoi?.nganh || String(nganh ?? "")).key });
       running = s.id;
       // run() calls this after the verdict and before the stream ends; it reports { path } or throws, and the page shows which
       if (hoi) s.onDone = (x) => {
@@ -127,7 +129,7 @@ const server = http.createServer(async (req, res) => {
       const lan = file ? lanKeTiep(fs.readFileSync(file, "utf8"), g.lan) : g.lan + 1;
       if (dangHop()) return send(res, 409, { error: "Đang có một hội đồng họp. Chờ kết luận rồi họp tiếp." });
       const s = startCouncil(promptHopTiep({ lan, boSung, boSungTruoc: g.bo_sung_truoc, verdict: g.verdict, chairView: g.chairView, gocPrompt: g.goc_prompt }), g.mode,
-        { parent: id, lan, goc_prompt: g.goc_prompt, phieu: g.phieu, bo_sung: boSung, bo_sung_truoc: g.bo_sung_truoc });
+        { parent: id, lan, goc_prompt: g.goc_prompt, phieu: g.phieu, bo_sung: boSung, bo_sung_truoc: g.bo_sung_truoc, nganh: g.nganh });
       running = s.id;
       if (g.phieu) s.onDone = (x) => {
         x.cap_nhat = true;

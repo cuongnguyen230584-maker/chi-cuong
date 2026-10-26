@@ -4,7 +4,8 @@ import { env, SESSIONS_DIR } from "./env.mjs";
 import { askJson, S } from "./anthropic.mjs";
 import { docTaiLieu as docTaiLieuMacDinh } from "./tai-lieu.mjs";
 import { loiVi } from "../public/loi-vi.js";
-import { chairBrain, chairSeat } from "./seats.mjs";
+import { chairBrain } from "./seats.mjs";
+import { goi, chuToa, doanGoi } from "./nganh.mjs";
 
 export const MAX_LUOT = 5;
 export const MAX_PROMPT = 4000;
@@ -25,7 +26,17 @@ const DE_BAI = S.obj({
   chon: S.arr(S.int),
 });
 
-const SYSTEM_HOI = `Bạn là Chủ toạ của Hội đồng chuyên gia, mô phỏng Elon Musk, dựng từ tác phẩm công khai của ông (phần KIẾN THỨC CỦA CHỦ TOẠ ở cuối): suy luận từ nguyên lý gốc, thẳng, ngắn. Bạn không phải người thật và không xưng là người thật. Xưng "tôi", gọi người hỏi là "bạn".
+const CONG_CU_MUSK = `4. Hỏi bằng công cụ của chính Chủ toạ (lấy từ KIẾN THỨC CỦA CHỦ TOẠ), lồng vào đúng thứ tự ở mục 2, không phá thứ tự đó:
+- Ai đặt ra yêu cầu hay giả định này: tên một người cụ thể, không phải "phòng ban" hay "quy định".
+- Bước nào, khâu nào xoá hẳn được.
+- Chi phí vật liệu sàn và "idiot index" (giá hiện nay chia cho chi phí vật liệu sàn). Đây là tên khái niệm, không có trong nguồn của não: không gắn mã S0xx cho nó, khung có nguồn gần nhất là chi phí tính từ nguyên liệu thô.
+- Thành công đo bằng đơn vị vật lý nào (khách, đơn hàng, giờ, đồng trên một đơn), không phải cảm giác.
+- Nút thắt thật đang nằm ở đâu.
+Được nhắc tên khung kèm mã nguồn ngắn trong ngoặc, ví dụ "(thuật toán 5 bước, S014)": tên khung dịch ra tiếng Việt ngắn gọn, mã là mã nguồn S0xx đứng cạnh khung đó trong phần kiến thức (không ghi "frameworks 2" hay số mục). Chỉ nhắc khi khung và mã có trong phần kiến thức. Không trích dài, không bịa mã. Câu hỏi vẫn viết tiếng Việt.`;
+
+const MO_DAU_MUSK = `Bạn là Chủ toạ của Hội đồng chuyên gia, mô phỏng Elon Musk, dựng từ tác phẩm công khai của ông (phần KIẾN THỨC CỦA CHỦ TOẠ ở cuối): suy luận từ nguyên lý gốc, thẳng, ngắn. Bạn không phải người thật và không xưng là người thật. Xưng "tôi", gọi người hỏi là "bạn".`;
+
+const SYSTEM_HOI = (moDau, congCu) => `${moDau}
 Việc của bạn: hỏi từng vòng để cùng người hỏi chốt VẤN ĐỀ GỐC trước khi hội đồng bàn. Số liệu chỉ dùng để kiểm câu trả lời của người hỏi, không thay cho việc hỏi.
 
 1. Phân loại (loai). Lượt sau giữ nguyên loại đã phân.
@@ -45,21 +56,22 @@ Chưa đề xuất thì de_xuat_van_de_goc để rỗng.
 - tra_loi_ban_dau: câu trả lời của người hỏi cho "Nếu phải quyết ngay hôm nay, bạn chọn gì?". Lấy từ câu hỏi nếu họ đã nêu ý mình; điền ngay khi họ trả lời câu đó; chưa có thì để rỗng.
 - nhan_xet_so: một câu. Tờ sự thật (nếu có) đang ủng hộ hay phản bác câu trả lời người hỏi vừa đưa, kèm nguồn (đường dẫn file). Không có tờ sự thật, hoặc không có số liên quan, thì để rỗng. Không bịa số.
 
-4. Hỏi bằng công cụ của chính Chủ toạ (lấy từ KIẾN THỨC CỦA CHỦ TOẠ), lồng vào đúng thứ tự ở mục 2, không phá thứ tự đó:
-- Ai đặt ra yêu cầu hay giả định này: tên một người cụ thể, không phải "phòng ban" hay "quy định".
-- Bước nào, khâu nào xoá hẳn được.
-- Chi phí vật liệu sàn và "idiot index" (giá hiện nay chia cho chi phí vật liệu sàn). Đây là tên khái niệm, không có trong nguồn của não: không gắn mã S0xx cho nó, khung có nguồn gần nhất là chi phí tính từ nguyên liệu thô.
-- Thành công đo bằng đơn vị vật lý nào (khách, đơn hàng, giờ, đồng trên một đơn), không phải cảm giác.
-- Nút thắt thật đang nằm ở đâu.
-Được nhắc tên khung kèm mã nguồn ngắn trong ngoặc, ví dụ "(thuật toán 5 bước, S014)": tên khung dịch ra tiếng Việt ngắn gọn, mã là mã nguồn S0xx đứng cạnh khung đó trong phần kiến thức (không ghi "frameworks 2" hay số mục). Chỉ nhắc khi khung và mã có trong phần kiến thức. Không trích dài, không bịa mã. Câu hỏi vẫn viết tiếng Việt.
+${congCu}
 
 5. Cách viết: kết luận trước, câu ngắn, mỗi câu một ý. Thuật ngữ thật trước, giải thích ngay sau. Mỗi con số nói rõ đo cái gì, so với đâu. Không giảng giải, không ẩn dụ. Không ghi thông tin cá nhân của khách hàng hay người khác.`;
 
 // The Chair asks from his own brain. HOI_BRAIN=nho keeps only _hot and principles, for when a round runs slow.
 const HOI_FILES = { day_du: ["_hot.md", "principles.md", "voice.md", "frameworks.md"], nho: ["_hot.md", "principles.md"] };
-export function systemHoi() {
-  const b = chairBrain(chairSeat(), { files: HOI_FILES[env("HOI_BRAIN")] || HOI_FILES.day_du });
-  return b ? `${SYSTEM_HOI}\n\nKIẾN THỨC CỦA CHỦ TOẠ (não dựng từ nguồn công khai của ông; S0xx là mã nguồn):\n\n${b}` : SYSTEM_HOI;
+export function systemHoi(nganh) {
+  const g = goi(nganh);
+  // gói kinh doanh giữ Chủ toạ Musk của bản gốc; gói khác lấy lời giới thiệu và công cụ hỏi từ nganh/<key>.md
+  const rieng = g.gioi_thieu_chu_toa && g.cong_cu_hoi;
+  const sys = SYSTEM_HOI(rieng ? g.gioi_thieu_chu_toa : MO_DAU_MUSK, rieng ? `4. Hỏi bằng công cụ của chính Chủ toạ (lấy từ KIẾN THỨC CỦA CHỦ TOẠ), lồng vào đúng thứ tự ở mục 2, không phá thứ tự đó:\n${g.cong_cu_hoi}` : CONG_CU_MUSK);
+  const luat = g.luat_nganh ? `\n\nLUẬT NGÀNH (${g.ten}), BẮT BUỘC:\n${g.luat_nganh}` : "";
+  const key = chuToa(g);
+  const b = key ? chairBrain(key, { files: HOI_FILES[env("HOI_BRAIN")] || HOI_FILES.day_du }) : "";
+  const nguon = g.loai === "vai-tro" ? "não dựng từ văn bản pháp luật hiện hành và nguồn chính thức" : "não dựng từ nguồn công khai của ông";
+  return `${sys}${luat}` + (b ? `\n\nKIẾN THỨC CỦA CHỦ TOẠ (${nguon}; S0xx là mã nguồn):\n\n${b}` : "");
 }
 
 const SYSTEM_DE_BAI = `Bạn là thư ký của Hội đồng chuyên gia. Dựa vào vấn đề gốc người hỏi đã chốt, cuộc hỏi đáp và tờ sự thật, soạn đề bài cho hội đồng:
@@ -159,7 +171,7 @@ export function createHoiGoc({ ask, docTaiLieu, saveDir, newId = () => Date.now(
     if (!s) throw new Error(`Không thấy phiên hỏi ${id}`);
     return s;
   };
-  const hoi = (s, cuoi = false) => ask({ model: model(), system: systemHoi(), prompt: promptLuot(s, cuoi), schema: LUOT, effort: env("HOI_EFFORT") || "medium" });
+  const hoi = (s, cuoi = false) => ask({ model: model(), system: systemHoi(s.nganh), prompt: promptLuot(s, cuoi), schema: LUOT, effort: env("HOI_EFFORT") || "medium" });
   const themLuot = (s, r) => {
     const l = { so: s.luot.length + 1, cau_hoi: r.cau_hoi, tra_loi: [], nhan_xet_so: r.nhan_xet_so || "" };
     s.luot.push(l);
@@ -167,8 +179,9 @@ export function createHoiGoc({ ask, docTaiLieu, saveDir, newId = () => Date.now(
   };
 
   return {
-    async start(cauHoi) {
-      const s = { id: newId(), loai: "", cauHoi, luot: [], facts: null, deXuat: "", van_de_goc: "", tra_loi_ban_dau: "", bo_qua_vong_hoi: false };
+    async start(cauHoi, nganh) {
+      // gói ngành: người hỏi chọn, hoặc đoán theo từ khoá của câu hỏi
+      const s = { id: newId(), nganh: goi(nganh || doanGoi(cauHoi)).key, loai: "", cauHoi, luot: [], facts: null, deXuat: "", van_de_goc: "", tra_loi_ban_dau: "", bo_qua_vong_hoi: false };
       const r = await hoi(s);
       s.loai = r.loai;
       s.tra_loi_ban_dau = r.tra_loi_ban_dau || "";
@@ -176,7 +189,7 @@ export function createHoiGoc({ ask, docTaiLieu, saveDir, newId = () => Date.now(
       if (r.loai === "tra_cuu") {
         s.facts = await docTaiLieu({ cauHoi, cheDo: "tra_cuu" });
         luu(s);
-        return { id: s.id, loai: "tra_cuu", tra_loi: s.facts.tra_loi_tra_cuu, nguon: s.facts.su_that };
+        return { id: s.id, nganh: s.nganh, loai: "tra_cuu", tra_loi: s.facts.tra_loi_tra_cuu, nguon: s.facts.su_that };
       }
       s.docPromise = Promise.resolve()
         .then(() => docTaiLieu({ cauHoi }))
@@ -185,7 +198,7 @@ export function createHoiGoc({ ask, docTaiLieu, saveDir, newId = () => Date.now(
         .catch(() => {});
       const luot = themLuot(s, r);
       luu(s);
-      return { id: s.id, loai: r.loai, luot };
+      return { id: s.id, nganh: s.nganh, loai: r.loai, luot };
     },
 
     async answer(id, traLoi) {

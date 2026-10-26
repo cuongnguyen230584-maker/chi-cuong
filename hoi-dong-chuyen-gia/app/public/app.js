@@ -5,6 +5,15 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+// Câu hỏi mẫu theo gói ngành; gói không có mẫu riêng dùng mẫu kinh doanh.
+const SAMPLES_NGANH = {
+  "phap-ly-nnn": [
+    ["Gia hạn visa hay làm thẻ tạm trú?", "Khách Hàn Quốc làm giám đốc điều hành công ty FDI của họ ở Bắc Ninh, đang ở Việt Nam bằng thị thực DN1, còn 20 ngày hết hạn. Giấy phép lao động đang nộp, chưa có kết quả. Phương án: gia hạn thị thực rồi làm thẻ tạm trú sau, xuất cảnh rồi nhập lại bằng e-visa, hoặc chờ giấy phép lao động. Tôi nghiêng về gia hạn thị thực."],
+    ["Thành lập FDI trước hay GPLĐ trước?", "Nhà đầu tư Trung Quốc muốn mở công ty TNHH 100% vốn để kinh doanh thương mại điện tử và bán lẻ quần áo tại TP.HCM, vốn dự kiến 10 tỷ, đồng thời muốn tự làm giám đốc. Nên làm giấy chứng nhận đăng ký đầu tư trước rồi giấy phép lao động, góp vốn vào công ty Việt Nam có sẵn, hay mở văn phòng đại diện trước? Khách muốn hoạt động trong 3 tháng."],
+    ["Khách quá hạn tạm trú?", "Một khách Trung Quốc quá hạn tạm trú 25 ngày vì quên ngày hết hạn e-visa, muốn ở lại làm việc tiếp. Phương án: tự trình diện nộp phạt rồi xuất cảnh, nhờ công ty bảo lãnh xin gia hạn, hoặc xuất cảnh qua cửa khẩu và chấp nhận rủi ro. Tôi muốn biết phương án an toàn nhất và mức phạt."],
+    ["Nhận gói trọn GPLĐ + TRC giá cố định?", "Văn phòng tôi định chào gói trọn giấy phép lao động + thẻ tạm trú 2 năm cho doanh nghiệp FDI với giá cố định 25 triệu/người, cam kết hoàn tiền nếu trượt. Hiện mỗi tháng làm khoảng 40 hồ sơ, 3 nhân viên. Nên làm gói này, giữ giá từng việc, hay bán gói nhưng không cam kết hoàn tiền?"],
+  ],
+};
 const SAMPLES = [
   ["Tăng giá?", "Tôi làm dịch vụ tư vấn, doanh thu 750 triệu/tháng với 15 khách, mỗi khách 50 triệu. Tôi muốn tăng lên 85 triệu. Phương án: tăng cho tất cả ngay, chỉ tăng cho khách mới, hoặc giữ 50 triệu. Tỉ lệ chốt qua cuộc gọi khoảng 50%. Tôi đang nghiêng về tăng cho tất cả vì thấy mình đang lấy giá thấp."],
   ["Tuyển người bán hàng đầu tiên?", "Tôi tự điều hành một công ty phần mềm, doanh thu định kỳ 600 triệu/tháng, tăng 5% mỗi tháng. Tôi tự gọi mọi cuộc bán hàng (khoảng 20 giờ/tuần) và đang kiệt sức. Nên tuyển một nhân viên kinh doanh toàn thời gian lương cứng 250 triệu/năm, thuê người chốt bán thời gian ăn hoa hồng, hay tự bán thêm 6 tháng? Tôi có 3,5 tỷ tiền mặt."],
@@ -90,7 +99,7 @@ const STATUS_VI = { done: "xong", running: "đang chạy", error: "lỗi" };
 const state = {
   seats: [], byKey: {}, board: [], table: [], session: null, options: [], weights: {}, active: [], round: 0,
   cards: { 1: {}, 2: {}, 3: {} }, replaying: false, verdict: null, links: [], geo: {}, setup: null, wait: null,
-  chair: null, hoi: null,
+  chair: null, hoi: null, nganh: "", packs: [], goiDangDung: "",
 };
 
 // The Chair (the `musk` seat by default) does not debate: he sits in the middle, behind the table,
@@ -110,6 +119,7 @@ async function boot() {
   document.fonts?.ready.then(layoutStage); // nameplate widths change once the fonts arrive
   if (r.runner === "api" && !r.hasKey) toast("Chưa có key trong .env (CLAUDE_CODE_OAUTH_TOKEN hoặc ANTHROPIC_API_KEY). Thêm vào rồi khởi động lại server.");
   renderSeats(state.board);
+  renderNganh();
   renderSamples();
   bindUI();
   new ResizeObserver(() => { layoutStage(); drawLinks(); }).observe($("#stage"));
@@ -134,6 +144,8 @@ async function refreshSeats() {
   state.seats = r.seats;
   state.byKey = Object.fromEntries(r.seats.map((s) => [s.key, s]));
   state.chair = state.byKey[r.chair] ? r.chair : null;
+  state.thuKyRaw = r.thu_ky || null;
+  state.packs = r.nganh || [];
   state.thuKy = state.chair && r.thu_ky ? r.thu_ky : null; // stands behind the Chair; not a seat, never votes
   if (state.thuKy) state.byKey[THU_KY] = state.thuKy;
   state.board = (r.board?.default || []).filter((k) => state.byKey[k] && k !== state.chair);
@@ -163,13 +175,44 @@ function typeIn(el) {
   el.setAttribute("aria-label", text);
 }
 
+// tự nhận diện: trộn mẫu pháp lý và mẫu kinh doanh để người hỏi thấy cả hai loại câu hỏi
+const samplesNow = () => SAMPLES_NGANH[state.nganh] || (state.nganh ? SAMPLES : [...Object.values(SAMPLES_NGANH).flatMap((x) => x.slice(0, 2)), ...SAMPLES.slice(0, 2)]);
 function renderSamples() {
-  $("#samples").innerHTML = SAMPLES.map(([t], i) => `<button type="button" data-i="${i}">${esc(t)}</button>`).join("");
+  $("#samples").innerHTML = samplesNow().map(([t], i) => `<button type="button" data-i="${i}">${esc(t)}</button>`).join("");
+  if (renderSamples.bound) return;
+  renderSamples.bound = true;
   $("#samples").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
-    $("#prompt").value = SAMPLES[b.dataset.i][1];
+    $("#prompt").value = samplesNow()[b.dataset.i][1];
     $("#prompt").focus();
   });
+}
+
+// Gói ngành: "" là tự nhận diện theo câu hỏi. Đổi gói thì đổi Chủ toạ, bàn và câu hỏi mẫu.
+function renderNganh() {
+  const el = $("#nganhPick");
+  if (!el) return;
+  const goi = state.packs || [];
+  el.hidden = goi.length < 2;
+  el.innerHTML = [["", "Tự nhận diện", "Chủ toạ chọn gói theo câu hỏi"], ...goi.map((g) => [g.key, g.ten, g.mo_ta])]
+    .map(([k, t, d]) => `<button type="button" role="radio" aria-checked="${k === state.nganh}" data-k="${esc(k)}" title="${esc(d)}">${esc(t)}</button>`).join("");
+}
+function applyNganh(key, { chon = false } = {}) {
+  if (chon) state.nganh = key || "";
+  const g = (state.packs || []).find((x) => x.key === (key || state.nganh)) || (state.packs || [])[0];
+  if (g) {
+    state.goiDangDung = g.key;
+    state.chair = state.byKey[g.chair] ? g.chair : null;
+    state.thuKy = state.chair && state.thuKyRaw ? state.thuKyRaw : null;
+    if (state.thuKy) state.byKey[THU_KY] = state.thuKy;
+    const def = (g.default || []).filter((k) => state.byKey[k] && k !== state.chair);
+    if (def.length) state.board = def;
+    bustCache.clear();
+    renderSeats(state.board);
+    layoutStage();
+  }
+  renderNganh();
+  renderSamples();
 }
 
 const MAX_TABLE = 9; // the most busts the table can seat and still read
@@ -313,6 +356,10 @@ function bindUI() {
     if (!state.hoi?.busy) askHoi(q);
   });
   $("#prompt").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) $("#composer").requestSubmit(); });
+  $("#nganhPick")?.addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b || state.hoi?.busy) return;
+    applyNganh(b.dataset.k, { chon: true });
+  });
   $("#hoi").addEventListener("click", (e) => {
     const c = e.target.closest(".choice");
     if (c) { // pick one; pick it again to clear
@@ -509,6 +556,7 @@ async function handle(ev) {
 
 async function onSetup(ev) {
   if (ev.seats.some((k) => !state.byKey[k])) await refreshSeats(); // a seat added since the page loaded
+  if (ev.nganh && ev.nganh !== state.goiDangDung) applyNganh(ev.nganh); // phát lại phiên của gói khác
   // seat the default board plus anyone this council called in; past the table's limit, only this council
   const both = [...new Set([...state.board, ...ev.seats])];
   renderSeats(both.length <= MAX_TABLE ? both : ev.seats);
@@ -1102,9 +1150,11 @@ async function askHoi(cauHoi) {
   setStep("setup");
   hoiWait("Chủ toạ đang nghĩ…", { tag: "Câu hỏi" });
   try {
-    const j = await postJson("/api/hoi", { cau_hoi: cauHoi });
+    const j = await postJson("/api/hoi", { cau_hoi: cauHoi, nganh: state.nganh || "" });
     if (state.hoi !== h) return;
     h.id = j.id;
+    h.nganh = j.nganh;
+    if (j.nganh && j.nganh !== state.goiDangDung) applyNganh(j.nganh); // Chủ toạ của gói vừa nhận diện lên ghế
     if (j.loai === "tra_cuu") return showTraCuu(j);
     await showLuot(j.luot);
   } catch (e) { hoiFail(e, h); }
@@ -1259,7 +1309,7 @@ async function convene(btn) {
   btn.disabled = true;
   btn.textContent = "Đang triệu tập…";
   try {
-    const j = await postJson("/api/council", { prompt: h.deBai.prompt, mode, hoi_id: h.id });
+    const j = await postJson("/api/council", { prompt: h.deBai.prompt, mode, hoi_id: h.id, nganh: h.nganh || state.nganh || "" });
     if (state.hoi === h) attach(j.id);
   } catch (e) {
     toast(e.code === "hoi_het_han" ? e.message : COUNCIL_ERR[e.status] || `Chưa triệu tập được hội đồng: ${loiVi(e.message)}`);

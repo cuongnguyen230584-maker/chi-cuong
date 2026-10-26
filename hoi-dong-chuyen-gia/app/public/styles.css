@@ -250,6 +250,14 @@ button { font: inherit; cursor: pointer; }
 }
 .composer textarea::placeholder { color: var(--ink-mute); }
 .composer textarea:focus, .hoi textarea:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--accent-soft); }
+.nganh-pick { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 0 0 10px; }
+.nganh-pick[hidden] { display: none; }
+.nganh-pick button {
+  background: transparent; color: var(--ink-soft); border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-sm); padding: 6px 12px; font-size: 13px; font-weight: 600; transition: border-color .2s, color .2s;
+}
+.nganh-pick button:hover { border-color: var(--accent); color: var(--accent-deep); }
+.nganh-pick button[aria-checked="true"] { border-color: var(--ink); color: var(--ink); background: var(--paper); box-shadow: inset 0 0 0 1px var(--ink); }
 .samples { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .samples button {
   background: transparent; color: var(--ink-soft); border: 1px solid var(--hairline-strong);

@@ -27,6 +27,9 @@ const seat = {
   key: (opt("key") || "").toLowerCase(),
   name: opt("name"), short: opt("short"), initials: opt("initials"), slug: opt("slug"),
   pillar: opt("pillar"), question: opt("question"), dimension: opt("dimension"), color: opt("color"),
+  // loại ghế (nguoi-that | vai-tro) và gói ngành; mặc định như bản gốc: người thật, gói kinh doanh
+  loai: opt("loai") === "vai-tro" ? "vai-tro" : "nguoi-that",
+  nganh: (opt("nganh") || "kinh-doanh").split(",").map((x) => x.trim()).filter(Boolean),
 };
 for (const f of ["key", "name", "short", "slug", "pillar", "question", "dimension"]) if (!seat[f]) fail(`--${f} is required`);
 if (!/^[a-z][a-z0-9]{1,15}$/.test(seat.key)) fail("--key must be 2 to 16 lowercase letters or digits, starting with a letter");
@@ -48,6 +51,9 @@ if (!/^#[0-9a-f]{6}$/i.test(seat.color || "")) {
   seat.color = PALETTE.find((c) => !used.has(c)) || PALETTE[r.seats.length % PALETTE.length];
 }
 const at = r.seats.findIndex((s) => s.key === seat.key);
+// cập nhật một ghế đã có thì giữ gói ngành cũ, trừ khi --nganh được truyền
+if (at >= 0 && !opt("nganh") && r.seats[at].nganh) seat.nganh = r.seats[at].nganh;
+if (at >= 0 && !opt("loai") && r.seats[at].loai) seat.loai = r.seats[at].loai;
 if (at >= 0) r.seats[at] = seat; else r.seats.push(seat);
 
 const swap = opt("swap");
@@ -63,6 +69,7 @@ const out = [
   "{",
   `  "board": ${JSON.stringify(r.board || "default")},`,
   `  "default": [${r.default.map((k) => JSON.stringify(k)).join(", ")}],`,
+  ...(r.nganh ? [`  "nganh": [`, r.nganh.map((g) => "    " + JSON.stringify(g)).join(",\n"), "  ],"] : []),
   `  "seats": [`,
   r.seats.map((s) => "    " + line(s)).join(",\n"),
   "  ]",

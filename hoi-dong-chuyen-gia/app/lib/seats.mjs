@@ -75,8 +75,8 @@ export function chairBrain(key, { files = CHAIR_FILES, max = 60000 } = {}) {
 
 // ---------- quote verification against the brain ----------
 const norm = (s) =>
-  s.toLowerCase().replace(/[‘’]/g, "'").replace(/'\s+(t|s|re|ll|ve|d|m)\b/g, "'$1")
-    .replace(/[^a-z0-9' ]+/g, " ").replace(/\s+/g, " ").trim();
+  s.normalize("NFC").toLowerCase().replace(/[‘’]/g, "'").replace(/'\s+(t|s|re|ll|ve|d|m)\b/g, "'$1")
+    .replace(/[^\p{L}\p{N}' ]+/gu, " ").replace(/\s+/g, " ").trim();
 const brainText = new Map();
 function brainNorm(key) {
   if (!brainText.has(key)) {
@@ -105,8 +105,9 @@ export function checkQuotes(key, text) {
  * surname. Two seats can share a surname (Alex and Leila Hormozi), so the surname only counts
  * when one seat has it, or when it is also that seat's short name. */
 export function seatIn(text) {
-  const t = ` ${String(text || "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ")} `;
-  const has = (w) => w && t.includes(` ${w.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").trim()} `);
+  const clean = (x) => String(x || "").normalize("NFC").toLowerCase().replace(/[^\p{L}\p{N} ]+/gu, " ").replace(/\s+/g, " ");
+  const t = ` ${clean(text)} `;
+  const has = (w) => w && t.includes(` ${clean(w).trim()} `);
   return SEATS.find((s) => has(s.name)) || SEATS.find((s) => has(s.short) || has(s.key)) ||
     SEATS.find((s) => {
       const sur = s.name.split(" ").pop().toLowerCase();

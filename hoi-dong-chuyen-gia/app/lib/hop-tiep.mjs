@@ -18,6 +18,8 @@ export function gocCuaPhien(x) {
     goc_prompt: x.goc_prompt || x.prompt,
     phieu: x.phieu || last("phieu")?.path || null,
     mode: x.mode === "quick" ? "quick" : "full",
+    // gói ngành của phiên gốc; phiên cũ không ghi gói thì lấy từ setup, rồi mới để trống (gói mặc định)
+    nganh: x.nganh || ev.find((e) => e.type === "setup")?.nganh || "",
     setup: ev.find((e) => e.type === "setup") || null,
     verdict: last("verdict")?.verdict || null,
     chairView: last("chair_view")?.view || null,
