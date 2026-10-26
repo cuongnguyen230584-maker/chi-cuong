@@ -102,3 +102,13 @@ test("tên luật kèm năm khớp với số hiệu ('Luật Đầu tư 2020' l
   assert.deepEqual(kiemLuat("Theo Luật Đầu tư 2020, bên mua phải đăng ký góp vốn.", idx).het.map((x) => x.so), ["61/2020/QH14"]);
   assert.deepEqual(kiemLuat("Theo Luật Đầu tư năm 2025, thủ tục như sau.", idx).con.map((x) => x.so), ["143/2025/QH15"]);
 });
+
+test("máy kiểm thứ tự thủ tục", async () => {
+  const { kiemThuTu } = await import("../lib/kiem-thu-tu.mjs");
+  const sai = kiemThuTu([{ when: "Ngày 1", action: "Nộp hồ sơ thẻ tạm trú" }, { when: "Ngày 5", action: "Nộp hồ sơ giấy phép lao động" }]);
+  assert.equal(sai.length, 1);
+  assert.match(sai[0].ly_do, /giấy phép lao động/);
+  assert.deepEqual(kiemThuTu(["Nộp hồ sơ giấy phép lao động", "Nộp hồ sơ thẻ tạm trú"]), []);
+  assert.deepEqual(kiemThuTu(["Nộp hồ sơ thẻ tạm trú diện kết hôn"]), [], "thiếu hẳn bước GPLĐ thì không báo (có thể là diện không cần)");
+  assert.equal(kiemThuTu(["Thanh toán cho bên bán", "Đăng ký góp vốn tại Sở"]).length, 1);
+});

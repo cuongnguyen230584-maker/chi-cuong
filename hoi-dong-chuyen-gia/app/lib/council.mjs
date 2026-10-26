@@ -7,6 +7,7 @@ import { SESSIONS_DIR, BRAINS_DIR, env } from "./env.mjs";
 import { LUAT_SO, kiemSo } from "./luat-so.mjs";
 import { goi, chuToa, gheCua, banMacDinh } from "./nganh.mjs";
 import { chiMucLuat, kiemLuat, gopKiemLuat, canhBaoLuat, ganSoHieu } from "./kiem-luat.mjs";
+import { kiemThuTu } from "./kiem-thu-tu.mjs";
 import { slugVi, NHAN } from "./phieu.mjs";
 import { ngayIso, ngayVN } from "./ngay.mjs";
 
@@ -493,13 +494,19 @@ ${LUAT_SO}`,
 }
 
 // ---------------------------------------------------------------- the run
+// SEAT_MODELS=a,b trong .env: các ghế dùng xen kẽ nhiều model để góc nhìn ít trùng nhau; không đặt thì mọi ghế dùng SEAT_MODEL.
+export function modelGhe(st, key) {
+  const ds = (env("SEAT_MODELS") || "").split(",").map((x) => x.trim()).filter(Boolean);
+  return ds.length > 1 ? ds[Math.max(0, st.seats.indexOf(key)) % ds.length] : MODELS.seat;
+}
+
 async function runSeat(s, st, round, key, prompt) {
   const seat = byKey[key];
   emit(s, "seat_start", { round, seat: key });
   let text = "";
   try {
     text = await ai.stream({
-      model: MODELS.seat, system: systemFor(key), maxTokens: 1400,
+      model: modelGhe(st, key), system: systemFor(key), maxTokens: 1400,
       messages: [{ role: "user", content: prompt }],
       onText: (d) => { text += d; emit(s, "delta", { round, seat: key, text: d }); },
     });
@@ -629,6 +636,16 @@ async function run(s) {
       st.verdict.kiem_luat_ket_luan = kiemLuat(vanBanKetLuan(v), st.luatIdx);
       st.verdict.kiem_luat = gopKiemLuat([tongKiemLuat(st), st.verdict.kiem_luat_ket_luan]);
     }
+    if (st.luatIdx) {
+      // hậu kiểm nhãn: QUY ĐỊNH chỉ đứng được khi văn bản dẫn đã xác minh còn hiệu lực
+      for (const c of st.verdict.can_cu || []) {
+        if (c.nhan !== "QUY ĐỊNH" || !c.van_ban) continue;
+        const k = kiemLuat(c.van_ban, st.luatIdx);
+        if (k.het.length) { c.nhan = "CẦN KIỂM TRA"; c.ha_nhan = `văn bản hết hiệu lực: ${k.het.map((x) => x.so).join(", ")}`; }
+        else if (k.ngoai.length && !k.con.length) { c.nhan = "CẦN KIỂM TRA"; c.ha_nhan = `văn bản chưa xác minh trong nguồn: ${k.ngoai.map((x) => x.so).join(", ")}`; }
+      }
+      st.verdict.thu_tu = kiemThuTu(st.verdict.next_steps);
+    }
     st.verdict.a_dua = chiSoADua(st);
     st.verdict.ngay_phien = st.ngay;
     if (support != null) st.verdict.support_math = congThucUngHo(st);
@@ -640,11 +657,12 @@ async function run(s) {
   // gói vai nghề: Góc nhìn Chủ toạ chỉ ra điểm lệch thì kết luận được viết lại một lần cho các điểm đó
   // (giữ phương án và nhãn theo điểm số); Góc nhìn cũ vẫn lưu để đối chiếu
   const cv = [...s.events].reverse().find((e) => e.type === "chair_view")?.view;
-  if (st.goi?.loai === "vai-tro" && cv?.lech?.length && cv.dong_y !== "đồng ý") {
+  const lech = [...(cv?.dong_y !== "đồng ý" ? cv?.lech || [] : []), ...(st.verdict.thu_tu || []).map((x) => `Sai thứ tự thủ tục: bước "${x.sau}" đang đứng trước bước "${x.truoc}". ${x.ly_do}`)];
+  if (st.goi?.loai === "vai-tro" && lech.length) {
     emit(s, "phase", { phase: "verdict", label: "Chủ toạ sửa kết luận theo các điểm lệch" });
     try {
-      const v2 = await chairVerdict(st, finalScores, recommended, `SỬA LẠI BẢN TRƯỚC THEO GÓC NHÌN CỦA CHỦ TOẠ. Bản trước: ${JSON.stringify({ call: v.call, conditions: v.conditions, next_steps: v.next_steps, can_cu: v.can_cu })}. Các điểm lệch Chủ toạ chỉ ra: ${cv.lech.map((x, i) => `(${i + 1}) ${x}`).join(" ")} Sửa mọi điểm lệch có căn cứ trong các thẻ hoặc não (thứ tự thủ tục, văn bản hết hiệu lực, nghĩa vụ bị bỏ ngỏ); điểm nào không có căn cứ thì đưa vào can_xac_nhan. Giữ phương án đề xuất và nhãn.`);
-      chot({ ...v2, sua_theo_chu_toa: cv.lech });
+      const v2 = await chairVerdict(st, finalScores, recommended, `SỬA LẠI BẢN TRƯỚC THEO GÓC NHÌN CỦA CHỦ TOẠ. Bản trước: ${JSON.stringify({ call: v.call, conditions: v.conditions, next_steps: v.next_steps, can_cu: v.can_cu })}. Các điểm lệch Chủ toạ và máy kiểm thứ tự chỉ ra: ${lech.map((x, i) => `(${i + 1}) ${x}`).join(" ")} Sửa mọi điểm lệch có căn cứ trong các thẻ hoặc não (thứ tự thủ tục, văn bản hết hiệu lực, nghĩa vụ bị bỏ ngỏ); điểm nào không có căn cứ thì đưa vào can_xac_nhan. Giữ phương án đề xuất và nhãn.`);
+      chot({ ...v2, sua_theo_chu_toa: lech });
     } catch (e) { console.error("sửa theo Chủ toạ", e); }
   }
   finishRun(s);
@@ -771,8 +789,9 @@ function verdictMarkdown(st) {
   L.push("", "## Chỗ họ tranh cãi", "", ...v.fights.map((f) => `- **${f.crux}** ${f.story}`));
   L.push("", "## Ý kiến thiểu số", "", `${v.minority.seat}: "${v.minority.quote}" Để ý kiến này đúng thì: ${v.minority.would_have_to_be_true}`);
   if (v.amendments?.length) L.push("", "## Đề xuất sửa đổi", "", ...v.amendments.map((a) => `- ${a.seat}: ${a.amendment} ${a.adopted ? "Được chấp nhận" : "Không chấp nhận"}: ${a.reason}`));
+  if (v.thu_tu?.length) L.push("", "## Cảnh báo thứ tự thủ tục", "", ...v.thu_tu.map((x) => `- "${x.sau}" đứng trước "${x.truoc}". ${x.ly_do}`));
   if (v.rui_ro_khong_dao_nguoc?.length) L.push("", "## Rủi ro không đảo ngược được", "", ...v.rui_ro_khong_dao_nguoc.map((r) => `- ${r}`));
-  if (v.can_cu?.length) L.push("", "## Căn cứ pháp lý chính", "", ...v.can_cu.map((c) => `- ${c.noi_dung}${c.van_ban ? ` (${c.van_ban})` : ""}: ${c.nhan}`));
+  if (v.can_cu?.length) L.push("", "## Căn cứ pháp lý chính", "", ...v.can_cu.map((c) => `- ${c.noi_dung}${c.van_ban ? ` (${c.van_ban})` : ""}: ${c.nhan}${c.ha_nhan ? ` (máy hạ nhãn: ${c.ha_nhan})` : ""}`));
   L.push("", "## Điều kiện", "", ...v.conditions.map((c, i) => `${i + 1}. ${c}`));
   L.push("", "## Việc làm tiếp theo", "", ...v.next_steps.map((n) => `- **${n.when}:** ${n.action}`));
   if (v.kiem_luat && (v.kiem_luat.het.length || v.kiem_luat.ngoai.length)) {

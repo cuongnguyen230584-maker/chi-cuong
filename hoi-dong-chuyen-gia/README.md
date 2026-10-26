@@ -112,6 +112,7 @@ Thư ký đứng sau Chủ toạ. Cô không có ghế và không bỏ phiếu.
 | `TAI_LIEU_DIR` | Thư mục tài liệu để Chủ toạ đọc (tuỳ chọn). |
 | `PHIEU_DIR` | Nơi ghi phiếu (mặc định `phieu/` trong repo). |
 | `SEAT_MODEL`, `CHAIR_MODEL` | Model cho cố vấn và Chủ toạ (mặc định Sonnet 5.5 và Opus 5.5). |
+| `SEAT_MODELS` | Danh sách model, các ghế dùng xen kẽ (ví dụ `claude-sonnet-5-5,claude-opus-5-5`). |
 | `COUNCIL_EFFORT`, `HOI_EFFORT`, `DOC_EFFORT` | Mức suy nghĩ: low, medium, high, xhigh, max. |
 | `HOI_BRAIN=nho` | Chủ toạ chỉ nạp phần tóm tắt và nguyên tắc khi hỏi gốc. Dùng khi lượt hỏi quá chậm. |
 | `CHAIR_SEAT` | Đổi Chủ toạ sang ghế khác (mặc định `musk`). |
