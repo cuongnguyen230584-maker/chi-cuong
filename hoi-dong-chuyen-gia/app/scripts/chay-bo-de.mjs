@@ -28,7 +28,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** Chữ của kết luận để chấm: quyết định, lý do, điều kiện, bước tiếp theo, dừng nếu. */
 export function chuKetLuan(v) {
-  return [v.call, ...(v.why || []).map((w) => w.point), ...(v.conditions || []), ...(v.next_steps || []).map((n) => n.action), v.cheapest_test, v.kill_criteria, v.revisit, ...(v.fights || []).map((f) => f.story)].filter(Boolean).join("\n");
+  return [v.lam_ngay, v.call, ...(v.why || []).map((w) => w.point), ...(v.conditions || []), ...(v.next_steps || []).map((n) => n.action), v.cheapest_test, v.kill_criteria, v.revisit, ...(v.fights || []).map((f) => f.story), ...(v.can_xac_nhan || []).map((c) => `${c.viec} ${c.ai}`), ...(v.huong_ghe_neu || []).map((h) => `${h.huong} ${h.ly_do}`)].filter(Boolean).join("\n");
 }
 
 /** Chấm một phiên theo một ca. Trả { diem, toi_da, loi: [] }. */

@@ -33,7 +33,14 @@ You never argue a side and never add your own pillar. You run the room and keep 
 
 // Luật riêng của gói ngành (nganh/<key>.md, mục "Luật ngành"), gửi cho Chủ toạ và mọi ghế.
 // Kèm cảnh báo của máy kiểm điều luật (văn bản hết hiệu lực hoặc ngoài nguồn đã xác minh) tính tới vòng vừa xong.
-const luatNganh = (st) => (st.goi?.luat_nganh ? `\n\nLUẬT NGÀNH (${st.goi.ten}), BẮT BUỘC:\n${st.goi.luat_nganh}` : "") + (st.luatIdx && canhBaoLuat(tongKiemLuat(st)) ? `\n\n${canhBaoLuat(tongKiemLuat(st))}` : "") + daXacNhan(st);
+const luatNganh = (st) => (st.goi?.luat_nganh ? `\n\nLUẬT NGÀNH (${st.goi.ten}), BẮT BUỘC:\n${st.goi.luat_nganh}` : "") + nguoiHoiDungLuatCu(st) + (st.luatIdx && canhBaoLuat(tongKiemLuat(st)) ? `\n\n${canhBaoLuat(tongKiemLuat(st))}` : "") + daXacNhan(st);
+// Người hỏi dựa vào văn bản hết hiệu lực: phải sửa căn cứ cho họ, không lặng lẽ dùng căn cứ mới.
+function nguoiHoiDungLuatCu(st) {
+  const het = st.kiemCauHoi?.het || [];
+  if (!het.length) return "";
+  return `\n\nNGƯỜI HỎI ĐANG DỰA VÀO VĂN BẢN ĐÃ HẾT HIỆU LỰC hoặc ĐÃ BỊ THAY THẾ: ${het.map((x) => `${x.so}${x.ten ? ` (${x.ten})` : ""}`).join("; ")}. Phải nói thẳng với người hỏi rằng văn bản này không còn là căn cứ, nêu văn bản thay thế (nếu não có) và hệ quả với hồ sơ đã làm theo văn bản cũ (chuyển tiếp). Kết luận phải có câu này trong call hoặc why.`;
+}
+
 // Văn bản máy đã xác nhận còn hiệu lực (theo nguồn của não): không rào "CẦN KIỂM TRA hiệu lực" cho chúng.
 function daXacNhan(st) {
   const con = tongKiemLuat(st).con || [];
@@ -41,7 +48,7 @@ function daXacNhan(st) {
   return `\n\nĐÃ XÁC NHẬN CÒN HIỆU LỰC trong nguồn đã kiểm của các não: ${con.map((x) => x.so).join("; ")}. Không ghi CẦN KIỂM TRA về hiệu lực của các văn bản này. CẦN KIỂM TRA chỉ dùng cho điều, khoản, mức tiền, thời hạn chưa xác minh. Được nêu khoảng mức phạt kèm nhãn khi não có khoảng đó.`;
 }
 /** Kết quả kiểm điều luật gộp qua mọi thẻ đã có. */
-export const tongKiemLuat = (st) => gopKiemLuat([st.kiemDeBai, ...[1, 2, 3].flatMap((r) => Object.values(st.cards?.[r] || {}).map((c) => c.kiem_luat))]);
+export const tongKiemLuat = (st) => gopKiemLuat([st.kiemCauHoi, st.kiemDeBai, ...[1, 2, 3].flatMap((r) => Object.values(st.cards?.[r] || {}).map((c) => c.kiem_luat))]);
 /** Lời miễn trừ của phiên: theo gói ngành, mặc định là lời của bản gốc. */
 export const tuyenBo = (st) => st?.goi?.tuyen_bo || DISCLAIMER;
 
@@ -419,7 +426,7 @@ const SO_LIEU = S.arr(S.obj({ so: S.str, y: S.str, loai: S.enum("đề bài", "s
 // Nguồn số: đề bài của người hỏi, và (gói vai nghề) não của các ghế, nơi có ngưỡng luật định như "3 tỷ đồng".
 const dauVaoSo = (st) => String(st.prompt || "").split("\n").filter((l) => !/^KẾT LUẬN LẦN TRƯỚC:/.test(l)).join("\n") + (st.vanBanNao ? `\n${st.vanBanNao}` : "");
 const cacBanSo = (v, st) => [...Object.values(v?.scores || {}).map((x) => x.score), v?.confidence, v?.support, v?.spread, ...Object.values(st.weights || {}).map((w) => w.weight)];
-const vanBanKetLuan = (v) => [v.call, ...(v.why || []).map((w) => w.point), ...(v.conditions || []), ...(v.next_steps || []).map((n) => n.action), v.cheapest_test, v.kill_criteria].join("\n");
+const vanBanKetLuan = (v) => [v.lam_ngay, v.call, ...(v.why || []).map((w) => w.point), ...(v.conditions || []), ...(v.next_steps || []).map((n) => n.action), v.cheapest_test, v.kill_criteria, ...(v.can_xac_nhan || []).map((c) => c.viec), ...(v.huong_ghe_neu || []).map((h) => `${h.huong} ${h.ly_do}`)].filter(Boolean).join("\n");
 
 const CHAIR_VIEW = S.obj({
   dong_y: S.enum("đồng ý", "đồng ý có điều kiện", "không đồng ý"),
@@ -560,6 +567,8 @@ async function run(s) {
     for (const k of full) if (st.seats.length < 4 && !st.seats.includes(k)) st.seats.push(k);
   }
   st.board = st.seats.slice(); // later Chair calls only see the seats at the table
+  // câu hỏi của người hỏi: họ dựa vào văn bản đã hết hiệu lực thì hội đồng phải nói rõ và nêu văn bản thay thế
+  if (st.luatIdx) st.kiemCauHoi = kiemLuat(st.prompt, st.luatIdx);
   // đề bài của Chủ toạ cũng được kiểm: văn bản hết hiệu lực ở đây được cảnh báo cho mọi ghế ngay từ vòng 1
   if (st.luatIdx) st.kiemDeBai = kiemLuat([st.decision, st.brief, ...st.options.map((o) => o.label), ...(st.assumptions || [])].join("\n"), st.luatIdx);
   emit(s, "setup", { title: st.title, decision: st.decision, brief: st.brief, options: st.options, assumptions: st.assumptions, weights: st.weights, seats: st.seats, mode: s.mode, nganh: g.key, chair });
