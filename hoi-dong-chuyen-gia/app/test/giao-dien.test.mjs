@@ -70,12 +70,12 @@ const VERDICT = {
   },
 };
 
-test("noiDungPhieuKhach: khuyến nghị, 3–5 bước có hạn, rủi ro, việc cần kiểm tra, dự báo, lời miễn trừ của gói", () => {
+test("noiDungPhieuKhach: khuyến nghị, 3–6 bước có hạn, rủi ro, việc cần kiểm tra, dự báo, lời miễn trừ của gói", () => {
   const p = noiDungPhieuKhach({ setup: SETUP, verdict: VERDICT });
   assert.equal(p.nhan, "LÀM CÓ ĐIỀU KIỆN");
   assert.match(p.phuongAn, /^Phương án A: Khách tự trình diện/);
   assert.equal(p.khuyenNghi, "Khách phải ngừng làm việc ngay hôm nay."); // the sentence repeating the option is dropped
-  assert.equal(p.buoc.length, 5);
+  assert.equal(p.buoc.length, 6); // every step up to six; none is dropped for its wording
   assert.ok(p.buoc.every((b) => b.han && b.viec));
   assert.doesNotMatch(p.buoc[1].viec, /điều kiện 5/); // internal cross-references go
   assert.match(p.buoc[2].viec, /lãnh đạo văn phòng/);
@@ -179,7 +179,7 @@ test("phiếu khách vòng 2: làm ngay, ngày phiên, cần xác nhận, không
   assert.equal(p.buoc[1].viec, "Có biên nhận gia hạn.");
   assert.equal(p.buoc.length, 3); // the step that was only internal jargon is gone
   assert.equal(p.buoc[2].viec, "Nhận kết quả.");
-  assert.ok(p.canKiemTra.includes("Mức phạt quá hạn theo số ngày thực tế (Luật sư)"));
+  assert.ok(p.canKiemTra.includes("Mức phạt quá hạn theo số ngày thực tế (Luật sư)."));
   assert.ok(p.canKiemTra.some((x) => /Phòng Quản lý xuất nhập cảnh/.test(x)));
   assert.ok(!p.canKiemTra.some((x) => /144\/2021|09\/2018|47\/2014/.test(x)), "laws only mentioned as repealed, or merely cited, are not client checks");
   assert.deepEqual(p.duBao, ["Khách có thẻ tạm trú trước 31/12/2026: khả năng 40% (xem lại 31/12/2026)."]); // no ".:"
@@ -188,7 +188,7 @@ test("phiếu khách vòng 2: làm ngay, ngày phiên, cần xác nhận, không
 test("phiếu song ngữ: gửi đúng các khoá, ghép bản dịch, nhãn cố định dịch sẵn", () => {
   const p = noiDungPhieuKhach({ setup: SETUP, verdict: V2, tenGhe: TEN });
   const gui = phieuDeDich(p);
-  assert.deepEqual(Object.keys(gui).sort(), ["buoc", "canKiemTra", "dieuKien", "duBao", "khuyenNghi", "lamNgay", "phuongAn", "ruiRo", "tieuDe", "tuyenBo"]);
+  assert.deepEqual(Object.keys(gui).sort(), ["buoc", "canCu", "canKiemTra", "dieuKien", "duBao", "khuyenNghi", "lamNgay", "phuongAn", "ruiRo", "tieuDe", "tuyenBo"]);
   const dich = JSON.parse(JSON.stringify(gui));
   dich.tieuDe = "Overstayed temporary residence"; dich.buoc[0].viec = "Check the expiry date on the visa.";
   const g = ghepBanDich(p, dich);
@@ -221,4 +221,106 @@ test("giao diện vòng 2: làm ngay, bất đồng Chủ toạ, mức ủng h�
   assert.match(html, /id="phieuDialog"/);
   assert.doesNotMatch(pdf, /dateLine\(null\)/); // the phiếu prints the session's date, not the download day
   assert.match(pdf, /ngayPhien\(verdict, id\)/);
+});
+
+// ---------------------------------------------------------------- vòng 3: phiếu không xoá hành động chính, luôn có rủi ro không đảo ngược
+const BY_KEY_PL = {
+  vanhanh: { key: "vanhanh", name: "Giám đốc Vận hành dịch vụ", short: "Vận hành" },
+  fdi: { key: "fdi", name: "Luật sư Đầu tư FDI", short: "LS FDI" },
+  tuphap: { key: "tuphap", name: "Chuyên viên Tư pháp – Hành chính", short: "Tư pháp" },
+  tuanthu: { key: "tuanthu", name: "Thanh tra – Tuân thủ", short: "Tuân thủ" },
+  laodong: { key: "laodong", name: "Chuyên gia Lao động nước ngoài", short: "Lao động" },
+  thue: { key: "thue", name: "Chuyên gia Thuế – Tài chính", short: "Thuế" },
+  khachhang: { key: "khachhang", name: "Chuyên gia Khách hàng – Thị trường", short: "Khách hàng" },
+  chutoapl: { key: "chutoapl", name: "Chủ toạ – Luật sư điều hành", short: "Chủ toạ" },
+};
+const SETUP3 = { title: "Đổi giấy phép lao động khi bổ nhiệm", seats: ["vanhanh", "fdi", "tuphap", "tuanthu", "laodong"], options: [{ id: "B", label: "Xin giấy phép mới" }] };
+const V3 = {
+  type: "verdict",
+  verdict: {
+    label: "GO WITH CONDITIONS", recommended: "B", call: "Chọn B.",
+    next_steps: [
+      { when: "03/11/2026", action: "Vận hành nộp hồ sơ B trong 3 ngày." },
+      { when: "10/11/2026", action: "LS FDI lập văn bản hỏi Sở Nội vụ. Lao động kết luận sơ bộ về vị trí." },
+      { when: "13/11/2026", action: "Nộp hồ sơ B nếu đã đủ và đã kiểm chéo. Nộp D theo mốc Sở Nội vụ xác nhận." },
+      { when: "20/11/2026", action: "Tư pháp và Tuân thủ đối chiếu bản dịch. Chủ toạ ký duyệt danh mục cho ghế Vận hành." },
+      { when: "Ngày có giấy phép", action: "Lập danh mục giấy tờ, ghi tên người phụ trách và người kiểm chéo. Chủ toạ họp lại vòng 3." },
+    ],
+    conditions: [
+      "Không giao chức vụ trước ngày có giấy phép đúng vị trí.",
+      "Nếu làm việc ngoài phạm vi giấy phép, người lao động có thể bị trục xuất và cấm nhập cảnh.",
+      "GIẢ ĐỊNH: Sở Nội vụ nhận hồ sơ trong ngày; nộp hồ sơ ngay khi có giấy tờ từ Nhật.",
+      "Chưa có số: thời gian hợp pháp hoá giấy tờ từ Nhật.",
+    ],
+    kill_criteria: "Trường hợp 1: hồ sơ B bị trả. Khi đó lùi ngày bổ nhiệm và nộp D ngay. Trường hợp 2: không có giấy phép trước 09/01/2027. Khi đó dừng bổ nhiệm, chỉ giữ D, và Vận hành gửi văn bản báo khách.",
+    can_cu: [
+      { noi_dung: "Hợp đồng lao động không được dài hơn thời hạn giấy phép.", van_ban: "Bộ luật Lao động 45/2019/QH14, khoản 2 Điều 151", nhan: "QUY ĐỊNH" },
+      { noi_dung: "Thời hạn giải quyết 10 ngày làm việc.", van_ban: "Nghị định 219/2025/NĐ-CP", nhan: "CẦN KIỂM TRA" },
+    ],
+  },
+};
+const TEN3 = tenCacGhe(SETUP3, BY_KEY_PL);
+
+test("phiếu vòng 3: câu có hành động chính không bao giờ bị xoá, tên ghế thành Văn phòng", () => {
+  const p = noiDungPhieuKhach({ setup: SETUP3, verdict: V3, tenGhe: TEN3 });
+  const viec = p.buoc.map((b) => b.viec);
+  assert.equal(viec[0], "Văn phòng nộp hồ sơ B trong 3 ngày.");
+  assert.equal(viec[1], "Văn phòng lập văn bản hỏi Sở Nội vụ. Văn phòng kết luận sơ bộ về vị trí.");
+  assert.equal(viec[2], "Nộp hồ sơ B nếu đã đủ. Nộp D theo mốc Sở Nội vụ xác nhận."); // "Nộp hồ sơ B" is never lost
+  assert.match(viec[3], /^Văn phòng đối chiếu bản dịch\. Văn phòng ký duyệt danh mục cho văn phòng\.$/);
+  assert.equal(viec[4], "Lập danh mục giấy tờ, ghi tên người phụ trách."); // the council's own meeting goes, the action stays
+  const all = JSON.stringify(p);
+  assert.doesNotMatch(all, /Vận hành|LS FDI|Tuân thủ|Tư pháp và|Chủ to[ạa]|kiểm chéo|\bghế\b|GIẢ ĐỊNH|Chưa có số/);
+  assert.match(all, /Bộ luật Lao động 45\/2019\/QH14/); // a seat's short name inside a law's name stays
+  // an assumption that holds a main action keeps its content without the label
+  assert.ok(p.dieuKien.some((x) => /^Sở Nội vụ nhận hồ sơ trong ngày; nộp hồ sơ ngay/.test(x)), p.dieuKien.join(" | "));
+  assert.ok(p.canKiemTra.includes("Cần bổ sung: thời gian hợp pháp hoá giấy tờ từ Nhật."));
+  // every stop case whole, the action of each one kept
+  assert.ok(p.ruiRo.includes("Điểm dừng: Trường hợp 2: không có giấy phép trước 09/01/2027. Khi đó dừng bổ nhiệm, chỉ giữ D, và văn phòng gửi văn bản báo khách."), p.ruiRo.join(" | "));
+  assert.ok(p.ruiRo.some((r) => /^Điểm dừng: Trường hợp 1: .*nộp D ngay\.$/.test(r)));
+  // căn cứ pháp lý chính: only what is verified, with the document number
+  assert.deepEqual(p.canCu, ["Hợp đồng lao động không được dài hơn thời hạn giấy phép (Bộ luật Lao động 45/2019/QH14, khoản 2 Điều 151)."]);
+});
+
+test("phiếu vòng 3: tên ghế thường gặp không bị thay khi là chữ thường của câu", () => {
+  const v = { verdict: { next_steps: [
+    { when: "Hôm nay", action: "Khách hàng ký hợp đồng dịch vụ. Thuế nộp thừa được hoàn theo Luật Quản lý thuế." },
+    { when: "Mai", action: "Gửi Cục Thuế tờ khai; người lao động nộp bản sao Bộ luật Lao động cho Sở Tư pháp." },
+    { when: "28/10/2026", action: "Ghế Vận hành lấy từ hãng bay, bằng văn bản: phí đổi vé và hạn chót đổi vé." },
+  ] } };
+  const p = noiDungPhieuKhach({ setup: SETUP3, verdict: v, tenGhe: TEN3 });
+  assert.equal(p.buoc[0].viec, "Khách hàng ký hợp đồng dịch vụ. Thuế nộp thừa được hoàn theo Luật Quản lý thuế.");
+  assert.equal(p.buoc[1].viec, "Gửi Cục Thuế tờ khai; người lao động nộp bản sao Bộ luật Lao động cho Sở Tư pháp.");
+  assert.equal(p.buoc[2].viec, "Văn phòng lấy từ hãng bay, bằng văn bản: phí đổi vé và hạn chót đổi vé."); // not dropped for "Ghế"
+});
+
+test("phiếu vòng 3: rủi ro trục xuất trong điều kiện luôn lên mục Rủi ro, đứng đầu", () => {
+  const p = noiDungPhieuKhach({ setup: SETUP3, verdict: V3, tenGhe: TEN3 });
+  assert.ok(p.ruiRo.length >= 1);
+  assert.equal(p.ruiRo[0], "Nếu làm việc ngoài phạm vi giấy phép, người lao động có thể bị trục xuất và cấm nhập cảnh.");
+  assert.ok(!p.dieuKien.some((x) => /trục xuất/.test(x)), "the risk is not also a condition");
+});
+
+test("phiếu vòng 3: rủi ro không đảo ngược lấy từ why / can_cu khi điều kiện không nói; trường của server được ưu tiên", () => {
+  const base = { label: "GO WITH CONDITIONS", recommended: "B", call: "Chọn B.", conditions: ["Nộp hồ sơ trước 13/11/2026."], kill_criteria: "Dừng nếu hồ sơ bị trả." };
+  const tuWhy = noiDungPhieuKhach({ setup: SETUP3, tenGhe: TEN3, verdict: { verdict: { ...base, why: [
+    { seat: "Lao động", point: "Gia hạn không đổi vị trí ghi trên giấy." },
+    { seat: "Tuân thủ", point: "Rủi ro không đảo ngược được, nêu trước: làm Giám đốc khi giấy phép còn ghi vị trí chuyên gia là làm việc ngoài phạm vi. Người lao động có thể bị phạt và bị trục xuất." },
+  ] } } });
+  assert.equal(tuWhy.ruiRo[0], "Làm Giám đốc khi giấy phép còn ghi vị trí chuyên gia là làm việc ngoài phạm vi. Người lao động có thể bị phạt và bị trục xuất.");
+  const tuCanCu = noiDungPhieuKhach({ setup: SETUP3, tenGhe: TEN3, verdict: { verdict: { ...base, can_cu: [
+    { noi_dung: "Người nước ngoài làm việc sai mục đích có thể bị buộc xuất cảnh hoặc trục xuất.", van_ban: "Nghị định 283/2026/NĐ-CP", nhan: "CẦN KIỂM TRA" },
+  ] } } });
+  assert.match(tuCanCu.ruiRo[0], /trục xuất/);
+  const tuServer = noiDungPhieuKhach({ setup: SETUP3, tenGhe: TEN3, verdict: { verdict: { ...base, rui_ro_khong_dao_nguoc: ["Ở quá hạn có thể bị buộc xuất cảnh và chưa cho nhập cảnh lại."], why: [{ seat: "Tuân thủ", point: "Có thể bị trục xuất." }] } } });
+  assert.deepEqual(tuServer.ruiRo.filter((r) => !r.startsWith("Điểm dừng")), ["Ở quá hạn có thể bị buộc xuất cảnh và chưa cho nhập cảnh lại."]);
+  assert.ok(tuServer.ruiRo.some((r) => r === "Điểm dừng: Dừng nếu hồ sơ bị trả."));
+});
+
+test("PDF kết luận vòng 3: đủ mục và không cắt bước; bảng thành viên đo chiều cao dòng", () => {
+  const pdf = doc("pdf.js");
+  for (const m of ["Làm ngay", "Đường chính", "Căn cứ pháp lý chính", "Điều kiện", "Việc làm tiếp theo", "Dự báo", "Cần xác nhận", "Kiểm điều luật"]) assert.match(pdf, new RegExp(`"${m}|\`${m}|${m}:`), m);
+  assert.doesNotMatch(pdf, /next_steps \|\| \[\]\)\.slice\(0, 3\)/);
+  assert.doesNotMatch(pdf, /v\.why\.slice\(0, 3\)/);
+  assert.match(pdf, /const rowH = Math\.max\(ten\.length/);
 });

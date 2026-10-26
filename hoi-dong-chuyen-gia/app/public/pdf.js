@@ -250,25 +250,6 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
   const lech = (chairView?.lech || []).filter(Boolean);
   if (lech.length) para(`Chủ toạ không đồng ý ở: ${lech.join("; ")}. Xem mục Góc nhìn Chủ toạ.`, { size: 10.5, style: "semibold", color: [180, 83, 9], gap: 6 });
 
-  // ---------------------------------------------------------------- numbers and their sources
-  const ks = v.kiem_so;
-  // the Chair's own unsourced numbers are flagged in his section, not at the top of the council's verdict
-  if (ks?.so_lieu?.length || soChuaNguonThat(ks?.chua_nguon).length) {
-    section("Số dùng trong kết luận");
-    const chua = soChuaNguonThat(ks?.chua_nguon).map((x) => x.so);
-    if (chua.length) para(`Chưa có nguồn: ${chua.join(", ")}`, { size: 10.5, style: "semibold", color: [180, 83, 9], gap: 6 });
-    for (const e of (ks?.so_lieu || []).slice(0, 14)) bullet(e.so, `${e.y} (${e.loai}${e.nguon ? `: nguồn ${e.nguon}` : ""})${e.trang_thai === "khong_thay" ? " — không thấy trong số liệu" : ""}`);
-  }
-
-  // ---------------------------------------------------------------- văn bản pháp luật được viện dẫn
-  const kl = kiemLuatKetLuan(v);
-  if (kl && (kl.het?.length || kl.ngoai?.length)) {
-    section("Kiểm điều luật");
-    if (kl.phamVi === "phien") para("Phiên cũ: máy kiểm cả đề bài và các thẻ, không riêng chữ kết luận.", { size: 8.5, color: C.mute, gap: 4 });
-    if (kl.het?.length) para(`Hết hiệu lực hoặc đã bị thay thế, không dùng làm căn cứ: ${kl.het.map((x) => x.so).join(", ")}`, { size: 10.5, style: "semibold", color: [180, 83, 9], gap: 6 });
-    if (kl.ngoai?.length) para(`Chưa có trong nguồn đã xác minh, CẦN KIỂM TRA: ${kl.ngoai.map((x) => x.so).join(", ")}`, { size: 10.5, style: "semibold", color: [180, 83, 9], gap: 6 });
-  }
-
   // ---------------------------------------------------------------- scores
   section("Điểm");
   const best = v.recommended;
@@ -290,9 +271,54 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
   }
   para(`Mỗi ${ai} chấm từng phương án từ 1 đến 10, có trọng số theo mức quan trọng của mảng họ phụ trách trong quyết định này.`, { size: 8.5, color: C.mute, gap: 0 });
 
-  // Kept short on purpose: the call, the scores, the reasons, the strongest objection, and
-  // the plan. The full report (conditions, amendments, every card) stays in verdict.md.
-  if (v.why?.length) { section("Vì sao hội đồng đi đến kết luận này"); for (const w of v.why.slice(0, 3)) bullet(who(w.seat), w.point); }
+  // The report carries every part a lawyer signs off on: reasons, conditions, the legal basis, every step,
+  // the forecast, what must still be confirmed and the law check. Debate details stay in verdict.md.
+  if (v.why?.length) { section("Vì sao hội đồng đi đến kết luận này"); for (const w of v.why) bullet(who(w.seat), w.point); }
+
+  if (v.conditions?.length) { section("Điều kiện"); for (const c of v.conditions) bullet("", c); }
+
+  // ---------------------------------------------------------------- căn cứ pháp lý chính, with its label
+  const canCu = (v.can_cu || []).filter((c) => c && c.noi_dung);
+  if (canCu.length) {
+    section("Căn cứ pháp lý chính");
+    for (const c of canCu) bullet(c.nhan || "", `${String(c.noi_dung).replace(/[.。]\s*$/, "")}${c.van_ban ? ` (${c.van_ban})` : ""}.`);
+  }
+
+  // ---------------------------------------------------------------- văn bản pháp luật được viện dẫn
+  const kl = kiemLuatKetLuan(v);
+  if (kl) {
+    section("Kiểm điều luật");
+    if (kl.phamVi === "phien") para("Phiên cũ: máy kiểm cả đề bài và các thẻ, không riêng chữ kết luận.", { size: 8.5, color: C.mute, gap: 4 });
+    if (kl.het?.length) para(`Hết hiệu lực hoặc đã bị thay thế, không dùng làm căn cứ: ${kl.het.map((x) => x.so).join(", ")}`, { size: 10.5, style: "semibold", color: [180, 83, 9], gap: 6 });
+    if (kl.ngoai?.length) para(`Chưa có trong nguồn đã xác minh, CẦN KIỂM TRA: ${kl.ngoai.map((x) => x.so).join(", ")}`, { size: 10.5, style: "semibold", color: [180, 83, 9], gap: 6 });
+    if (kl.con?.length) para(`Có trong nguồn đã xác minh, còn hiệu lực: ${kl.con.map((x) => x.so).join(", ")}`, { size: 10, color: C.soft, gap: 4 });
+    if (kl.nhac_het?.length) para(`Chỉ được nhắc là đã hết hiệu lực (không dùng làm căn cứ): ${kl.nhac_het.map((x) => x.so).join(", ")}`, { size: 9.5, color: C.mute, gap: 4 });
+    if (!kl.het?.length && !kl.ngoai?.length) para("Không văn bản nào trong kết luận đã hết hiệu lực hoặc nằm ngoài nguồn đã xác minh.", { size: 9.5, color: C.mute, gap: 4 });
+  }
+
+  // ---------------------------------------------------------------- the plan: every step, none dropped
+  if (v.next_steps?.length || v.cheapest_test || v.kill_criteria) {
+    section("Việc làm tiếp theo");
+    for (const s of v.next_steps || []) bullet(s.when, s.action);
+    if (v.cheapest_test) bullet("Cách thử rẻ nhất", v.cheapest_test);
+    if (v.kill_criteria) bullet("Dừng nếu", v.kill_criteria);
+    if (v.revisit) bullet("Xem lại vào", v.revisit);
+  }
+
+  const xacNhan = [].concat(v.can_xac_nhan || []).filter(Boolean);
+  if (xacNhan.length) {
+    section("Cần xác nhận");
+    for (const x of xacNhan) typeof x === "string" ? bullet("", x) : bullet(x.ai || "", x.viec || "");
+  }
+
+  const duBao = [].concat(v.du_bao || []).filter((d) => d && d.ket_qua);
+  if (duBao.length) {
+    section("Dự báo");
+    for (const d of duBao) {
+      bullet(`${soVi(d.xac_suat)}%`, `${String(d.ket_qua).replace(/[.。]\s*$/, "")}${d.han ? ` (xem lại ${d.han})` : ""}.`);
+      if (d.co_so) para(`Cơ sở: ${d.co_so}`, { size: 9.5, color: C.mute, x: M + 14, width: CW - 14, gap: 4 });
+    }
+  }
 
   // ---------------------------------------------------------------- the Chair's own view
   // His comment on the verdict, from his own brain, after the council's reasons (the verdict stays the council's).
@@ -311,43 +337,53 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
     if (chuaCT.length) para(`Số chưa có nguồn trong góc nhìn này: ${chuaCT.join(", ")}`, { size: 9.5, color: [180, 83, 9], gap: 4 });
   }
 
-
   // ---------------------------------------------------------------- how each advisor scored it
   if (seats.length) {
-    section(`Từng ${ai} chấm điểm thế nào`, 18 + seats.length * 22); // the table stays on one page
+    section(`Từng ${ai} chấm điểm thế nào`, Math.min(18 + seats.length * 24, 420)); // the table stays on one page when it fits
     const showVote = Boolean(v.votes);
-    const cols = [{ t: vaiTro ? "Thành viên" : "Cố vấn", w: 150 }, { t: "Trọng số", w: 52, c: true }, ...options.map((o) => ({ t: o.id, w: 40, c: true })), ...(showVote ? [{ t: "Phiếu", w: 70 }] : [])];
+    const oW = Math.min(40, Math.max(28, (CW - 150 - 52 - (showVote ? 80 : 0)) / Math.max(1, options.length)));
+    const voteW = showVote ? 80 : 0;
+    const nameW = CW - 52 - oW * options.length - voteW;
+    const cols = [{ t: vaiTro ? "Thành viên" : "Cố vấn", w: nameW }, { t: "Trọng số", w: 52, c: true }, ...options.map((o) => ({ t: o.id, w: oW, c: true })), ...(showVote ? [{ t: "Phiếu", w: voteW }] : [])];
     const head = () => {
       let x = M; font(8, "semibold", C.mute);
       for (const c of cols) { doc.text(c.t.toUpperCase(), c.c ? x + c.w / 2 : x, y + 8, c.c ? { align: "center" } : undefined); x += c.w; }
       y += 14; doc.setDrawColor(...C.rule); doc.setLineWidth(0.75); doc.line(M, y, W - M, y); y += 4;
     };
-    ensure(40); head();
+    head();
+    const LH = 10 * 1.3;
     for (const s of seats) {
-      if (y + 22 > BOTTOM) { doc.addPage(); y = M; head(); }
       const info = byKey[s.key] || {};
+      // the name wraps inside its own column; the row is as tall as its longest cell
+      font(10, "semibold"); const ten = doc.splitTextToSize(String(info.name || s.key), nameW - 10);
+      font(9.5, "normal"); const phieu = showVote ? doc.splitTextToSize(VOTE_VI[s.stance] || (s.stance ? String(s.stance) : "Chưa rõ"), voteW - 4) : [];
+      const rowH = Math.max(ten.length, phieu.length, 1) * LH + 8;
+      if (y + rowH > BOTTOM) { doc.addPage(); y = M; head(); }
       let x = M;
-      font(10, "semibold", C.ink); doc.text(info.name || s.key, x, y + 13); x += cols[0].w;
+      font(10, "semibold", C.ink); doc.text(ten, x, y + 13, { lineHeightFactor: 1.3 }); x += cols[0].w;
       font(10, "normal", C.soft); doc.text(soVi(s.weight), x + cols[1].w / 2, y + 13, { align: "center" }); x += cols[1].w;
-      for (const o of options) { font(10, "semibold", C.ink); doc.text(soVi(s.optionScores?.[o.id]), x + 20, y + 13, { align: "center" }); x += 40; }
-      if (showVote) { font(9.5, "normal", C.soft); doc.text(VOTE_VI[s.stance] || (s.stance ? String(s.stance) : "Chưa rõ"), x, y + 13); }
-      y += 20; doc.setDrawColor(...C.rule); doc.line(M, y, W - M, y); y += 2;
+      for (const o of options) { font(10, "semibold", C.ink); doc.text(soVi(s.optionScores?.[o.id]), x + oW / 2, y + 13, { align: "center" }); x += oW; }
+      if (showVote) { font(9.5, "normal", C.soft); doc.text(phieu, x, y + 13, { lineHeightFactor: 1.3 }); }
+      y += rowH; doc.setDrawColor(...C.rule); doc.line(M, y, W - M, y); y += 2;
     }
   }
 
-  // ---------------------------------------------------------------- watch out, what to do
+  // ---------------------------------------------------------------- watch out, what they argued about
   if (v.minority?.quote) {
     section("Cần lưu ý");
     para(`${who(v.minority.seat)}: "${clean(v.minority.quote)}"`, { size: 10.5, style: "semibold", color: C.ink, gap: 4 });
     if (v.minority.would_have_to_be_true) para(`Để ý kiến này đúng thì: ${v.minority.would_have_to_be_true}`, { size: 9.5, color: C.mute });
   }
-  if (v.next_steps?.length || v.cheapest_test || v.kill_criteria) {
-    section("Việc làm tiếp theo");
-    for (const s of (v.next_steps || []).slice(0, 3)) bullet(s.when, s.action);
-    if (v.cheapest_test) bullet("Cách thử rẻ nhất", v.cheapest_test);
-    if (v.kill_criteria) bullet("Dừng nếu", v.kill_criteria);
-  }
   if (v.fights?.length) { section("Chỗ họ tranh cãi"); for (const f of v.fights.slice(0, 3)) bullet(f.crux, f.story); }
+
+  // ---------------------------------------------------------------- numbers and their sources (an appendix, not the opening)
+  const ks = v.kiem_so;
+  const chua = soChuaNguonThat(ks?.chua_nguon).map((x) => x.so);
+  if (ks?.so_lieu?.length || chua.length) {
+    section("Số dùng trong kết luận");
+    if (chua.length) para(`Chưa có nguồn: ${chua.join(", ")}`, { size: 10.5, style: "semibold", color: [180, 83, 9], gap: 6 });
+    for (const e of (ks?.so_lieu || []).slice(0, 14)) bullet(e.so, `${e.y} (${e.loai}${e.nguon ? `: nguồn ${e.nguon}` : ""})${e.trang_thai === "khong_thay" ? " — máy chưa đối chiếu được với số liệu đầu vào" : ""}`);
+  }
 
   // ---------------------------------------------------------------- footer on every page
   const pages = doc.getNumberOfPages();
@@ -373,27 +409,121 @@ const KHACH_THAY = [
   [/\s+(?:tại|ở|theo)\s+điều kiện(?:\s+số)?\s+\d+(?:\s+(?:và|,)\s+(?:điều kiện\s+)?\d+)*/gi, ""],
   [/người sáng lập/gi, (m) => (m[0] === "N" ? "Lãnh đạo văn phòng" : "lãnh đạo văn phòng")],
   [/\bfounder\b/gi, "lãnh đạo văn phòng"],
-  [/^(?:RỦI RO KHÔNG ĐẢO NGƯỢC[^:.]*[:.]|Rủi ro không đảo ngược(?: được)? nêu trước\.)\s*/i, ""],
+  // only the short label ("Rủi ro không đảo ngược được, nêu trước:"), never a sentence that starts with those words
+  [/^(?:RỦI RO KHÔNG ĐẢO NGƯỢC(?: ĐƯỢC)?(?:,?\s*NÊU TRƯỚC)?\s*[:.])\s*/i, ""],
   // "Phụ trách: Vận hành, Tuân thủ." names AI seats, not people in the office
   [/[\s(]*(?:Người\s+)?[Pp]hụ trách(?:\s+chính)?\s*:\s*[^.;\n)]*\)?(?:[.;]|$)/g, " "],
+  // cross-checking is the office's own routine: the phrase goes, the action stays
+  // ("Nộp hồ sơ B nếu đã đủ và đã kiểm chéo." → "Nộp hồ sơ B nếu đã đủ.")
+  [/,?\s+(?:và|hoặc)\s+(?:đã\s+|được\s+)?(?:người\s+(?:thứ hai\s+)?)?kiểm chéo(?!\p{L})/giu, ""],
   [/,\s*(?:người thứ hai|có người|người)\s+kiểm chéo\b/gi, ""],
+  [/kiểm chéo/gi, "rà soát"],
+  // internal labels: the label goes, the content stays
+  [/(^|[.;:]\s+|\(\s*)GIẢ ĐỊNH\s*:\s*/g, "$1"],
+  [/(?<!\p{L})GIẢ ĐỊNH(?!\p{L})\s*/gu, ""],
+  [/(^|[.;]\s+)Chưa có số\s*:\s*/giu, "$1Cần bổ sung: "],
 ];
-// a sentence with one of these is about how the council works, not about the client's case: it goes
-const NOI_BO_CAU = /nhãn chưa đo|gắn nhãn|dòng hồ sơ|mắt xích|kiểm chéo|(?<!\p{L})ghế(?!\p{L})|thành viên hội đồng|hội đồng(?!\s+(?:quản trị|thành viên|nhân dân|trọng tài))|Chủ to[ạa]|Chủ tọa|(?<!\p{L})vòng (?:1|2|3|mở đầu|tranh luận|bỏ phiếu)(?!\p{L})|^Chưa có số(?!\p{L})|GIẢ ĐỊNH|người phụ trách/iu;
-/** "(Tuân thủ, Vận hành)" made only of seat names goes. */
-const boTenGhe = (x, ten) => {
-  if (!ten?.length) return x;
-  const la = (s) => ten.some((n) => n.toLowerCase() === s.trim().toLowerCase());
-  return x.replace(/\s*\(([^()]*)\)/g, (m, inner) => (inner.trim() && inner.split(/\s*(?:,|;|và)\s*/).every(la) ? "" : m));
+// a sentence still carrying one of these is about how the council works, not about the client's case. It goes,
+// unless it holds a main action (HANH_DONG): then only the words are replaced (THAY_NOI_BO), never the sentence.
+const NOI_BO_CAU = /nhãn chưa đo|gắn nhãn|dòng hồ sơ|mắt xích|(?<!\p{L})ghế(?!\p{L})|thành viên hội đồng|hội đồng(?!\s+(?:quản trị|thành viên|nhân dân|trọng tài))|Chủ to[ạa]|Chủ tọa|(?<!\p{L})vòng (?:1|2|3|mở đầu|tranh luận|bỏ phiếu)(?!\p{L})/iu;
+/** Verbs of the client's main actions: a sentence holding one is never dropped from the phiếu. */
+export const HANH_DONG = /(?<!\p{L})(?:nộp|ký|thanh toán|xuất cảnh|trình diện|gia hạn|đăng ký)(?!\p{L})/iu;
+const THAY_NOI_BO = [
+  [/(?<!\p{L})(?:các\s+)?ghế\s+(?:[\p{Lu}][\p{L}]*(?:\s+(?:–\s+)?[\p{Lu}][\p{L}]*)*|[\p{L}]+(?:\s+[\p{L}]+)?)/gu, "văn phòng"],
+  [/(?<!\p{L})(?:thành viên\s+)?hội đồng(?!\s+(?:quản trị|thành viên|nhân dân|trọng tài))/giu, "văn phòng"],
+  [/Chủ to[ạa]|Chủ tọa/gu, "Văn phòng"],
+  [/dòng hồ sơ/giu, "hồ sơ"],
+  [/mắt xích/giu, "bước"],
+  [/,?\s*(?:ở|tại|sau)?\s*(?<!\p{L})vòng (?:1|2|3|mở đầu|tranh luận|bỏ phiếu)(?!\p{L})/giu, ""],
+  [/,?\s*(?:đã\s+)?gắn nhãn(?:\s+[\p{Lu}]+(?:\s+[\p{Lu}]+)*)?/gu, ""],
+];
+const esc = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+// what a seat does in a step; a seat name (Vận hành, LS FDI, Lao động…) followed by one of these is the subject
+const DONG_TU_GHE = "chạy|gửi|lập|nộp|kiểm|kiểm tra|đối chiếu|soạn|soạn thảo|xác nhận|kết luận|liên hệ|chuẩn bị|thu thập|làm|rà|rà soát|theo dõi|báo|báo cáo|hỏi|đọc|dịch|gọi|đặt|chốt|ghi|tính|hoàn thành|hoàn tất|nhận|xin|trình|ký|thông báo|hướng dẫn|tư vấn|giữ|cập nhật|phối hợp|đi|đăng ký|họp|viết|lấy|tra|tra cứu|duyệt|mở|xử lý|giải thích|đánh giá|lên|ước|ước tính|cân nhắc|chịu trách nhiệm|phụ trách|đại diện|thay mặt|thanh toán|đưa|nhắc|xếp|chọn|quyết định|đề nghị|yêu cầu|đặt lịch";
+/** Seat names (tên ghế) of the session: the name as the subject of a sentence, after "cho / của / với…", or in a
+ * parenthesis made only of seat names. "Vận hành nộp hồ sơ B" → "Văn phòng nộp hồ sơ B"; "Bộ luật Lao động" stays. */
+const thayTenGhe = (x, ten) => {
+  // "Khách hàng" is also the client himself: never replaced. The Chair is handled with the council's words.
+  // the text went through clean() (dashes → ", "), so the names do too
+  const ds = [...new Set((ten || []).map((n) => String(n || "").replace(/[—–]/g, ", ").replace(/\s+/g, " ").trim()).filter((n) => n.length > 1 && !/^(?:Chủ to[ạa]|Chủ tọa|Khách hàng)$/iu.test(n)))]
+    .sort((a, b) => b.length - a.length);
+  if (!ds.length) return x;
+  const la = (s) => ds.some((n) => n.toLowerCase() === s.trim().toLowerCase());
+  // "(Tuân thủ, Vận hành)" made only of seat names goes
+  x = x.replace(/\s*\(([^()]*)\)/g, (m, inner) => (inner.trim() && inner.split(/\s*(?:,|;|và)\s*/).every(la) ? "" : m));
+  const ten1 = `(?:${ds.map(esc).join("|")})`;
+  const danhSach = `${ten1}(?:\\s*(?:,|và)\\s*${ten1})*`;
+  // subject at the start of a sentence or clause, followed by a verb. A one-word name ("Thuế") is also an ordinary
+  // noun ("Thuế nộp thừa…"), so it needs a verb that only a person does.
+  const dongTu = (ten) => (/\s/.test(ten) ? DONG_TU_GHE : DONG_TU_GHE.split("|").filter((d) => !/^(?:nộp|tính|ký|thanh toán|đi|lên|giữ|làm)$/.test(d)).join("|"));
+  for (const [nhom, dt] of [[ds.filter((n) => /\s/.test(n)), dongTu("a b")], [ds.filter((n) => !/\s/.test(n)), dongTu("a")]]) {
+    if (!nhom.length) continue;
+    const t1 = `(?:${nhom.map(esc).join("|")})`;
+    const lead = `(?:${ten1}\\s*(?:,|và)\\s*)*${t1}`;
+    x = x.replace(new RegExp(`(^|[.!?;:]\\s+|,\\s+(?:(?:và|rồi|sau đó|thì)\\s+)?|\\(\\s*|\\n)${lead}(?=\\s+(?:${dt})(?!\\p{L}))`, "gu"), (m, dau) => `${dau}${/^,/.test(dau) ? "văn phòng" : "Văn phòng"}`);
+  }
+  // "ghế Vận hành", "các ghế Tuân thủ và Lao động"
+  x = x.replace(new RegExp(`(?<!\\p{L})(?:([Cc])ác\\s+)?([Gg])hế\\s+${danhSach}(?!\\p{L})`, "gu"), (m, c, g) => ((c || g) === (c || g).toUpperCase() ? "Văn phòng" : "văn phòng"));
+  // object after a preposition or verb: "gửi cho Tuân thủ duyệt", "báo Vận hành"
+  x = x.replace(new RegExp(`(?<!\\p{L})(cho|của|với|gửi|giao|báo|nhờ|để)\\s+${danhSach}(?!\\p{L})`, "gu"), (m, gioi) => `${gioi} văn phòng`);
+  // a long seat display name ("Giám đốc Vận hành dịch vụ", "Thanh tra – Tuân thủ") is never ordinary text
+  for (const n of ds.filter((n) => n.length >= 12)) x = x.replace(new RegExp(`(?<!\\p{L})${esc(n)}(?!\\p{L})`, "gu"), "văn phòng");
+  return x.replace(/\bvăn phòng\s+và\s+văn phòng\b/g, "văn phòng").replace(/(^|[.!?;:]\s+)văn phòng/g, "$1Văn phòng");
 };
 const choKhach = (t, ten = []) => {
   let x = boMaNguon(clean(t));
   for (const [re, to] of KHACH_THAY) x = x.replace(re, to);
-  x = tachCau(boTenGhe(x, ten)).filter((c) => !NOI_BO_CAU.test(c)).join(" ");
-  return x.replace(/[ \t]{2,}/g, " ").replace(/\s+([,.;:)])/g, "$1").trim().replace(/^\p{Ll}/u, (c) => c.toUpperCase());
+  x = thayTenGhe(x, ten);
+  x = tachCau(x).map((c) => {
+    if (!NOI_BO_CAU.test(c)) return c;
+    if (!HANH_DONG.test(c)) return ""; // only about how the council works
+    for (const [re, to] of THAY_NOI_BO) c = c.replace(re, to);
+    return c.replace(/(?<!\p{L})văn phòng\s+văn phòng(?!\p{L})/giu, "văn phòng");
+  }).filter(Boolean).join(" ");
+  return x.replace(/[ \t]{2,}/g, " ").replace(/\s+([,.;:)])/g, "$1").replace(/:\s*\./g, ".").trim().replace(/^\p{Ll}/u, (c) => c.toUpperCase());
 };
 const cauDauTien = (t) => tachCau(t)[0] || "";
-const LA_RUI_RO = /rủi ro không đảo ngược|trục xuất|cấm nhập cảnh|hình sự/i;
+const LA_RUI_RO = /rủi ro không đảo ngược|hậu quả không đảo ngược|trục xuất|cấm nhập cảnh|chưa cho nhập cảnh|hình sự/i;
+// what makes a consequence irreversible for the client: it must be on the sheet even when no condition says so
+const LA_KHONG_DAO_NGUOC = /không đảo ngược|trục xuất|cấm nhập cảnh|chưa cho nhập cảnh|thu hồi|hình sự|quá hạn/i;
+/** Irreversible risks for the phiếu: verdict.rui_ro_khong_dao_nguoc when the server sends it; otherwise the sentences of
+ * conditions, kill_criteria, why and can_cu that name expulsion, entry bans, revocation, criminal liability or overstay.
+ * A short hit takes the sentence before it, so "Người lao động có thể bị trục xuất." keeps its cause. */
+export function ruiRoKhongDaoNguoc(v = {}, ck = (t) => t) {
+  const san = [].concat(v.rui_ro_khong_dao_nguoc || []).map((x) => (typeof x === "string" ? x : x?.noi_dung || x?.y || "")).filter(Boolean);
+  if (san.length) return san.map((x) => cauTron(ck(x), 360)).filter(Boolean);
+  const nguon = [
+    ...(v.conditions || []),
+    v.kill_criteria,
+    ...(v.why || []).map((w) => w?.point),
+    ...(v.can_cu || []).map((c) => c?.noi_dung),
+  ].map((t) => String(t || "")).filter(Boolean);
+  const ung = [];
+  nguon.forEach((t, thu) => {
+    // a whole item that announces itself as the irreversible risk is taken whole
+    if (/^(?:RỦI RO|HẬU QUẢ) KHÔNG ĐẢO NGƯỢC/i.test(t.trim())) { ung.push({ t: cauTron(t, 380), uu: 0, thu }); return; }
+    const cs = tachCau(t);
+    cs.forEach((c, i) => {
+      if (!LA_KHONG_DAO_NGUOC.test(c)) return;
+      const lay = c.length < 70 && i > 0 ? `${cs[i - 1]} ${c}` : c;
+      ung.push({ t: lay, uu: /không đảo ngược|trục xuất|cấm nhập cảnh|chưa cho nhập cảnh/i.test(c) ? 1 : 2, thu });
+    });
+  });
+  const out = [];
+  for (const u of ung.sort((a, b) => a.uu - b.uu || a.thu - b.thu)) {
+    const t = cauTron(ck(u.t), 380);
+    if (t && !out.some((o) => lapVoi(t, [o]))) out.push(t);
+    if (out.length >= 2) break;
+  }
+  return out;
+}
+/** "Dừng nếu" split into whole cases ("Trường hợp 1: …", or one sentence per stop point), never cut mid-case. */
+const tachDiemDung = (t) => {
+  const s = String(t || "").trim();
+  if (!s) return [];
+  if (/Trường hợp\s+\d+\s*:/i.test(s)) return s.split(/\s+(?=Trường hợp\s+\d+\s*:)/i).map((x) => x.trim()).filter(Boolean);
+  return tachCau(s);
+};
 const LA_KIEM_TRA = /^Đây là phân tích tham khảo\.?\s*/i;
 const LA_LUAT_SU = /(?:ý kiến|xác nhận)[^.]{0,40}luật sư|luật sư[^.]{0,40}(?:xác nhận|ý kiến)/i;
 const LA_NOI_BO = /^(?:Chưa có số|GIẢ ĐỊNH)\b/i;
@@ -413,29 +543,38 @@ export function tenCacGhe(setup = {}, byKey = {}) {
 export function noiDungPhieuKhach({ setup = {}, verdict: ev = {}, tuyenBo = "", tenGhe = [] } = {}) {
   const v = ev.verdict || {};
   const ck = (t) => choKhach(t, tenGhe);
-  const buoc = (v.next_steps || []).map((s) => ({ han: ck(s.when), viec: cauTron(ck(s.action), 320) })).filter((b) => b.viec).slice(0, 5);
+  const buoc = (v.next_steps || []).map((s) => ({ han: ck(s.when), viec: cauTron(ck(s.action), 320) })).filter((b) => b.viec).slice(0, 8);
   const conds = (v.conditions || []).map((c) => boNhanDau(String(c || "")));
-  const kiemTraGoc = conds.filter((c) => !LA_NOI_BO.test(c) && (LA_KIEM_TRA.test(c) || LA_LUAT_SU.test(cauDauTien(c)) || /CẦN KIỂM TRA/.test(cauDauTien(c))));
-  const ruiRoGoc = conds.filter((c) => LA_RUI_RO.test(c) && !kiemTraGoc.includes(c) && !LA_NOI_BO.test(c));
-  const ruiRo = ruiRoGoc.slice(0, 2).map((c) => cauTron(ck(c), 380)).filter(Boolean);
-  if (v.kill_criteria && ck(v.kill_criteria)) ruiRo.push(`Điểm dừng: ${cauTron(ck(v.kill_criteria), 360)}`);
-  const dieuKien = conds.filter((c) => !ruiRoGoc.includes(c) && !kiemTraGoc.includes(c) && !LA_NOI_BO.test(c) && !lapVoi(c, buoc.map((b) => b.viec)))
-    .map((c) => cauTron(ck(c), 240)).filter(Boolean).slice(0, 3);
-  // căn cứ pháp lý chính đã xác minh (không phải CẦN KIỂM TRA) đứng đầu mục điều kiện của phiếu
-  const canCu = (v.can_cu || []).filter((c) => c && c.nhan !== "CẦN KIỂM TRA").map((c) => cauTron(ck(`${c.noi_dung}${c.van_ban ? ` (${c.van_ban})` : ""}`), 240)).filter(Boolean).slice(0, 3);
-  dieuKien.unshift(...canCu);
-  dieuKien.splice(5);
+  // "GIẢ ĐỊNH: …" without an action is the council's working assumption, not a condition for the client;
+  // "Chưa có số: …" is a fact the client must still supply ("Cần bổ sung: …")
+  const noiBo = (c) => LA_NOI_BO.test(c) && !HANH_DONG.test(c);
+  const canBoSung = conds.filter((c) => /^Chưa có số(?!\p{L})/iu.test(c)).map((c) => cauTron(ck(c), 300)).filter(Boolean);
+  const kiemTraGoc = conds.filter((c) => !noiBo(c) && (LA_KIEM_TRA.test(c) || LA_LUAT_SU.test(cauDauTien(c)) || /CẦN KIỂM TRA/.test(cauDauTien(c))));
+  const ruiRoGoc = conds.filter((c) => LA_RUI_RO.test(c) && !kiemTraGoc.includes(c) && !noiBo(c));
+  // the irreversible risk always comes first (verdict.rui_ro_khong_dao_nguoc, or found in the verdict's text);
+  // then each stop point as a whole case, never cut in the middle
+  const ruiRo = ruiRoKhongDaoNguoc(v, ck);
+  for (const c of ruiRoGoc) { const t = cauTron(ck(c), 380); if (t && !ruiRo.some((r) => lapVoi(t, [r]))) ruiRo.push(t); }
+  ruiRo.splice(3);
+  for (const c of tachDiemDung(v.kill_criteria)) { const t = ck(c); if (t) ruiRo.push(`Điểm dừng: ${t}`); }
+  const dieuKien = conds.filter((c) => !ruiRoGoc.includes(c) && !kiemTraGoc.includes(c) && !noiBo(c) && !/^Chưa có số(?!\p{L})/iu.test(c) && !lapVoi(c, buoc.map((b) => b.viec)))
+    .map((c) => cauTron(ck(c), 240)).filter(Boolean).slice(0, 4);
+  // căn cứ pháp lý chính (verdict.can_cu) đã xác minh, không phải CẦN KIỂM TRA: mục riêng của phiếu, có số hiệu văn bản
+  const canCu = (v.can_cu || []).filter((c) => c && c.noi_dung && c.nhan !== "CẦN KIỂM TRA")
+    .map((c) => { const nd = cauTron(ck(c.noi_dung), 240).replace(/[.。]\s*$/, ""); const vb = c.van_ban ? ck(c.van_ban).replace(/[.。]\s*$/, "") : ""; return nd ? `${nd}${vb ? ` (${vb})` : ""}.` : ""; })
+    .filter(Boolean).slice(0, 4);
   // only what the verdict's own text cites (kiem_luat_ket_luan); a law merely mentioned as repealed is not an error,
   // and the list of every law still in force is no use to a client
   const kl = kiemLuatKetLuan(v) || {};
   const ai = (x) => (x && !tenGhe.some((n) => n.toLowerCase() === String(x).trim().toLowerCase()) ? ck(x) : "");
-  const xacNhan = [].concat(v.can_xac_nhan || []).map((x) => (typeof x === "string" ? ck(x) : x?.viec ? `${ck(x.viec)}${ai(x.ai) ? ` (${ai(x.ai)})` : ""}` : "")).filter(Boolean);
+  const xacNhan = [].concat(v.can_xac_nhan || []).map((x) => (typeof x === "string" ? ck(x) : x?.viec ? (ai(x.ai) ? `${ck(x.viec).replace(/[.。]\s*$/, "")} (${ai(x.ai)}).` : ck(x.viec)) : "")).filter(Boolean);
   const tuDieuKien = kiemTraGoc.map((c) => cauTron(ck(String(c).replace(LA_KIEM_TRA, "")), 300)).filter((c) => c && !lapVoi(c, xacNhan));
   const canKiemTra = [
     ...(kl.het || []).map((x) => `${x.so}: đã hết hiệu lực hoặc bị thay thế, không dùng làm căn cứ.`),
     ...(kl.ngoai || []).map((x) => `${x.so}: chưa có trong nguồn đã đối chiếu, luật sư cần kiểm tra trước khi dùng.`),
     ...xacNhan,
     ...tuDieuKien,
+    ...canBoSung,
   ].filter(Boolean);
   const duBao = [].concat(v.du_bao || []).filter((d) => d && d.ket_qua)
     .map((d) => `${ck(d.ket_qua).replace(/[.。]+$/, "")}: khả năng ${soVi(d.xac_suat)}%${d.han ? ` (xem lại ${ck(d.han)})` : ""}.`);
@@ -455,6 +594,7 @@ export function noiDungPhieuKhach({ setup = {}, verdict: ev = {}, tuyenBo = "", 
       return nhac && call.length > dau.length + 20 ? call.slice(dau.length).trim() : call;
     })(),
     buoc,
+    canCu,
     dieuKien,
     ruiRo,
     canKiemTra,
@@ -470,27 +610,27 @@ export const NGON_NGU_PHIEU = { vi: "Tiếng Việt", en: "English", zh: "中文
 const NHAN_PHIEU = {
   vi: {
     tieuDe: "PHIẾU TƯ VẤN", guiKhach: "Tài liệu gửi khách", khuyenNghi: "KHUYẾN NGHỊ", lamNgay: "Làm ngay",
-    buoc: "Việc cần làm và hạn", dieuKien: "Điều kiện chính", ruiRo: "Rủi ro cần lưu ý", kiemTra: "CẦN KIỂM TRA trước khi nộp hồ sơ", duBao: "Dự báo",
+    buoc: "Việc cần làm và hạn", canCu: "Căn cứ pháp lý chính", dieuKien: "Điều kiện chính", ruiRo: "Rủi ro cần lưu ý", kiemTra: "CẦN KIỂM TRA trước khi nộp hồ sơ", duBao: "Dự báo",
     nguoiDuyet: "Người duyệt", ngay: "Ngày", ai: ["Nội dung do AI hỗ trợ soạn,", "đã", "chưa được người có thẩm quyền duyệt."], chan: "Hội đồng chuyên gia · Phiếu khách",
     banDich: "", nhan: VERDICT_VI,
   },
   en: {
     tieuDe: "ADVICE SHEET", guiKhach: "Client copy", khuyenNghi: "RECOMMENDATION", lamNgay: "Do today",
-    buoc: "Next steps and deadlines", dieuKien: "Key conditions", ruiRo: "Risks to note", kiemTra: "TO BE CONFIRMED before filing", duBao: "Forecast",
+    buoc: "Next steps and deadlines", canCu: "Main legal basis", dieuKien: "Key conditions", ruiRo: "Risks to note", kiemTra: "TO BE CONFIRMED before filing", duBao: "Forecast",
     nguoiDuyet: "Approved by", ngay: "Date", ai: ["Drafted with AI assistance;", "has", "has not been reviewed by an authorised person."], chan: "Hội đồng chuyên gia · Client sheet",
     banDich: "Reference translation; the Vietnamese version is the original.",
     nhan: { "GO": "PROCEED", "GO WITH CONDITIONS": "PROCEED WITH CONDITIONS", "RESHAPE": "REVISE THE PLAN", "WAIT": "WAIT", "DON'T DO IT": "DO NOT PROCEED" },
   },
   zh: {
     tieuDe: "咨询意见书", guiKhach: "致客户文件", khuyenNghi: "建议", lamNgay: "今日须办",
-    buoc: "后续事项与期限", dieuKien: "主要条件", ruiRo: "需注意的风险", kiemTra: "提交前须核实事项", duBao: "预测",
+    buoc: "后续事项与期限", canCu: "主要法律依据", dieuKien: "主要条件", ruiRo: "需注意的风险", kiemTra: "提交前须核实事项", duBao: "预测",
     nguoiDuyet: "审核人", ngay: "日期", ai: ["本内容由AI辅助起草，", "已经", "未经有权人员审核。"], chan: "Hội đồng chuyên gia · 客户意见书",
     banDich: "参考译文；以越南语版本为准。",
     nhan: { "GO": "可以推进", "GO WITH CONDITIONS": "有条件推进", "RESHAPE": "调整方案", "WAIT": "暂缓", "DON'T DO IT": "不建议进行" },
   },
   ko: {
     tieuDe: "자문 의견서", guiKhach: "고객 송부용", khuyenNghi: "권고", lamNgay: "오늘 할 일",
-    buoc: "다음 단계와 기한", dieuKien: "주요 조건", ruiRo: "유의할 위험", kiemTra: "제출 전 확인 필요 사항", duBao: "전망",
+    buoc: "다음 단계와 기한", canCu: "주요 법적 근거", dieuKien: "주요 조건", ruiRo: "유의할 위험", kiemTra: "제출 전 확인 필요 사항", duBao: "전망",
     nguoiDuyet: "검토자", ngay: "날짜", ai: ["AI의 도움으로 작성된 내용입니다.", "권한 있는 담당자 검토 완료", "미검토"], chan: "Hội đồng chuyên gia · 고객 의견서",
     banDich: "참고용 번역본이며, 베트남어 원본이 우선합니다.",
     nhan: { "GO": "진행", "GO WITH CONDITIONS": "조건부 진행", "RESHAPE": "방안 조정", "WAIT": "보류", "DON'T DO IT": "진행 불가" },
@@ -512,7 +652,7 @@ export function ghepBanDich(goc, dich) {
     ...goc,
     tieuDe: s(goc.tieuDe, dich?.tieuDe), lamNgay: s(goc.lamNgay, dich?.lamNgay), phuongAn: s(goc.phuongAn, dich?.phuongAn), khuyenNghi: s(goc.khuyenNghi, dich?.khuyenNghi),
     buoc: goc.buoc.map((b, i) => ({ han: s(b.han, dich?.buoc?.[i]?.han), viec: s(b.viec, dich?.buoc?.[i]?.viec) })),
-    dieuKien: arr(goc.dieuKien, dich?.dieuKien), ruiRo: arr(goc.ruiRo, dich?.ruiRo), canKiemTra: arr(goc.canKiemTra, dich?.canKiemTra), duBao: arr(goc.duBao, dich?.duBao),
+    canCu: arr(goc.canCu, dich?.canCu), dieuKien: arr(goc.dieuKien, dich?.dieuKien), ruiRo: arr(goc.ruiRo, dich?.ruiRo), canKiemTra: arr(goc.canKiemTra, dich?.canKiemTra), duBao: arr(goc.duBao, dich?.duBao),
     tuyenBo: s(goc.tuyenBo, dich?.tuyenBo),
   };
   if (JSON.stringify(phieuDeDich(out)) === JSON.stringify(phieuDeDich(goc))) throw new Error("Máy chủ trả về bản dịch rỗng");
@@ -598,7 +738,6 @@ export async function downloadPhieuKhach({ setup, verdict, id, tuyenBo = "", don
       if (draw) { doc.setFillColor(...C.accent); doc.rect(M, y + 1, 3, sz(11), "F"); }
       text(t, M + 10, y + sz(10), sz(10.5), "bold", C.ink);
       y += sz(15);
-      ghiChu();
       y += sz(2);
     };
     const item = (lead, body, mark) => {
@@ -629,10 +768,12 @@ export async function downloadPhieuKhach({ setup, verdict, id, tuyenBo = "", don
     const dot = (yy) => { doc.setFillColor(...C.accent); doc.circle(M + 4, yy + sz(6), 1.9, "F"); };
     const num = (n) => (yy) => { font(sz(9), "bold", C.accent); doc.text(`${n}.`, M + 1, yy + sz(9.5)); };
 
-    const nBuoc = [5, 5, 4, 3, 3][lv], nDk = [3, 2, 2, 1, 0][lv], nRr = [3, 3, 2, 2, 1][lv], nKt = [6, 5, 4, 3, 2][lv], nDb = [2, 2, 1, 1, 0][lv];
+    const nBuoc = [8, 8, 7, 6, 5][lv], nCc = [4, 3, 2, 2, 1][lv], nDk = [4, 3, 2, 1, 0][lv], nRr = [6, 5, 4, 3, 2][lv], nKt = [8, 6, 4, 3, 2][lv], nDb = [2, 2, 1, 1, 0][lv];
     if (d.buoc.length) { head(L.buoc); d.buoc.slice(0, nBuoc).forEach((b, i) => item(b.han, cut(b.viec, 170), num(i + 1))); }
+    if (d.canCu?.length && nCc) { head(L.canCu); d.canCu.slice(0, nCc).forEach((t) => item("", t, dot)); }
     if (d.dieuKien.length && nDk) { head(L.dieuKien); d.dieuKien.slice(0, nDk).forEach((t) => item("", cut(t, 170), dot)); }
-    if (d.ruiRo.length) { head(L.ruiRo); d.ruiRo.slice(-nRr).forEach((t) => item("", cut(t, 190), dot)); }
+    // the irreversible risk is first and is never cut; each stop point is a whole case: fewer cases, never half of one
+    if (d.ruiRo.length) { head(L.ruiRo); d.ruiRo.slice(0, Math.max(nRr, 1)).forEach((t) => item("", t, dot)); }
     if (d.canKiemTra.length) { head(L.kiemTra); d.canKiemTra.slice(0, nKt).forEach((t) => item("", cut(t, 220), dot)); }
     if (d.duBao.length && nDb) { head(L.duBao); d.duBao.slice(0, nDb).forEach((t) => item("", t, dot)); }
 
