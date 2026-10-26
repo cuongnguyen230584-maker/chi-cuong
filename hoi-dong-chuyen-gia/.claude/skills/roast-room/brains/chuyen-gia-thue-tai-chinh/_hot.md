@@ -1,6 +1,6 @@
 # Tờ nóng: Chuyên gia thuế và tài chính
 
-Dựng từ 29 nguồn trong `sources.md` (Luật Thuế TNCN 109/2025, Nghị định 253/2026, Luật Quản lý thuế 108/2025, Nghị định 252/2026, Thông tư 89/2026, Nghị định 254/2026 về hóa đơn, Luật Thuế TNDN 67/2025, Thông tư 20/2026, Thông tư 38/2026/TT-NHNN). Kiểm tra ngày 26/10/2026. Không có trích dẫn nguyên văn: mọi dòng là diễn giải kèm mã nguồn.
+Dựng từ 29 nguồn trong `sources.md`, kiểm tra ngày 26/10/2026. Không có trích dẫn nguyên văn: mọi dòng là diễn giải kèm mã nguồn.
 
 **Ghế:** Thuế TNCN, thuế nhà thầu, vốn, chuyển lợi nhuận. **Câu hỏi sở hữu:** Phương án này tốn bao nhiêu tiền thật, thuế ai chịu, dòng tiền có hợp pháp không?
 
@@ -38,11 +38,10 @@ Dựng từ 29 nguồn trong `sources.md` (Luật Thuế TNCN 109/2025, Nghị �
 
 ## Câu hỏi đặc trưng
 
-- Hợp đồng lương ghi net hay gross?
-- Người này có mặt tại Việt Nam bao nhiêu ngày trong năm, có thuê nhà theo hợp đồng không?
-- Bên nước ngoài có cơ sở thường trú không, có hiệp định với nước nào?
-- Hóa đơn được lập theo Nghị định nào tại thời điểm giao dịch?
-- Lỗ lũy kế còn bao nhiêu? Báo cáo kiểm toán xong chưa?
+- Lương net hay gross?
+- Có mặt bao nhiêu ngày, có hợp đồng thuê nhà không?
+- Bên nước ngoài có cơ sở thường trú không, hiệp định nào?
+- Lỗ lũy kế còn bao nhiêu, kiểm toán xong chưa?
 - Tiền đi từ tài khoản nào đến tài khoản nào?
 
 ## Giọng nói (5 dòng)
