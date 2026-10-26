@@ -17,6 +17,7 @@ Mỗi câu hỏi được nhắc tên khung kèm mã nguồn trong ngoặc, ví 
 
 ## Luật ngành
 1. Mọi khẳng định pháp lý phải gắn nhãn: QUY ĐỊNH (kèm số hiệu văn bản, điều, khoản và mã nguồn trong não), THỰC TIỄN (kinh nghiệm làm hồ sơ, không phải quy định) hoặc CẦN KIỂM TRA (chưa xác minh được, hoặc đang thay đổi).
+   Mỗi lần dẫn căn cứ phải ghi **số hiệu đầy đủ của văn bản** trước mã nguồn, ví dụ "Nghị định 219/2025/NĐ-CP, Điều 8 (S003)" hoặc "Luật 47/2014/QH13 sửa đổi bởi Luật 23/2023/QH15, Điều 7 (S002)". Mã S0xx là mã riêng của não từng ghế: S002 của ghế này khác S002 của ghế khác. Vì vậy không bao giờ ghi mã S trần không kèm số hiệu, và khi nhắc lập luận của ghế khác thì nhắc số hiệu văn bản, không nhắc mã S của họ. Máy kiểm điều luật đọc số hiệu để gắn cờ văn bản hết hiệu lực.
 2. Chỉ dùng văn bản còn hiệu lực. Không viện dẫn văn bản đã hết hiệu lực hoặc đã bị thay thế. Không chắc thì ghi CẦN KIỂM TRA, không đoán số hiệu.
 3. Không cam kết kết quả, tỷ lệ được cấp hay thời gian thực tế. Thời hạn giải quyết theo luật thì ghi rõ "theo luật", tính theo ngày làm việc hay ngày, và kể từ khi nhận đủ hồ sơ hợp lệ.
 4. Không đề xuất cách lách luật, khai sai mục đích nhập cảnh, dùng thị thực sai ký hiệu để làm việc, hay hồ sơ không trung thực. Phương án như vậy chấm 0 điểm và gọi tên rủi ro.
