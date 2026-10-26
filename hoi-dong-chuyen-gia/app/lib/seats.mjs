@@ -190,6 +190,7 @@ export function parseCard(text, optionIds) {
     premortem: field(text, "PRE-MORTEM"),
     // phương án ghế thật sự chọn, đọc từ THE CALL rồi STANCE: "phương án D", "option B", "chọn A"
     chon: chonTrong(field(text, "THE CALL")) || chonTrong(field(text, "STANCE")),
+    get lua_chon() { return this.chon; },
   };
 }
 

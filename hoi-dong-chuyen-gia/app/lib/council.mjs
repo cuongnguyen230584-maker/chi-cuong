@@ -697,7 +697,7 @@ export function listSaved() {
   return fs.readdirSync(SESSIONS_DIR)
     .map((d) => path.join(SESSIONS_DIR, d, "events.json"))
     .filter((p) => fs.existsSync(p))
-    .map((p) => { const j = JSON.parse(fs.readFileSync(p, "utf8")); return { id: j.id, title: j.title || j.prompt.slice(0, 60), prompt: j.prompt, mode: j.mode, status: j.status, file: p }; })
+    .map((p) => { const j = JSON.parse(fs.readFileSync(p, "utf8")); return { id: j.id, title: j.title || j.prompt.slice(0, 60), prompt: j.prompt, mode: j.mode, status: j.status, nganh: j.nganh || (j.events || []).find((e) => e.type === "setup")?.nganh || "kinh-doanh", file: p }; })
     .sort((a, b) => (a.id < b.id ? 1 : -1));
 }
 

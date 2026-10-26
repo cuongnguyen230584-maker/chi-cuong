@@ -200,21 +200,6 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
   font(9.5, "normal", C.mute); doc.text(meta, M + 16, by + 9.5);
   y += boxH + 8;
 
-  // ---------------------------------------------------------------- the Chair's own view
-  // His comment on the verdict, from his own brain. The verdict above stays the council's.
-  const cv = chairView?.view;
-  if (cv) {
-    section("Góc nhìn Chủ toạ");
-    const say = `${DONG_Y_VI[cv.dong_y] || cv.dong_y}. ${cv.nhan_dinh}`;
-    para((chairView.quotes || []).some((q) => !q.verified && say.includes(q.quote)) ? `${say} (câu trích chưa khớp nguyên văn)` : say, { size: 10.5, style: "semibold", color: C.ink, gap: 6 });
-    // a quote the brain check could not find is marked here too; the source id stays readable as "nguồn S0xx"
-    const sai = (chairView.quotes || []).filter((q) => !q.verified).map((q) => q.quote);
-    const ghi = (t) => (sai.some((q) => String(t || "").includes(q)) ? `${t} (câu trích chưa khớp nguyên văn)` : t);
-    for (const l of (cv.ly_do || []).slice(0, 4)) bullet(l.khung, ghi(`${l.y}${l.nguon && !(vaiTro && /^S\d+$/i.test(String(l.nguon).trim())) ? ` (nguồn ${l.nguon})` : ""}`));
-    if (cv.bo_buoc) bullet("Nên xoá", ghi(cv.bo_buoc));
-    if (cv.thu_nhanh) bullet("Thử nhanh", ghi(cv.thu_nhanh));
-  }
-
   // ---------------------------------------------------------------- numbers and their sources
   const ks = v.kiem_so;
   const ksChuToa = chairView?.kiem_so;
@@ -257,6 +242,22 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
   // Kept short on purpose: the call, the scores, the reasons, the strongest objection, and
   // the plan. The full report (conditions, amendments, every card) stays in verdict.md.
   if (v.why?.length) { section("Vì sao hội đồng đi đến kết luận này"); for (const w of v.why.slice(0, 3)) bullet(who(w.seat), w.point); }
+
+  // ---------------------------------------------------------------- the Chair's own view
+  // His comment on the verdict, from his own brain, after the council's reasons (the verdict stays the council's).
+  const cv = chairView?.view;
+  if (cv) {
+    section("Góc nhìn Chủ toạ");
+    const say = `${DONG_Y_VI[cv.dong_y] || cv.dong_y}. ${cv.nhan_dinh}`;
+    para((chairView.quotes || []).some((q) => !q.verified && say.includes(q.quote)) ? `${say} (câu trích chưa khớp nguyên văn)` : say, { size: 10.5, style: "semibold", color: C.ink, gap: 6 });
+    // a quote the brain check could not find is marked here too; the source id stays readable as "nguồn S0xx"
+    const sai = (chairView.quotes || []).filter((q) => !q.verified).map((q) => q.quote);
+    const ghi = (t) => (sai.some((q) => String(t || "").includes(q)) ? `${t} (câu trích chưa khớp nguyên văn)` : t);
+    for (const l of (cv.ly_do || []).slice(0, 4)) bullet(l.khung, ghi(`${l.y}${l.nguon && !(vaiTro && /^S\d+$/i.test(String(l.nguon).trim())) ? ` (nguồn ${l.nguon})` : ""}`));
+    if (cv.bo_buoc) bullet("Nên xoá", ghi(cv.bo_buoc));
+    if (cv.thu_nhanh) bullet("Thử nhanh", ghi(cv.thu_nhanh));
+  }
+
 
   // ---------------------------------------------------------------- how each advisor scored it
   if (seats.length) {
@@ -325,6 +326,7 @@ const choKhach = (t) => {
   for (const [re, to] of KHACH_THAY) x = x.replace(re, to);
   return x.replace(/^\p{Ll}/u, (c) => c.toUpperCase());
 };
+const cauDauTien = (t) => (String(t || "").match(/[^.!?]+[.!?]*/) || [""])[0];
 const LA_RUI_RO = /rủi ro không đảo ngược|trục xuất|cấm nhập cảnh|hình sự/i;
 const LA_KIEM_TRA = /^Đây là phân tích tham khảo\.?\s*/i;
 const LA_LUAT_SU = /(?:ý kiến|xác nhận)[^.]{0,40}luật sư|luật sư[^.]{0,40}(?:xác nhận|ý kiến)/i;
@@ -340,8 +342,7 @@ export function noiDungPhieuKhach({ setup = {}, verdict: ev = {}, tuyenBo = "" }
   const v = ev.verdict || {};
   const buoc = (v.next_steps || []).slice(0, 5).map((s) => ({ han: choKhach(s.when), viec: firstSentences(choKhach(s.action), 230) }));
   const conds = (v.conditions || []).map((c) => boNhanDau(String(c || "")));
-  const cauDau = (c) => firstSentences(c, 1);
-  const kiemTraGoc = conds.filter((c) => !LA_NOI_BO.test(c) && (LA_KIEM_TRA.test(c) || LA_LUAT_SU.test(cauDau(c))));
+  const kiemTraGoc = conds.filter((c) => !LA_NOI_BO.test(c) && (LA_KIEM_TRA.test(c) || LA_LUAT_SU.test(cauDauTien(c)) || /CẦN KIỂM TRA/.test(cauDauTien(c))));
   const ruiRoGoc = conds.filter((c) => LA_RUI_RO.test(c) && !kiemTraGoc.includes(c) && !LA_NOI_BO.test(c));
   const ruiRo = ruiRoGoc.slice(0, 2).map((c) => firstSentences(choKhach(c), 380));
   if (v.kill_criteria) ruiRo.push(`Điểm dừng: ${firstSentences(choKhach(v.kill_criteria), 360)}`);
@@ -363,7 +364,13 @@ export function noiDungPhieuKhach({ setup = {}, verdict: ev = {}, tuyenBo = "" }
     nhan: VERDICT_VI[label] || label,
     nhanGoc: label,
     phuongAn: o ? `Phương án ${o.id}: ${choKhach(o.label)}` : "",
-    khuyenNghi: choKhach(v.call),
+    // "Chọn phương án A: <the option's label>. …" repeats the line above it: start at what follows
+    khuyenNghi: (() => {
+      const call = choKhach(v.call), dau = cauDauTien(call);
+      const chu = (t) => String(t || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+      const nhac = o && chu(dau).includes(chu(o.label).slice(0, 30));
+      return nhac && call.length > dau.length + 20 ? call.slice(dau.length).trim() : call;
+    })(),
     buoc,
     dieuKien,
     ruiRo,
@@ -395,7 +402,7 @@ export async function downloadPhieuKhach({ setup, verdict, id, tuyenBo = "" }) {
     // header
     if (draw) doc.addImage(logo, "PNG", M, y - 2, 26, 26, "logo", "SLOW");
     text("PHIẾU TƯ VẤN", W - M, y + 9, sz(12), "bold", C.ink, { align: "right" });
-    text(`Tài liệu gửi khách · ${dateLine(id)}`, W - M, y + 21, 8, "normal", C.mute, { align: "right" });
+    text(`Tài liệu gửi khách · ${dateLine(null)}`, W - M, y + 21, 8, "normal", C.mute, { align: "right" });
     y += 32;
     if (draw) { doc.setDrawColor(...C.ink); doc.setLineWidth(1); doc.line(M, y, W - M, y); }
     y += sz(14);
@@ -406,7 +413,7 @@ export async function downloadPhieuKhach({ setup, verdict, id, tuyenBo = "" }) {
     // the recommendation
     const call = split(cut(d.khuyenNghi, 260), CW - 28, sz(10), "normal");
     const pa = d.phuongAn ? split(d.phuongAn, CW - 28, sz(10.5), "semibold") : [];
-    const boxH = sz(14) + sz(22) + sz(8) + pa.length * lh(sz(10.5)) + call.length * lh(sz(10)) + sz(12);
+    const boxH = sz(14) + sz(22) + sz(8) + pa.length * lh(sz(10.5)) + (pa.length ? sz(3) : 0) + call.length * lh(sz(10)) + sz(12);
     if (draw) {
       doc.setFillColor(...C.tint); doc.roundedRect(M, y, CW, boxH, 8, 8, "F");
       font(sz(11), "bold");
@@ -417,7 +424,7 @@ export async function downloadPhieuKhach({ setup, verdict, id, tuyenBo = "" }) {
     }
     let by = y + sz(14) + sz(22) + sz(8);
     text(pa, M + 14, by + sz(10), sz(10.5), "semibold", C.ink);
-    by += pa.length * lh(sz(10.5));
+    by += pa.length * lh(sz(10.5)) + (pa.length ? sz(3) : 0);
     text(call, M + 14, by + sz(9.5), sz(10), "normal", C.soft);
     y += boxH + sz(10);
 

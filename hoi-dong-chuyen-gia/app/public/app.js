@@ -1,4 +1,4 @@
-import { downloadVerdictPdf } from "./pdf.js";
+import { downloadVerdictPdf, downloadPhieuKhach, soVi, boMaNguon, soChuaNguonThat, TUYEN_BO_CHUNG } from "./pdf.js";
 import { loiVi } from "./loi-vi.js";
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -30,28 +30,51 @@ const portrait = (key, shape = "base") => {
   const have = state.byKey[key]?.portraits || {};
   return have[shape] || have.base || drawnBust(key, shape);
 };
+const hasPortrait = (key) => Boolean(state.byKey[key]?.portraits?.base);
+/** A small round avatar: the cartoon face when the seat has one, otherwise a monogram (role seats). */
+const avatar = (key) => (hasPortrait(key) ? portrait(key) : monogram(key));
+const seatColor = (key) => { const c = state.byKey[key]?.color; return /^#[0-9a-f]{6}$/i.test(c || "") ? c : "#37bdf8"; };
+const initialsOf = (key) => esc(String(state.byKey[key]?.initials || state.byKey[key]?.short || key).slice(0, 3).toUpperCase());
+// a hex colour mixed toward black (t < 0) or white (t > 0)
+const mix = (hex, t) => { const n = parseInt(hex.slice(1), 16), to = t < 0 ? 0 : 255, k = Math.abs(t); return "#" + [16, 8, 0].map((sh) => Math.round(((n >> sh) & 255) * (1 - k) + to * k).toString(16).padStart(2, "0")).join(""); };
 const bustCache = new Map();
+function monogram(key) {
+  const id = `${key}-mono`;
+  if (bustCache.has(id)) return bustCache.get(id);
+  const c = seatColor(key);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><circle cx="60" cy="60" r="60" fill="${mix(c, -0.45)}"/><circle cx="60" cy="60" r="55" fill="none" stroke="${c}" stroke-width="4"/><text x="60" y="61" dominant-baseline="middle" text-anchor="middle" font-family="Be Vietnam Pro, Arial, sans-serif" font-weight="700" font-size="${initialsOf(key).length > 2 ? 34 : 42}" fill="#fff">${initialsOf(key)}</text></svg>`;
+  const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  bustCache.set(id, url);
+  return url;
+}
+// A seat with no portrait (the role seats of a profession pack) gets a drawn professional bust: dark
+// suit in the seat's colour, shirt and tie, and a name badge with the seat's initials. Mouth and eyes
+// still follow the four shapes, so it talks and blinks like the cartoon seats.
 function drawnBust(key, shape) {
   const id = `${key}-${shape}`;
   if (bustCache.has(id)) return bustCache.get(id);
-  const s = state.byKey[key] || {};
-  const c = /^#[0-9a-f]{6}$/i.test(s.color || "") ? s.color : "#37bdf8";
-  const initials = esc((s.initials || s.short || key).slice(0, 3).toUpperCase());
+  const c = seatColor(key);
+  const suit = mix(c, -0.55), lapel = mix(c, -0.4), ini = initialsOf(key);
   const eyes = shape === "blink"
-    ? `<path d="M226 250h30M304 250h30" stroke="#1d2733" stroke-width="7" stroke-linecap="round"/>`
-    : `<circle cx="241" cy="250" r="11" fill="#1d2733"/><circle cx="319" cy="250" r="11" fill="#1d2733"/><circle cx="245" cy="246" r="3.5" fill="#fff"/><circle cx="323" cy="246" r="3.5" fill="#fff"/>`;
-  const mouth = shape === "open" ? `<ellipse cx="280" cy="318" rx="24" ry="17" fill="#5a2430"/>`
-    : shape === "mid" ? `<ellipse cx="280" cy="316" rx="20" ry="8" fill="#5a2430"/>`
-    : `<path d="M256 312q24 16 48 0" fill="none" stroke="#5a2430" stroke-width="7" stroke-linecap="round"/>`;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 560"><g transform="translate(-14 -64) scale(1.05)">
-    <path d="M70 640c0-160 86-250 210-250s210 90 210 250z" fill="${c}"/>
-    <path d="M232 384h96l-48 58z" fill="#e9eef3"/>
-    <rect x="248" y="330" width="64" height="70" rx="22" fill="#d9b49a"/>
-    <ellipse cx="280" cy="250" rx="112" ry="128" fill="#e8c4a8"/>
-    <path d="M168 236c0-90 50-122 112-122s112 32 112 122c-20-46-60-64-112-64s-92 18-112 64z" fill="#3a4654"/>
+    ? `<path d="M232 228h28M300 228h28" stroke="#22303d" stroke-width="6" stroke-linecap="round"/>`
+    : `<ellipse cx="246" cy="228" rx="9" ry="10" fill="#22303d"/><ellipse cx="314" cy="228" rx="9" ry="10" fill="#22303d"/><circle cx="249" cy="225" r="3" fill="#fff"/><circle cx="317" cy="225" r="3" fill="#fff"/>`;
+  const mouth = shape === "open" ? `<ellipse cx="280" cy="290" rx="20" ry="14" fill="#6b2f36"/>`
+    : shape === "mid" ? `<ellipse cx="280" cy="289" rx="17" ry="7" fill="#6b2f36"/>`
+    : `<path d="M262 286q18 10 36 0" fill="none" stroke="#6b2f36" stroke-width="6" stroke-linecap="round"/>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 560">
+    <path d="M58 560c0-118 70-178 160-196l62 54 62-54c90 18 160 78 160 196z" fill="${suit}"/>
+    <path d="M240 356h80l-40 150z" fill="#eef2f6"/>
+    <path d="M270 372h20l8 18-10 104-8 12-8-12-10-104z" fill="${c}"/>
+    <path d="M218 364l62 54-34 104-58-112z" fill="${lapel}"/><path d="M342 364l-62 54 34 104 58-112z" fill="${lapel}"/>
+    <rect x="252" y="300" width="56" height="70" rx="20" fill="#d4ab8f"/>
+    <ellipse cx="186" cy="236" rx="14" ry="22" fill="#dcb497"/><ellipse cx="374" cy="236" rx="14" ry="22" fill="#dcb497"/>
+    <ellipse cx="280" cy="226" rx="94" ry="108" fill="#e6c2a5"/>
+    <path d="M186 214c-6-82 38-114 96-114 60 0 102 34 94 112-10-34-30-52-58-56-34 14-82 12-114 22-10 10-16 22-18 36z" fill="#2c3642"/>
+    <path d="M226 202q20-10 40-2M294 200q20-8 40 2" stroke="#2c3642" stroke-width="6" fill="none" stroke-linecap="round"/>
     ${eyes}${mouth}
-    <text x="280" y="540" text-anchor="middle" font-family="Be Vietnam Pro, Arial, sans-serif" font-weight="800" font-size="54" fill="rgba(255,255,255,.92)">${initials}</text>
-  </g></svg>`;
+    <rect x="352" y="452" width="${ini.length > 2 ? 128 : 112}" height="62" rx="10" fill="#f7f9fb" stroke="${c}" stroke-width="5"/>
+    <text x="${352 + (ini.length > 2 ? 64 : 56)}" y="497" text-anchor="middle" font-family="Be Vietnam Pro, Arial, sans-serif" font-weight="800" font-size="40" fill="${mix(c, -0.35)}">${ini}</text>
+  </svg>`;
   const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
   bustCache.set(id, url);
   return url;
@@ -142,6 +165,25 @@ const seatEl = (k) => (isChair(k) ? $("#seat-chair") : k ? $(`#seat-${k}`) : nul
 const plateEl = (k) => (isChair(k) ? $("#plate-chair") : k ? $(`#plate-${k}`) : null);
 const chairName = () => (state.byKey[state.chair] ? `${state.byKey[state.chair].name} · Chủ toạ` : "Chủ toạ");
 
+// ------------------------------------------------------------- gói ngành: lời miễn trừ, gói nhớ lần trước
+const goiCua = (k) => (state.packs || []).find((g) => g.key === k);
+/** The pack of what is on screen: the session being shown, else the pack picked on the home page. */
+const goiHienTai = () => goiCua(state.setup?.nganh) || goiCua(state.goiDangDung);
+const laVaiTro = () => goiHienTai()?.loai === "vai-tro" || (state.setup?.seats || []).some((k) => state.byKey[k]?.loai === "vai-tro");
+/** The disclaimer for this pack: the verdict's own (written with the pack's text) first. */
+const tuyenBo = (v) => v?.disclaimer || goiHienTai()?.tuyen_bo || TUYEN_BO_CHUNG;
+/** Role seats (vai-tro) carry internal source ids (S0xx) that mean nothing to a reader: drop the bare ones. */
+const boS = (t) => (laVaiTro() ? boMaNguon(t) : String(t ?? ""));
+const GOI_NHO = "hdcg.nganh"; // the pack picked last time, per browser
+const GOI_MAC_DINH = "phap-ly-nnn"; // the owner's main practice: first visit opens on it when it exists
+function goiDaNho() {
+  let k = null;
+  try { k = localStorage.getItem(GOI_NHO); } catch { /* storage blocked: fall back to the default */ }
+  if (k === "" || (k && goiCua(k))) return k;
+  return goiCua(GOI_MAC_DINH) ? GOI_MAC_DINH : "";
+}
+function nhoGoi(k) { try { localStorage.setItem(GOI_NHO, k || ""); } catch { /* not remembered, still works */ } }
+
 // ------------------------------------------------------------- boot
 async function boot() {
   const r = await refreshSeats();
@@ -150,8 +192,8 @@ async function boot() {
   document.fonts?.ready.then(layoutStage); // nameplate widths change once the fonts arrive
   if (r.runner === "api" && !r.hasKey) toast("Chưa có key trong .env (CLAUDE_CODE_OAUTH_TOKEN hoặc ANTHROPIC_API_KEY). Thêm vào rồi khởi động lại server.");
   renderSeats(state.board);
-  renderNganh();
-  renderSamples();
+  if ((state.packs || []).length) applyNganh(goiDaNho(), { chon: true });
+  else { renderNganh(); renderSamples(); }
   bindUI();
   new ResizeObserver(() => { layoutStage(); drawLinks(); }).observe($("#stage"));
   // the table grows to hold the cards on it, so a card that grows, appears or goes re-lays the room
@@ -161,10 +203,10 @@ async function boot() {
   reset();
   typeIn($("#composer h2"));
   typeIn($("#waiting h2"));
+  await moiUsage(); // the home page shows no tokens from earlier questions
   const ss = await fetch("/api/sessions").then((x) => x.json());
   if (ss.running) attach(ss.running);
   else if (ss.live) attach(ss.live);
-  refreshUsage();
   setInterval(watchForLive, 2500);
   setInterval(tickWait, 1000);
 }
@@ -230,7 +272,8 @@ function renderNganh() {
 }
 function applyNganh(key, { chon = false } = {}) {
   if (chon) state.nganh = key || "";
-  const g = (state.packs || []).find((x) => x.key === (key || state.nganh)) || (state.packs || [])[0];
+  // "Tự nhận diện" keeps the table it had (the pack used last), so the room never jumps to another board
+  const g = goiCua(key || state.nganh) || goiCua(state.goiDangDung) || goiCua(GOI_MAC_DINH) || (state.packs || [])[0];
   if (g) {
     state.goiDangDung = g.key;
     state.chair = state.byKey[g.chair] ? g.chair : null;
@@ -241,7 +284,7 @@ function applyNganh(key, { chon = false } = {}) {
     bustCache.clear();
     renderSeats(state.board);
     layoutStage();
-    if (g.tuyen_bo && $("#disclaimer")) $("#disclaimer").textContent = g.tuyen_bo;
+    if ($("#disclaimer")) $("#disclaimer").textContent = g.tuyen_bo || TUYEN_BO_CHUNG; // the pack whose seats are on the table
   }
   renderNganh();
   renderSamples();
@@ -391,6 +434,7 @@ function bindUI() {
   $("#nganhPick")?.addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b || state.hoi?.busy) return;
     applyNganh(b.dataset.k, { chon: true });
+    nhoGoi(b.dataset.k);
   });
   $("#hoi").addEventListener("click", (e) => {
     const c = e.target.closest(".choice");
@@ -418,10 +462,17 @@ function bindUI() {
   $("#waitHistory").addEventListener("click", openHistory);
   document.addEventListener("click", async (e) => {
     if (e.target.closest("[data-pdf]")) savePdf(e.target.closest("[data-pdf]"));
+    if (e.target.closest("[data-phieu]")) savePhieu(e.target.closest("[data-phieu]"));
     const ht = e.target.closest("[data-hop-tiep]");
     if (ht && !ht.disabled) hopTiep(ht);
   });
   $("#historyBtn").addEventListener("click", openHistory);
+  $("#historyFilter")?.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-loc]"); if (!b) return;
+    state.locLichSu = b.dataset.loc;
+    $$("#historyFilter [data-loc]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    veLichSu();
+  });
   $("#hanBtn")?.addEventListener("click", () => {
     if (!$("#hanTu").value) { const d = new Date(); $("#hanTu").value = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; }
     $("#hanDialog").showModal();
@@ -434,7 +485,7 @@ function bindUI() {
       out.innerHTML = `<p class="han-han">Hạn: <b>${esc(r.han)}</b></p>${r.cac_ngay_nghi.length ? `<p class="muted">Ngày nghỉ lễ đã trừ: ${r.cac_ngay_nghi.map(esc).join("; ")}</p>` : ""}<p class="muted">${esc(r.ghi_chu)}</p>`;
     } catch (err) { out.innerHTML = `<p class="so-canh">${esc(loiVi(err.message || err))}</p>`; }
   });
-  $("#newBtn").addEventListener("click", reset);
+  $("#newBtn").addEventListener("click", () => { reset(); moiUsage(); });
   $("#verdictSheet").addEventListener("click", (e) => { if (e.target.id === "verdictSheet" || e.target.closest("[data-close]")) $("#verdictSheet").hidden = true; });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("#verdictSheet").hidden = true; });
   // Clicking the dimmed backdrop around a card, the guide, or past sessions closes it (Escape already does).
@@ -512,6 +563,8 @@ function reset() {
   $("#panelHead").textContent = "Ý chính";
   $("#feed").innerHTML = '<div class="empty">Mỗi ghế một dòng khi hội đồng lên tiếng. Bấm vào một ghế để đọc thẻ đầy đủ.</div>';
   $$(".vote").forEach((b) => b.remove());
+  // a replay of another pack's session swapped the table: put back the pack picked on the home page
+  if (state.nganh && state.nganh !== state.goiDangDung && goiCua(state.nganh)) applyNganh(state.nganh);
   renderSeats(state.board);
   $$(".seat").forEach((el) => { el.classList.remove("absent", "speaking", "thinking", "addressed"); $(".bust", el).dataset.shape = "base"; });
   $$(".nameplate").forEach((el) => { el.classList.remove("absent", "speaking"); $(".chip", el).hidden = true; $(".score", el).hidden = true; $(".pips", el).innerHTML = ""; });
@@ -545,7 +598,7 @@ function attach(id) {
       es.close(); refreshUsage(); state.ended = true;
       $$("[data-hop-tiep]").forEach((b) => (b.disabled = false));
       // a council that ended without a view (viewer runs, a failed call) must not keep saying he is still on it
-      if (!state.chairView && $("#vChair")) { $("#vChair").innerHTML = chairViewHtml({}); $("#seat-chair")?.classList.remove("thinking"); }
+      if (!state.chairView && $("#vChair .v-fold-body")) { $("#vChair .v-fold-body").innerHTML = chairViewHtml({}); $("#seat-chair")?.classList.remove("thinking"); }
       return;
     }
     if (ev.type === "delta") return; // seats speak from their finished cards
@@ -567,6 +620,12 @@ function setStep(step) {
     li.classList.toggle("done", i < idx);
     li.classList.toggle("active", i === idx);
   });
+  // on a phone the steps scroll sideways: keep the current one in view (the last two used to sit off-screen)
+  const st = $("#stepper"), a = $(".stepper li.active");
+  if (st && a && st.scrollWidth > st.clientWidth) {
+    const r = a.getBoundingClientRect(), b = st.getBoundingClientRect();
+    st.scrollLeft += r.left - b.left - (b.width - r.width) / 2;
+  }
 }
 
 async function handle(ev) {
@@ -601,9 +660,8 @@ async function handle(ev) {
 async function onSetup(ev) {
   if (ev.seats.some((k) => !state.byKey[k])) await refreshSeats(); // a seat added since the page loaded
   if (ev.nganh && ev.nganh !== state.goiDangDung) applyNganh(ev.nganh); // phát lại phiên của gói khác
-  // seat the default board plus anyone this council called in; past the table's limit, only this council
-  const both = [...new Set([...state.board, ...ev.seats])];
-  renderSeats(both.length <= MAX_TABLE ? both : ev.seats);
+  // seat only who sits this council: an empty, greyed-out chair reads as someone who left the room
+  renderSeats(ev.seats);
   state.options = ev.options;
   state.weights = ev.weights;
   state.active = ev.seats;
@@ -627,7 +685,7 @@ function updateOptions(scores) {
   const best = Object.entries(scores).sort((a, b) => (b[1].score ?? 0) - (a[1].score ?? 0))[0]?.[0];
   for (const [id, v] of Object.entries(scores)) {
     const el = $(`.opt[data-opt="${id}"]`); if (!el) continue;
-    $(".val", el).textContent = v.score ?? "-";
+    $(".val", el).textContent = soVi(v.score);
     $(".bar i", el).style.width = `${(v.score || 0) * 10}%`;
     el.classList.toggle("lead", id === best);
     el.title = v.math;
@@ -704,7 +762,7 @@ function captionFor(who) {
   const key = chair ? state.chair : who;
   const s = state.byKey[key];
   $("#capAv").className = `cap-av${chair ? " chair" : ""}`;
-  $("#capAv").innerHTML = `<img src="${s || !chair ? portrait(key) : "/brand/logo.png"}" alt="">`; // a seat gone from the roster gets a drawn bust
+  $("#capAv").innerHTML = `<img src="${s || !chair ? avatar(key) : "/brand/logo.png"}" alt="">`; // a seat gone from the roster gets a drawn bust
   $("#capWho").textContent = chair ? chairName() : s?.name || who;
 }
 
@@ -790,11 +848,11 @@ async function onSeatDone(ev) {
   const { round, seat, text, parsed, quotes } = ev;
   state.cards[round][seat] = { text, parsed, quotes };
   const s = state.byKey[seat];
-  const top = topOption(parsed.optionScores);
+  const top = seatPick(parsed);
   const line = lineFor(round, parsed);
   let tag = ROUND_NAME[round], sub = "", target = null;
   if (round === 1) {
-    tag = `${stanceWord(parsed.stance)}${top ? ` · chọn ${top.id} (${top.v}/10)` : ""}`;
+    tag = `${stanceWord(parsed.stance)}${top ? ` · chọn ${top.id}${top.v !== undefined ? ` (${soVi(top.v)}/10)` : ""}` : ""}`;
   } else if (round === 2) {
     const tgt = parsed.disagreeWith ? state.byKey[parsed.disagreeWith] : null;
     if (tgt) {
@@ -827,8 +885,8 @@ async function onSeatDone(ev) {
     stamp.className = `vote ${v}`;
     stamp.textContent = voteVi(v).toUpperCase();
     seatEl(seat)?.appendChild(stamp);
-  } else chip.textContent = stanceWord(parsed.stance);
-  if (top) { const sc = $(".score", pl); sc.hidden = false; sc.textContent = `${top.id} ${top.v}`; sc.title = `Điểm cao nhất: phương án ${top.id}`; }
+  } else { chip.textContent = chipWord(parsed.stance); chip.title = stanceWord(parsed.stance); }
+  if (top) { const sc = $(".score", pl); sc.hidden = false; sc.textContent = `${top.id}${top.v !== undefined ? ` ${soVi(top.v)}` : ""}`; sc.title = `Ghế chọn phương án ${top.id}`; }
   setSpeaker(null);
   void s;
 }
@@ -839,12 +897,28 @@ function stanceWord(t = "") {
   return { "strong yes": "Rất ủng hộ", "conditional yes": "Ủng hộ có điều kiện", "strong no": "Phản đối mạnh", yes: "Ủng hộ", no: "Phản đối" }[m[0].toLowerCase()];
 }
 
+// the nameplate chip is narrow: same meaning, shorter words (the full stance is in its tooltip and the caption)
+function chipWord(t = "") {
+  const m = t.match(/strong yes|conditional yes|strong no|yes|no/i);
+  if (!m) return "Đã nói";
+  return { "strong yes": "Rất ủng hộ", "conditional yes": "Có điều kiện", "strong no": "Phản đối mạnh", yes: "Ủng hộ", no: "Phản đối" }[m[0].toLowerCase()];
+}
+
 function topOption(scores = {}) {
   const e = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
   return e ? { id: e[0], v: e[1] } : null;
 }
+/** The option the seat says it picks ("THE CALL: Tôi chọn A"), not just its highest score: the two can
+ * differ, and the bubble must not say "chọn D" over a seat that said "Tôi chọn A". */
+function seatPick(parsed = {}) {
+  const ids = Object.keys(parsed.optionScores || {});
+  const said = parsed.lua_chon || parsed.choice || [parsed.call, parsed.stance].map((t) => String(t || "").match(/\b(?:chọn|choose|pick|back|go with)\s+(?:phương án\s+|option\s+)?([A-H])\b/i)?.[1]).find(Boolean);
+  const id = said && (!ids.length || ids.includes(said.toUpperCase())) ? said.toUpperCase() : null;
+  if (!id) return topOption(parsed.optionScores);
+  return { id, v: parsed.optionScores?.[id] };
+}
 const shorten = (t, n) => (t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : t);
-const face = (k) => `<img src="${portrait(k)}" alt="${esc(state.byKey[k]?.short || k)}" title="${esc(state.byKey[k]?.short || k)}">`;
+const face = (k) => `<img src="${avatar(k)}" alt="${esc(state.byKey[k]?.short || k)}" title="${esc(state.byKey[k]?.short || k)}">`;
 
 async function onCruxes(ev) {
   setSpeaker(null);
@@ -911,11 +985,17 @@ function feedCard(round, seat, parsed) {
   d.className = "feed-card";
   d.dataset.seat = seat;
   d.dataset.round = round;
-  const top = topOption(parsed.optionScores);
+  const top = seatPick(parsed);
   const tgt = parsed.disagreeWith ? state.byKey[parsed.disagreeWith]?.short : "";
   const what = round === 1 ? `${stanceWord(parsed.stance)}${top ? `, chọn ${top.id}` : ""}` : round === 2 ? (tgt ? `phản bác ${tgt}` : "Tranh luận") : `Bỏ phiếu ${voteVi(parsed.vote || "chua_ro")}`;
-  d.innerHTML = `<img class="av" src="${portrait(seat)}" alt=""><div><div class="h">${esc(s?.short || seat)}<span class="r">${esc(what)}</span></div><p>${esc(lineFor(round, parsed, 105))}</p></div>`;
+  d.innerHTML = `<img class="av" src="${avatar(seat)}" alt=""><div><div class="h">${esc(s?.short || seat)}<span class="r">${esc(what)}</span></div><p>${esc(lineFor(round, parsed, 105))}</p></div>`;
   feedAppend(d);
+}
+
+/** The line under a seat's card: a role seat is built from law and official sources, not from a person. */
+function loiGhe(s) {
+  if (s?.loai === "vai-tro") return `${s.name}: chuyên gia mô phỏng theo vai nghề, dựng từ văn bản pháp luật và nguồn chính thức, không phải người thật. Ý kiến chỉ để tham khảo, không thay thế ý kiến của luật sư hoặc kết quả giải quyết của cơ quan có thẩm quyền.`;
+  return `Cố vấn mô phỏng, dựng từ tác phẩm công khai của ${s?.name || "người này"}. Không phải người thật và không phát ngôn thay người đó.`;
 }
 
 function openCard(seat, round) {
@@ -924,10 +1004,10 @@ function openCard(seat, round) {
   const r = round || rounds[0];
   const c = state.cards[r]?.[seat];
   $("#cardBody").innerHTML = `
-    <div class="card-head"><img src="${portrait(seat)}" alt=""><div><div class="label">${esc(pillarOf(s))}</div><h3>${esc(s.name)}</h3><p class="muted" style="margin:0">Câu hỏi phụ trách: ${esc(questionOf(s))}</p></div></div>
+    <div class="card-head"><img src="${avatar(seat)}" alt=""><div><div class="label">${esc(pillarOf(s))}</div><h3>${esc(s.name)}</h3><p class="muted" style="margin:0">Câu hỏi phụ trách: ${esc(questionOf(s))}</p></div></div>
     ${rounds.length > 1 ? `<p style="margin:0 0 6px">${rounds.slice().reverse().map((x) => `<button class="ghost" data-r="${x}" style="margin-right:6px">${ROUND_NAME[x]}</button>`).join("")}</p>` : ""}
     ${c ? `<pre>${esc(theVi(c.text))}</pre>${c.quotes.length ? `<ul class="qcheck">${c.quotes.map((q) => `<li class="${q.verified ? "" : "bad"}">"${esc(shorten(q.quote, 110))}" (${q.source}) ${q.verified ? "có trong bộ não" : "không tìm thấy trong bộ não"}</li>`).join("")}</ul>` : ""}` : `<p class="muted">Ghế này chưa lên tiếng.</p>`}
-    <p class="muted" style="font-size:12px">Cố vấn mô phỏng, dựng từ tác phẩm công khai của ${esc(s.name)}. Không phải người thật.</p>`;
+    <p class="muted card-note">${esc(loiGhe(s))}</p>`;
   $$("#cardBody [data-r]").forEach((b) => b.addEventListener("click", () => openCard(seat, Number(b.dataset.r))));
   const dlg = $("#cardDialog");
   if (!dlg.open) dlg.showModal();
@@ -955,46 +1035,56 @@ function onVerdict(ev) {
   const seats = ev.seats;
   const mk = seatKey(v.minority.seat);
   const short = (t, n) => esc(shorten(clean(t || ""), n));
+  const txt = (t) => esc(boS(t)); // full text, bare S0xx dropped for role packs
+  const chuaNguon = soChuaNguonThat(v.kiem_so?.chua_nguon);
+  const steps = v.next_steps || [];
+  const stepLi = (n) => `<li><b>${esc(n.when)}</b> ${txt(clean(n.action))}</li>`;
+  // On a phone the long parts fold away, so the summary (label, decision, next steps) fits a screen or two.
+  const hep = matchMedia("(max-width: 820px)").matches;
+  const nSteps = hep ? 3 : 5;
+  const fold = (title, body, { open = !hep, wide = false, cls = "", id = "" } = {}) => `
+    <details class="v-fold${wide ? " v-wide" : ""}${cls ? ` ${cls}` : ""}"${id ? ` id="${id}"` : ""}${open ? " open" : ""}><summary><h3>${title}</h3></summary><div class="v-fold-body">${body}</div></details>`;
+  const whyHtml = `<ul class="v-why">${(v.why || []).map((w) => { const k = seatKey(w.seat); return `<li>${k ? `<img class="av" src="${avatar(k)}" alt="" title="${esc(seatName(w.seat))}">` : ""}<span>${txt(clean(w.point))}</span></li>`; }).join("")}</ul>`;
+  const minHtml = v.minority?.quote ? `<div class="minority"><div class="who">${mk ? `<img class="av" src="${avatar(mk)}" alt="">` : ""}${esc(seatName(v.minority.seat))}</div><q>${txt(clean(v.minority.quote))}</q>${v.minority.would_have_to_be_true ? `<p class="muted">Để ý kiến này đúng thì: ${txt(v.minority.would_have_to_be_true)}</p>` : ""}</div>` : "";
+  const scoreHtml = `<div class="v-opts">${state.options.map((o) => `
+        <div class="opt ${o.id === v.recommended ? "lead" : ""}"><span class="id">${o.id}</span><span class="label">${esc(o.label)}</span><span class="val">${soVi(v.scores[o.id]?.score)}</span><span class="bar"><i style="width:${(v.scores[o.id]?.score || 0) * 10}%"></i></span></div>`).join("")}</div>
+        <p class="v-meta">Độ tin cậy ${soVi(v.confidence)}/10${v.votes ? ` · ${v.votes.endorse || 0} đồng ý, ${v.votes.amend || 0} sửa đổi, ${v.votes.dissent || 0} phản đối${v.votes.chua_ro ? `, ${v.votes.chua_ro} chưa đọc được phiếu` : ""}` : ""}</p>`;
+  const bangDiem = `<table class="scorecard"><thead><tr><th>Ghế</th><th>Trọng số</th>${state.options.map((o) => `<th>${o.id}</th>`).join("")}<th>Ý chính của họ</th></tr></thead><tbody>
+          ${seats.map((x) => { const s = state.byKey[x.key]; return `<tr><td><span class="who"><img class="av" src="${avatar(x.key)}" alt="">${esc(s?.short || x.key)}</span></td><td class="n">${soVi(x.weight)}</td>${state.options.map((o) => `<td class="n">${soVi(x.optionScores?.[o.id])}</td>`).join("")}<td class="line">${short(boS(x.oneLine), 150)}</td></tr>`; }).join("")}
+          </tbody></table>
+          <p class="muted" style="font-size:11.5px;margin-top:8px">Có trọng số theo mức quan trọng của từng mảng trong quyết định này. ${state.options.map((o) => `${o.id}: ${esc(v.scores[o.id]?.math || "")}`).join(" · ")}</p>`;
   const html = `
     <div class="v-top">
       <div><div class="label">Kết luận của hội đồng</div><span class="v-label ${labelClass(v.label)}">${esc(verdictVi(v.label))}</span></div>
-      <div class="actions"><button class="pill" type="button" data-pdf>Tải PDF</button><button class="ghost" data-close>Quay lại bàn</button></div>
+      <div class="actions"><button class="pill" type="button" data-pdf>Tải PDF</button><button class="pill alt" type="button" data-phieu title="Một trang A4 gửi khách: khuyến nghị, việc cần làm, rủi ro, việc cần kiểm tra, chỗ ký duyệt">Phiếu khách</button><button class="ghost" data-close>Quay lại bàn</button></div>
     </div>
-    <p class="v-call">${esc(v.call)}</p>
-    <div class="v-sec v-chair" id="vChair">${chairViewHtml(state.chairView || { pending: state.replaying ? state.expectChairView : !state.ended })}</div>
-    ${soLieuHtml(v.kiem_so)}
-    ${kiemLuatHtml(v.kiem_luat, v.a_dua)}
-    <div class="v-grid">
-      <div class="v-sec"><h3>Điểm</h3><div class="v-opts">${state.options.map((o) => `
-        <div class="opt ${o.id === v.recommended ? "lead" : ""}"><span class="id">${o.id}</span><span class="label">${esc(o.label)}</span><span class="val">${v.scores[o.id]?.score ?? "-"}</span><span class="bar"><i style="width:${(v.scores[o.id]?.score || 0) * 10}%"></i></span></div>`).join("")}</div>
-        <p class="v-meta">Độ tin cậy ${v.confidence ?? "-"}/10${v.votes ? ` · ${v.votes.endorse || 0} đồng ý, ${v.votes.amend || 0} sửa đổi, ${v.votes.dissent || 0} phản đối${v.votes.chua_ro ? `, ${v.votes.chua_ro} chưa đọc được phiếu` : ""}` : ""}</p>
-      </div>
-      <div class="v-sec"><h3>Vì sao</h3><ul class="v-why">${v.why.slice(0, 3).map((w) => { const k = seatKey(w.seat); return `<li>${k ? `<img class="av" src="${portrait(k)}" alt="">` : ""}<span>${short(w.point, 150)}</span></li>`; }).join("")}</ul></div>
-      <div class="v-sec"><h3>Cần lưu ý</h3><div class="minority"><div class="who">${mk ? `<img class="av" src="${portrait(mk)}" alt="">` : ""}${esc(seatName(v.minority.seat))}</div><q>${short(v.minority.quote, 170)}</q></div></div>
-      <div class="v-sec"><h3>Bước tiếp theo</h3><ul class="v-steps">${v.next_steps.slice(0, 3).map((n) => `<li><b>${esc(n.when)}</b> ${short(n.action, 120)}</li>`).join("")}</ul>
-        <p class="v-meta"><b>Dừng nếu:</b> ${short(v.kill_criteria, 140)}</p>
-        ${v.du_bao?.ket_qua ? `<p class="v-meta"><b>Dự báo:</b> ${esc(v.du_bao.ket_qua)}: <b>${esc(v.du_bao.xac_suat)}%</b> (hạn ${esc(v.du_bao.han)}). <span class="muted">${esc(v.du_bao.co_so)}</span></p>` : ""}</div>
+    <p class="v-call">${txt(v.call)}</p>
+    ${v.override_note ? `<p class="v-meta">${txt(v.override_note)}</p>` : ""}
+    <div class="v-sum">
+      <div class="v-sec"><h3>Bước tiếp theo</h3><ol class="v-steps">${steps.slice(0, nSteps).map(stepLi).join("")}</ol>
+        ${steps.length > nSteps ? `<details class="v-more-steps"><summary>Thêm ${steps.length - nSteps} bước</summary><ol class="v-steps" start="${nSteps + 1}">${steps.slice(nSteps).map(stepLi).join("")}</ol></details>` : ""}
+        ${v.kill_criteria ? `<p class="v-meta"><b>Dừng nếu:</b> ${txt(v.kill_criteria)}</p>` : ""}
+        ${[].concat(v.du_bao || []).filter((d) => d?.ket_qua).map((d) => `<p class="v-meta"><b>Dự báo:</b> ${esc(d.ket_qua)}: <b>${soVi(d.xac_suat)}%</b>${d.han ? ` (hạn ${esc(d.han)})` : ""}. <span class="muted">${esc(d.co_so || "")}</span></p>`).join("")}</div>
     </div>
-    <details class="v-more"><summary>Chi tiết đầy đủ</summary>
-      <div class="v-grid">
-        <div class="v-sec"><h3>Chỗ họ tranh cãi</h3><ul>${v.fights.map((f) => `<li><b>${esc(f.crux)}</b> ${esc(f.story)}</li>`).join("")}</ul></div>
-        <div class="v-sec"><h3>Điều kiện</h3><ol>${v.conditions.map((c) => `<li>${esc(c)}</li>`).join("")}</ol></div>
-        <div class="v-sec v-wide"><h3>Bảng điểm</h3>
-          <table class="scorecard"><thead><tr><th>Ghế</th><th>Trọng số</th>${state.options.map((o) => `<th>${o.id}</th>`).join("")}<th>Ý chính của họ</th></tr></thead><tbody>
-          ${seats.map((x) => { const s = state.byKey[x.key]; return `<tr><td><span class="who"><img class="av" src="${portrait(x.key)}" alt="">${esc(s.short)}</span></td><td class="n">${x.weight}</td>${state.options.map((o) => `<td class="n">${x.optionScores?.[o.id] ?? "-"}</td>`).join("")}<td class="line">${short(x.oneLine, 150)}</td></tr>`; }).join("")}
-          </tbody></table>
-          <p class="muted" style="font-size:11.5px;margin-top:8px">Có trọng số theo mức quan trọng của từng mảng trong quyết định này. ${state.options.map((o) => `${o.id}: ${esc(v.scores[o.id]?.math || "")}`).join(" · ")}</p></div>
-        <div class="v-sec"><h3>Cách thử rẻ nhất</h3><p>${esc(v.cheapest_test)}</p><h3>Xem lại vào</h3><p>${esc(v.revisit)}</p></div>
-        <div class="v-sec"><h3>Phản đối mạnh nhất, đầy đủ</h3><p>${esc(v.minority.quote)}</p><p class="muted">Để ý kiến này đúng thì: ${esc(v.minority.would_have_to_be_true)}</p></div>
-        ${v.amendments?.length ? `<div class="v-sec v-wide"><h3>Đề xuất sửa đổi</h3><ul>${v.amendments.map((a) => `<li><b>${esc(seatName(a.seat))}:</b> ${esc(a.amendment)} <span class="tag">${a.adopted ? "Được chấp nhận" : "Không chấp nhận"}: ${esc(a.reason)}</span></li>`).join("")}</ul></div>` : ""}
-      </div>
-    </details>
+    <div class="v-folds">
+      ${fold("Vì sao", whyHtml)}
+      ${fold("Điểm", scoreHtml)}
+      ${fold("Góc nhìn Chủ toạ", chairViewHtml(state.chairView || { pending: state.replaying ? state.expectChairView : !state.ended }), { cls: "v-chair", id: "vChair", wide: true })}
+      ${minHtml ? fold("Ý kiến thiểu số", minHtml) : ""}
+      ${(v.fights || []).length ? fold("Chỗ họ tranh cãi", `<ul>${v.fights.map((f) => `<li><b>${txt(f.crux)}</b> ${txt(f.story)}</li>`).join("")}</ul>`) : ""}
+      ${soLieuHtml(v.kiem_so, chuaNguon) ? fold("Số dùng trong kết luận", soLieuHtml(v.kiem_so, chuaNguon), { cls: "v-so" }) : ""}
+      ${kiemLuatHtml(v.kiem_luat, v.a_dua) ? fold("Kiểm điều luật", kiemLuatHtml(v.kiem_luat, v.a_dua), { cls: "v-so" }) : ""}
+      ${(v.conditions || []).length ? fold("Điều kiện", `<ol>${v.conditions.map((c) => `<li>${txt(c)}</li>`).join("")}</ol>`, { open: false, wide: true }) : ""}
+      ${fold("Bảng điểm từng ghế", bangDiem, { open: false, wide: true })}
+      ${v.cheapest_test || v.revisit ? fold("Cách thử rẻ nhất và lịch xem lại", `${v.cheapest_test ? `<p>${txt(v.cheapest_test)}</p>` : ""}${v.revisit ? `<p><b>Xem lại vào:</b> ${txt(v.revisit)}</p>` : ""}`, { open: false, wide: true }) : ""}
+      ${v.amendments?.length ? fold("Đề xuất sửa đổi", `<ul>${v.amendments.map((a) => `<li><b>${esc(seatName(a.seat))}:</b> ${txt(a.amendment)} <span class="tag">${a.adopted ? "Được chấp nhận" : "Không chấp nhận"}: ${txt(a.reason)}</span></li>`).join("")}</ul>`, { open: false, wide: true }) : ""}
+    </div>
     ${hopTiepHtml()}
-    <div class="v-foot"><span class="muted">Cố vấn mô phỏng, dựng từ tác phẩm công khai của từng người. Họ không phải người thật và không phát ngôn thay những người đó.</span><button class="ghost" data-close>Quay lại bàn</button></div>`;
+    <div class="v-foot"><span class="muted">${esc(tuyenBo(v))}</span><button class="ghost" data-close>Quay lại bàn</button></div>`;
   $("#verdictBody").innerHTML = html;
   const plate = $("#plate");
   plate.hidden = false;
-  plate.innerHTML = `<div class="label">Kết luận của hội đồng</div><span class="v-label ${labelClass(v.label)}">${esc(verdictVi(v.label))}</span><p>${esc(firstSentences(clean(v.call), 150))}</p><div class="row"><button type="button" id="plateOpen">Đọc kết luận</button><button type="button" data-pdf>Tải PDF</button><button type="button" class="alt" id="plateReplay">Phát lại hội đồng này</button></div>${v.kiem_so?.chua_nguon?.length ? `<p class="plate-so">${v.kiem_so.chua_nguon.length} số trong kết luận chưa có nguồn. Bấm "Đọc kết luận" để xem.</p>` : ""}${hopTiepHtml()}`;
+  plate.innerHTML = `<div class="label">Kết luận của hội đồng</div><span class="v-label ${labelClass(v.label)}">${esc(verdictVi(v.label))}</span><p>${esc(firstSentences(clean(v.call), 150))}</p><div class="row"><button type="button" id="plateOpen">Đọc kết luận</button><button type="button" data-pdf>Tải PDF</button><button type="button" data-phieu>Phiếu khách</button><button type="button" class="alt" id="plateReplay">Phát lại hội đồng này</button></div>${chuaNguon.length ? `<p class="plate-so">${chuaNguon.length} số trong kết luận chưa có nguồn. Bấm "Đọc kết luận" để xem.</p>` : ""}${hopTiepHtml()}`;
   $("#plateOpen").addEventListener("click", () => ($("#verdictSheet").hidden = false));
   $("#plateReplay").addEventListener("click", () => replay(state.session));
   $("#playbar").hidden = true;
@@ -1014,28 +1104,31 @@ const dongYClass = (d) => (/không/.test(d) ? "dont" : /điều kiện/.test(d) 
  * still on it (or a replay that has one coming), otherwise there is none (viewer runs, older councils). */
 function chairViewHtml(ev) {
   const v = ev.view;
-  if (!v) return `<h3>Góc nhìn Chủ toạ</h3><p class="muted">${ev.pending ? "Chủ toạ đang nêu góc nhìn của mình…" : `Chưa có góc nhìn Chủ toạ${ev.error ? `: ${esc(loiVi(ev.error, 140))}` : "."}`}</p>`;
+  if (!v) return `<p class="muted">${ev.pending ? "Chủ toạ đang nêu góc nhìn của mình…" : `Chưa có góc nhìn Chủ toạ${ev.error ? `: ${esc(loiVi(ev.error, 140))}` : "."}`}</p>`;
   const bad = (ev.quotes || []).filter((q) => !q.verified).map((q) => q.quote);
   const flag = (t) => (bad.some((q) => String(t || "").includes(q)) ? ' <span class="tag bad">câu trích chưa khớp nguyên văn</span>' : "");
-  return `<h3>Góc nhìn Chủ toạ</h3>
-    <div class="chair-head">${state.chair ? `<img class="av" src="${portrait(state.chair)}" alt="">` : ""}<span class="v-label ${dongYClass(v.dong_y)}">${esc(DONG_Y_VI[v.dong_y] || v.dong_y)}</span></div>
-    <p class="chair-say">${esc(v.nhan_dinh)}${flag(v.nhan_dinh)}</p>
-    <ul class="chair-why">${(v.ly_do || []).map((l) => `<li><span>${esc(l.y)} <span class="muted">(${esc([l.khung, l.nguon].filter(Boolean).join(", "))})</span>${flag(l.y)}</span></li>`).join("")}</ul>
-    ${v.bo_buoc ? `<p><b>Nên xoá:</b> ${esc(v.bo_buoc)}${flag(v.bo_buoc)}</p>` : ""}
-    ${v.thu_nhanh ? `<p><b>Thử nhanh:</b> ${esc(v.thu_nhanh)}${flag(v.thu_nhanh)}</p>` : ""}
-    ${ev.kiem_so?.chua_nguon?.length ? `<p class="so-canh"><b>Số chưa có nguồn:</b> ${ev.kiem_so.chua_nguon.map((x) => `<span class="so-co">${esc(x.so)}</span>`).join(", ")}</p>` : ""}`;
+  // a role pack's bare source ids (S006) name a line in one seat's brain; a reader cannot look them up
+  const nguon = (n) => (laVaiTro() && /^S\d+$/i.test(String(n || "").trim()) ? "" : n);
+  const chua = soChuaNguonThat(ev.kiem_so?.chua_nguon);
+  return `<div class="chair-head">${state.chair ? `<img class="av" src="${avatar(state.chair)}" alt="">` : ""}<span class="v-label ${dongYClass(v.dong_y)}">${esc(DONG_Y_VI[v.dong_y] || v.dong_y)}</span></div>
+    <p class="chair-say">${esc(boS(v.nhan_dinh))}${flag(v.nhan_dinh)}</p>
+    <ul class="chair-why">${(v.ly_do || []).map((l) => { const meta = [l.khung, nguon(l.nguon)].filter(Boolean).join(", "); return `<li><span>${esc(boS(l.y))}${meta ? ` <span class="muted">(${esc(meta)})</span>` : ""}${flag(l.y)}</span></li>`; }).join("")}</ul>
+    ${v.bo_buoc ? `<p><b>Nên xoá:</b> ${esc(boS(v.bo_buoc))}${flag(v.bo_buoc)}</p>` : ""}
+    ${v.thu_nhanh ? `<p><b>Thử nhanh:</b> ${esc(boS(v.thu_nhanh))}${flag(v.thu_nhanh)}</p>` : ""}
+    ${chua.length ? `<p class="so-canh"><b>Số chưa có nguồn:</b> ${chua.map((x) => `<span class="so-co">${esc(x.so)}</span>`).join(", ")}</p>` : ""}`;
 }
 
 // ------------------------------------------------------------- numbers and their sources
 // Every number in the verdict carries a label: đề bài, số liệu (with its source), tính (the arithmetic) or giả định.
 // The server checks them (luat-so.mjs); a number with no source is flagged here, in the PDF and in the phiếu.
-function soLieuHtml(ks) {
+/** `chua`: the unsourced numbers left after dropping the ones inside a law's number or an article ("Điều 21"). */
+function soLieuHtml(ks, chua = soChuaNguonThat(ks?.chua_nguon)) {
   if (!ks) return "";
-  const canh = ks.chua_nguon?.length
-    ? `<p class="so-canh"><b>${ks.chua_nguon.length} số chưa có nguồn:</b> ${ks.chua_nguon.map((x) => `<span class="so-co">${esc(x.so)}</span> <span class="muted">${esc(x.doan)}</span>`).join(" · ")}</p>`
+  const canh = chua.length
+    ? `<p class="so-canh"><b>${chua.length} số chưa có nguồn:</b> ${chua.map((x) => `<span class="so-co">${esc(x.so)}</span> <span class="muted">${esc(x.doan)}</span>`).join(" · ")}</p>`
     : `<p class="so-ok">Mọi con số trong kết luận đều có nguồn.</p>`;
   const dong = (ks.so_lieu || []).map((e) => `<li class="${esc(e.trang_thai)}"><b>${esc(e.so)}</b> ${esc(e.y)} <span class="tag">${esc(e.loai)}${e.nguon ? `: ${esc(e.nguon)}` : ""}</span>${e.trang_thai === "khong_thay" ? ' <span class="tag bad">không thấy trong số liệu</span>' : ""}</li>`).join("");
-  return `<div class="v-sec v-so"><h3>Số dùng trong kết luận</h3>${canh}${dong ? `<ul class="so-list">${dong}</ul>` : ""}</div>`;
+  return `${canh}${dong ? `<ul class="so-list">${dong}</ul>` : ""}`;
 }
 
 // Máy kiểm điều luật (gói theo vai nghề) và chỉ số a dua: cảnh báo để đọc kỹ, không phải bằng chứng sai.
@@ -1044,16 +1137,17 @@ function kiemLuatHtml(kl, aDua) {
   if (kl) {
     if (kl.het?.length) L.push(`<p class="so-canh"><b>Văn bản hết hiệu lực hoặc đã bị thay thế, không dùng làm căn cứ:</b> ${kl.het.map((x) => `<span class="so-co">${esc(x.so)}</span>${x.ten ? ` <span class="muted">${esc(x.ten)}</span>` : ""}`).join(" · ")}</p>`);
     if (kl.ngoai?.length) L.push(`<p class="so-canh"><b>Chưa có trong nguồn đã xác minh, CẦN KIỂM TRA:</b> ${kl.ngoai.map((x) => `<span class="so-co">${esc(x.so)}</span>`).join(" · ")}</p>`);
-    if (!kl.het?.length && !kl.ngoai?.length) L.push(`<p class="so-ok">${kl.con?.length ? `${kl.con.length} văn bản được viện dẫn đều có trong nguồn đã xác minh và còn hiệu lực.` : "Hội đồng không viện dẫn số hiệu văn bản nào."}</p>`);
+    if (!kl.het?.length && !kl.ngoai?.length) L.push(`<p class="so-note">${kl.con?.length ? `${kl.con.length} văn bản được viện dẫn có trong nguồn đã đối chiếu và chưa thấy ghi hết hiệu lực: ${kl.con.map((x) => esc(x.so)).join("; ")}.` : "Máy kiểm không thấy số hiệu văn bản viết đủ nào trong kết luận."}</p>`);
+    L.push(`<p class="muted kl-pham-vi">Phạm vi đã kiểm: số hiệu viết đủ và tình trạng hiệu lực theo nguồn đã đối chiếu. Chưa kiểm điều, khoản, nội dung trích dẫn và số hiệu viết tắt. Luật sư cần xác nhận trước khi nộp hồ sơ.</p>`);
   }
   if (aDua?.doi_theo) L.push(`<p class="muted">Chỉ số a dua: ${aDua.doi_theo}/${aDua.khac_so_dong} ghế mở đầu khác số đông đã đổi sang phương án ${esc(aDua.so_dong)} (${aDua.ghe.map(esc).join(", ")}). Đọc lại lý do đổi ở vòng tranh luận.</p>`);
-  return L.length ? `<div class="v-sec v-so"><h3>Kiểm điều luật</h3>${L.join("")}</div>` : "";
+  return L.join("");
 }
 
 async function onChairView(ev) {
   state.chairView = ev;
   const v = ev.view;
-  if ($("#vChair")) $("#vChair").innerHTML = chairViewHtml(ev);
+  if ($("#vChair .v-fold-body")) $("#vChair .v-fold-body").innerHTML = chairViewHtml(ev);
   const line = v ? `${DONG_Y_VI[v.dong_y] || v.dong_y}. ${clean(v.nhan_dinh)}` : "Chưa có góc nhìn Chủ toạ.";
   $("#plate .plate-chair")?.remove();
   $("#plate .row")?.insertAdjacentHTML("beforebegin", `<p class="plate-chair"><b>Góc nhìn Chủ toạ:</b> ${esc(firstSentences(line, 200))}</p>`);
@@ -1076,7 +1170,7 @@ async function onChairView(ev) {
 function hopTiepHtml() {
   if (state.runner !== "api" || !state.session) return "";
   const off = !(state.ended || state.replaying);
-  return `<div class="hop-tiep"><label>Bổ sung để làm rõ<textarea maxlength="2000" rows="3" placeholder="Số liệu mới, điều hội đồng chưa biết, điều bạn muốn xét lại…"></textarea></label><div class="hop-row"><span class="muted">5 đến 2.000 ký tự. Họp lại cùng chế độ; nếu đã có phiếu thì ghi tiếp vào phiếu đó.</span><button type="button" class="pill" data-hop-tiep${off ? " disabled" : ""}>Họp tiếp</button></div></div>`;
+  return `<div class="hop-tiep"><label>Bổ sung để làm rõ<textarea maxlength="2000" rows="3" placeholder="Số liệu mới, điều hội đồng chưa biết, điều anh/chị muốn xét lại…"></textarea></label><div class="hop-row"><span class="muted">5 đến 2.000 ký tự. Họp lại cùng chế độ; nếu đã có phiếu thì ghi tiếp vào phiếu đó.</span><button type="button" class="pill" data-hop-tiep${off ? " disabled" : ""}>Họp tiếp</button></div></div>`;
 }
 
 const TIEP_ERR = { 403: "Phòng đang ở chế độ xem nên chưa họp tiếp được (cần COUNCIL_RUNNER=api trong .env)." };
@@ -1204,6 +1298,7 @@ async function chairSpeaks(text, tag) {
 
 async function askHoi(cauHoi) {
   const h = (state.hoi = { cauHoi, id: null, busy: false, started: false, luot: null, deXuat: "", deBai: null });
+  moiUsage(); // the top bar counts this question only
   $("#newBtn").hidden = false;
   setStep("setup");
   hoiWait("Chủ toạ đang nghĩ…", { tag: "Câu hỏi" });
@@ -1380,13 +1475,27 @@ async function convene(btn) {
 }
 
 // ------------------------------------------------------------- history + replay
+// Past sessions, with their pack and a filter by pack once the server lists one per session (`nganh`).
 async function openHistory() {
   const { sessions } = await fetch("/api/sessions").then((x) => x.json());
-  $("#historyList").innerHTML = sessions.length
-    ? sessions.map((s) => `<li><button data-id="${esc(s.id)}"><b>${esc(s.title)}</b><small>${esc(ngayCuaMa(s.id))} · ${esc(MODE_VI[s.mode] || s.mode)} · ${esc(STATUS_VI[s.status] || s.status)}</small></button>${s.status === "done" ? `<button class="pdf" type="button" data-pdf="${esc(s.id)}" title="Tải kết luận dạng PDF">PDF</button>` : ""}</li>`).join("")
+  state.lichSu = sessions;
+  const coGoi = [...new Set(sessions.map((s) => s.nganh).filter((k) => goiCua(k)))];
+  const loc = $("#historyFilter");
+  if (loc) {
+    loc.hidden = coGoi.length < 2;
+    if (!coGoi.includes(state.locLichSu)) state.locLichSu = coGoi.includes(state.nganh) ? state.nganh : "";
+    loc.innerHTML = [["", "Tất cả"], ...coGoi.map((k) => [k, goiCua(k).ten])].map(([k, t]) => `<button type="button" data-loc="${esc(k)}" aria-pressed="${k === state.locLichSu}">${esc(t)}</button>`).join("");
+  }
+  veLichSu();
+  $("#historyDialog").showModal();
+}
+function veLichSu() {
+  const all = state.lichSu || [];
+  const list = state.locLichSu ? all.filter((s) => s.nganh === state.locLichSu) : all;
+  $("#historyList").innerHTML = list.length
+    ? list.map((s) => { const g = goiCua(s.nganh); return `<li><button data-id="${esc(s.id)}"><b>${esc(s.title)}</b><small>${g ? `<span class="goi-tag">${esc(g.ten)}</span> ` : ""}${esc(ngayCuaMa(s.id))} · ${esc(MODE_VI[s.mode] || s.mode)} · ${esc(STATUS_VI[s.status] || s.status)}${s.ghi_chu ? ` · ${esc(s.ghi_chu)}` : ""}</small></button>${s.status === "done" ? `<button class="pdf" type="button" data-pdf="${esc(s.id)}" title="Tải kết luận dạng PDF">PDF</button>` : ""}</li>`; }).join("")
     : '<li class="muted">Chưa có phiên nào. Triệu tập hội đồng một lần là phiên hiện ở đây.</li>';
   $$("#historyList button[data-id]").forEach((b) => b.addEventListener("click", () => { $("#historyDialog").close(); replay(b.dataset.id); }));
-  $("#historyDialog").showModal();
 }
 
 /** Một phiên đã lưu; phiên không còn (404) hay dữ liệu hỏng thì ném lỗi tiếng Việt thay vì lỗi JS. */
@@ -1403,6 +1512,7 @@ async function replay(id) {
   try { j = await taiPhien(id); } catch (e) { toast(`Không phát lại được phiên: ${e.message}`); return; }
   begin(id);
   state.replaying = true;
+  $("#usage").textContent = ""; // a past session's tokens are not this page's
   state.expectChairView = j.events.some((e) => e.type === "chair_view");
   for (const ev of j.events) {
     if (["delta", "usage", "seat_error", "end", "phieu"].includes(ev.type)) continue; // the phiếu note belongs to the live run
@@ -1490,21 +1600,29 @@ function tickWait() {
 }
 
 // ------------------------------------------------------------- PDF
-async function savePdf(btn) {
-  const id = btn.dataset.pdf;
+/** The setup, verdict and Chair view of what is on screen, or of a past session (history list). */
+async function phienDeIn(id) {
+  if (!id) return { setup: state.setup, verdict: state.verdict, chairView: state.chairView, id: state.session };
+  const j = await taiPhien(id);
+  return {
+    setup: j.events.find((e) => e.type === "setup"),
+    verdict: [...j.events].reverse().find((e) => e.type === "verdict"),
+    chairView: [...j.events].reverse().find((e) => e.type === "chair_view"),
+    id,
+  };
+}
+const goiCuaPhien = (setup) => goiCua(setup?.nganh) || (setup?.seats || []).map((k) => goiCua(state.byKey[k]?.nganh?.[0])).find(Boolean) || null;
+
+async function inPdf(btn, busy, make) {
   btn.disabled = true;
   const old = btn.textContent;
-  btn.textContent = "Đang tạo PDF...";
+  btn.textContent = busy;
   try {
-    let setup = state.setup, verdict = state.verdict, chairView = state.chairView;
-    if (id) { // a past session from the history list
-      const j = await taiPhien(id);
-      setup = j.events.find((e) => e.type === "setup");
-      verdict = [...j.events].reverse().find((e) => e.type === "verdict");
-      chairView = [...j.events].reverse().find((e) => e.type === "chair_view");
-    }
-    if (!setup || !verdict) throw new Error("Hội đồng này chưa có kết luận.");
-    await downloadVerdictPdf({ setup, verdict, chairView, byKey: state.byKey, id: id || state.session });
+    const p = await phienDeIn(btn.dataset.pdf || btn.dataset.phieu || "");
+    if (!p.setup || !p.verdict) throw new Error("Hội đồng này chưa có kết luận.");
+    const g = goiCuaPhien(p.setup);
+    const vaiTro = g?.loai === "vai-tro" || (p.setup.seats || []).some((k) => state.byKey[k]?.loai === "vai-tro");
+    await make({ ...p, byKey: state.byKey, tuyenBo: p.verdict.verdict?.disclaimer || g?.tuyen_bo || "", vaiTro });
   } catch (e) {
     console.error(e);
     toast("Không tạo được PDF: " + loiVi(e.message || e));
@@ -1513,6 +1631,8 @@ async function savePdf(btn) {
     btn.textContent = old;
   }
 }
+const savePdf = (btn) => inPdf(btn, "Đang tạo PDF...", downloadVerdictPdf);
+const savePhieu = (btn) => inPdf(btn, "Đang tạo phiếu...", downloadPhieuKhach);
 
 // ------------------------------------------------------------- misc
 let toastTimer;
@@ -1523,11 +1643,25 @@ function toast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => (t.hidden = true), 6000);
 }
+// /api/usage counts every call since the server started. The top bar shows only what the current
+// question has used: a new question (or opening the page) takes a fresh baseline, and a replayed
+// session shows nothing, since its tokens were spent long ago.
+const USAGE_KEYS = ["calls", "input", "output", "cacheRead", "cacheWrite"];
+async function layUsage() { return fetch("/api/usage").then((x) => x.json()).catch(() => null); }
+async function moiUsage() {
+  state.usageGoc = await layUsage();
+  $("#usage").textContent = "";
+}
 async function refreshUsage() {
-  const u = await fetch("/api/usage").then((x) => x.json()).catch(() => null);
-  if (!u || !u.calls) { $("#usage").textContent = ""; return; }
+  if (state.replaying) { $("#usage").textContent = ""; return; }
+  const raw = await layUsage();
+  if (!raw) return;
+  const base = state.usageGoc || {};
+  // the server restarted (its counters went back): count from zero again
+  const u = Object.fromEntries(USAGE_KEYS.map((k) => [k, (raw[k] || 0) - ((raw.calls || 0) >= (base.calls || 0) ? base[k] || 0 : 0)]));
+  if (!u.calls || state.replaying) { $("#usage").textContent = ""; return; }
   const k = (n) => (n >= 1e6 ? `${(n / 1e6).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} triệu` : `${Math.round(n / 1000).toLocaleString("vi-VN")} nghìn`);
-  $("#usage").textContent = `${u.calls} lượt gọi · ${k(u.input + u.cacheRead + u.cacheWrite)} token vào · ${k(u.output)} token ra`;
+  $("#usage").textContent = `Câu hỏi này: ${u.calls} lượt gọi · ${k(u.input + u.cacheRead + u.cacheWrite)} token vào · ${k(u.output)} token ra`;
 }
 
 boot();

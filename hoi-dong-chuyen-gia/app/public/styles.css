@@ -625,3 +625,51 @@ button { font: inherit; cursor: pointer; }
 .seat.thuky .tk-label { position: absolute; left: 50%; bottom: 4%; translate: -50% 0; font: 600 11px/1 var(--font-text); letter-spacing: .04em; color: var(--ink-soft); background: var(--surface-2); border: 1px solid var(--hairline-strong); border-radius: 999px; padding: 3px 8px; white-space: nowrap; }
 .db-nums li.on { background: var(--accent-soft); border-radius: 6px; outline: 1px solid var(--accent); }
 .db-rule { font-size: 12px; color: var(--ink-label); margin: 6px 0 0; }
+
+/* ---------------- verdict sheet, round 2: summary first, the long parts fold ---------------- */
+.v-sum { margin: 0 0 22px; padding: 16px 18px; background: var(--paper); border: 1px solid var(--hairline-strong); border-radius: var(--r-sm); }
+.v-sum .v-sec h3 { border-bottom: 0; padding-bottom: 0; }
+.v-steps { counter-reset: none; }
+ol.v-steps { list-style: decimal; padding-left: 22px !important; gap: 8px; }
+ol.v-steps li::marker { color: var(--accent); font-weight: 700; }
+.v-steps li b { margin-right: 4px; }
+.v-more-steps { margin-top: 8px; }
+.v-more-steps summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--accent-deep); }
+.v-more-steps[open] summary { margin-bottom: 8px; }
+.v-folds { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 34px; align-items: start; }
+.v-fold { border-top: 1px solid var(--hairline-strong); padding: 10px 0 4px; min-width: 0; }
+.v-fold > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+.v-fold > summary::-webkit-details-marker { display: none; }
+.v-fold > summary h3 { margin: 0; padding: 0; border: 0; font: 700 17px/1.25 var(--font-display); color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
+.v-fold > summary::after { content: "+"; margin-left: auto; flex: none; width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 14px; color: var(--ink-soft); }
+.v-fold[open] > summary::after { content: "−"; }
+.v-fold[open] > summary { margin-bottom: 10px; }
+.v-fold-body { font-size: 14px; color: var(--ink-soft); }
+.v-fold-body ul, .v-fold-body ol { margin: 0; padding-left: 18px; }
+.v-fold-body li { margin-bottom: 7px; font-size: 14px; }
+.v-fold-body li b { color: var(--ink); font-weight: 600; }
+.v-fold-body .tag { font-size: 11.5px; color: var(--ink-label); }
+.v-fold-body p { font-size: 14px; margin: 0 0 10px; }
+.v-fold.v-chair { margin: 0; padding: 10px 14px 6px; }
+.v-fold.v-so { margin: 0; }
+.v-fold .minority p.muted { font-size: 12.5px; margin: 0; }
+.so-note { color: var(--ink-soft); font-size: 13.5px; }
+.kl-pham-vi { font-size: 12.5px !important; border-left: 2px solid var(--amend); padding-left: 10px; }
+.pill.alt { background: var(--accent); color: #07121c; }
+.pill.alt:hover { background: #6fd0fb; }
+.card-note { font-size: 12px; margin: 12px 0 0; }
+.goi-tag { display: inline-block; font-size: 10.5px; font-weight: 600; color: var(--accent-deep); border: 1px solid currentColor; border-radius: 4px; padding: 0 5px; margin-right: 2px; }
+.history-filter { justify-content: flex-start; margin: 10px 0 0; }
+.history-filter button[aria-pressed="true"] { border-color: var(--ink); color: var(--ink); background: var(--paper); box-shadow: inset 0 0 0 1px var(--ink); }
+/* the vote stamp sits on the chest, below the face, so it never covers who is voting */
+.vote { bottom: 4%; font-size: 11px; padding: 5px 8px; }
+.chip { max-width: 104px; }
+@media (max-width: 820px) {
+  .v-folds { grid-template-columns: 1fr; gap: 0; }
+  .v-sum { padding: 12px 14px; margin-bottom: 14px; }
+  .v-call { font-size: 18px; margin: 14px 0; }
+  .v-fold > summary h3 { font-size: 16px; }
+  .v-top .actions .pill, .v-top .actions .ghost { padding: 8px 13px; }
+  .stepper li { padding: 5px 7px; font-size: 12px; }
+  .stepper { scroll-behavior: smooth; scrollbar-width: none; }
+}
