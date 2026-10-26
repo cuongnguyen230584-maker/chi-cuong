@@ -1081,6 +1081,7 @@ function onVerdict(ev) {
       ${(v.fights || []).length ? fold("Chỗ họ tranh cãi", `<ul>${v.fights.map((f) => `<li><b>${txt(f.crux)}</b> ${txt(f.story)}</li>`).join("")}</ul>`) : ""}
       ${soLieuHtml(v.kiem_so, chuaNguon) ? fold("Số dùng trong kết luận", soLieuHtml(v.kiem_so, chuaNguon), { cls: "v-so" }) : ""}
       ${kiemLuatHtml(kl, v.a_dua) ? fold("Kiểm điều luật", kiemLuatHtml(kl, v.a_dua), { cls: "v-so" }) : ""}
+      ${(v.can_cu || []).length ? fold("Căn cứ pháp lý chính", `<ul>${v.can_cu.map((c) => `<li>${txt(c.noi_dung)}${c.van_ban ? ` <span class="muted">(${txt(c.van_ban)})</span>` : ""} <span class="tag${c.nhan === "CẦN KIỂM TRA" ? " bad" : ""}">${txt(c.nhan)}</span></li>`).join("")}</ul>`, { open: true, wide: true }) : ""}
       ${(v.conditions || []).length ? fold("Điều kiện", `<ol>${v.conditions.map((c) => `<li>${txt(c)}</li>`).join("")}</ol>`, { open: false, wide: true }) : ""}
       ${fold("Bảng điểm từng ghế", bangDiem, { open: false, wide: true })}
       ${v.cheapest_test || v.revisit ? fold("Cách thử rẻ nhất và lịch xem lại", `${v.cheapest_test ? `<p>${txt(v.cheapest_test)}</p>` : ""}${v.revisit ? `<p><b>Xem lại vào:</b> ${txt(v.revisit)}</p>` : ""}`, { open: false, wide: true }) : ""}

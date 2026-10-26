@@ -421,6 +421,10 @@ export function noiDungPhieuKhach({ setup = {}, verdict: ev = {}, tuyenBo = "", 
   if (v.kill_criteria && ck(v.kill_criteria)) ruiRo.push(`Điểm dừng: ${cauTron(ck(v.kill_criteria), 360)}`);
   const dieuKien = conds.filter((c) => !ruiRoGoc.includes(c) && !kiemTraGoc.includes(c) && !LA_NOI_BO.test(c) && !lapVoi(c, buoc.map((b) => b.viec)))
     .map((c) => cauTron(ck(c), 240)).filter(Boolean).slice(0, 3);
+  // căn cứ pháp lý chính đã xác minh (không phải CẦN KIỂM TRA) đứng đầu mục điều kiện của phiếu
+  const canCu = (v.can_cu || []).filter((c) => c && c.nhan !== "CẦN KIỂM TRA").map((c) => cauTron(ck(`${c.noi_dung}${c.van_ban ? ` (${c.van_ban})` : ""}`), 240)).filter(Boolean).slice(0, 3);
+  dieuKien.unshift(...canCu);
+  dieuKien.splice(5);
   // only what the verdict's own text cites (kiem_luat_ket_luan); a law merely mentioned as repealed is not an error,
   // and the list of every law still in force is no use to a client
   const kl = kiemLuatKetLuan(v) || {};

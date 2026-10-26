@@ -379,6 +379,7 @@ async function chairVerdict(st, finalScores, recommended, sua = "") {
     kill_criteria: S.str,
     revisit: S.str,
     lam_ngay: S.str,
+    can_cu: S.arr(S.obj({ noi_dung: S.str, van_ban: S.str, nhan: S.enum("QUY ĐỊNH", "THỰC TIỄN", "CẦN KIỂM TRA") })),
     can_xac_nhan: S.arr(S.obj({ viec: S.str, ai: S.str })),
     huong_ghe_neu: S.arr(S.obj({ huong: S.str, ghe: S.str, xu_ly: S.enum("đưa vào", "gạt"), ly_do: S.str })),
     du_bao: S.obj({ ket_qua: S.str, xac_suat: S.int, han: S.str, co_so: S.str }),
@@ -408,6 +409,7 @@ Write the verdict for the founder.
 - minority: the strongest losing view; quote copies the seat's own words exactly from a card; would_have_to_be_true in one line. If unanimous, use the least-tested assumption instead.
 - amendments: every Round 3 amendment, adopted or not, with the reason (empty in quick mode). Adopt when no seat objected or the argument went unanswered.
 - conditions, next_steps (with when), cheapest_test, kill_criteria, revisit: final, merged, checkable.
+- can_cu: ${st.goi?.loai === "vai-tro" ? "4 to 8" : "0 to 4"} rules this decision turns on, taken from the cards: each noi_dung is one sentence with the concrete content (the threshold, the number of days, the limit on extensions, the authority that decides, what is prohibited, the form a document must take), van_ban is the document number and article ("Nghị định 219/2025/NĐ-CP, Điều 3") or "" for practice, nhan is QUY ĐỊNH, THỰC TIỄN or CẦN KIỂM TRA as the card labeled it. Prefer prohibitions and hard numbers over general statements; this list is what a staff member reads to file correctly, so it is not shortened by the length limit.
 - lam_ngay: the one action to take today, in one short line (it may belong to a different option than the main route, e.g. "Nộp gia hạn tạm trú hôm nay" while the main route is D).
 - can_xac_nhan: one merged list of everything a lawyer or the authority must confirm before filing (viec = what, ai = who: luật sư, Phòng Quản lý xuất nhập cảnh, Sở…). Put every "CẦN KIỂM TRA" item here once instead of repeating it across sections.
 - LENGTH: the whole verdict stays under 900 words. call at most 2 sentences; why 3 to 5 points of at most 2 sentences; fights at most 3; conditions at most 6; next_steps at most 7. Do not repeat a caveat in several sections: state it once in can_xac_nhan.
@@ -426,7 +428,7 @@ const SO_LIEU = S.arr(S.obj({ so: S.str, y: S.str, loai: S.enum("đề bài", "s
 // Nguồn số: đề bài của người hỏi, và (gói vai nghề) não của các ghế, nơi có ngưỡng luật định như "3 tỷ đồng".
 const dauVaoSo = (st) => String(st.prompt || "").split("\n").filter((l) => !/^KẾT LUẬN LẦN TRƯỚC:/.test(l)).join("\n") + (st.vanBanNao ? `\n${st.vanBanNao}` : "");
 const cacBanSo = (v, st) => [...Object.values(v?.scores || {}).map((x) => x.score), v?.confidence, v?.support, v?.spread, ...Object.values(st.weights || {}).map((w) => w.weight)];
-const vanBanKetLuan = (v) => [v.lam_ngay, v.call, ...(v.why || []).map((w) => w.point), ...(v.conditions || []), ...(v.next_steps || []).map((n) => n.action), v.cheapest_test, v.kill_criteria, ...(v.can_xac_nhan || []).map((c) => c.viec), ...(v.huong_ghe_neu || []).map((h) => `${h.huong} ${h.ly_do}`)].filter(Boolean).join("\n");
+const vanBanKetLuan = (v) => [v.lam_ngay, v.call, ...(v.can_cu || []).map((c) => `${c.noi_dung} ${c.van_ban}`), ...(v.why || []).map((w) => w.point), ...(v.conditions || []), ...(v.next_steps || []).map((n) => n.action), v.cheapest_test, v.kill_criteria, ...(v.can_xac_nhan || []).map((c) => c.viec), ...(v.huong_ghe_neu || []).map((h) => `${h.huong} ${h.ly_do}`)].filter(Boolean).join("\n");
 
 const CHAIR_VIEW = S.obj({
   dong_y: S.enum("đồng ý", "đồng ý có điều kiện", "không đồng ý"),
@@ -754,6 +756,7 @@ function verdictMarkdown(st) {
   L.push("", "## Chỗ họ tranh cãi", "", ...v.fights.map((f) => `- **${f.crux}** ${f.story}`));
   L.push("", "## Ý kiến thiểu số", "", `${v.minority.seat}: "${v.minority.quote}" Để ý kiến này đúng thì: ${v.minority.would_have_to_be_true}`);
   if (v.amendments?.length) L.push("", "## Đề xuất sửa đổi", "", ...v.amendments.map((a) => `- ${a.seat}: ${a.amendment} ${a.adopted ? "Được chấp nhận" : "Không chấp nhận"}: ${a.reason}`));
+  if (v.can_cu?.length) L.push("", "## Căn cứ pháp lý chính", "", ...v.can_cu.map((c) => `- ${c.noi_dung}${c.van_ban ? ` (${c.van_ban})` : ""}: ${c.nhan}`));
   L.push("", "## Điều kiện", "", ...v.conditions.map((c, i) => `${i + 1}. ${c}`));
   L.push("", "## Việc làm tiếp theo", "", ...v.next_steps.map((n) => `- **${n.when}:** ${n.action}`));
   if (v.kiem_luat && (v.kiem_luat.het.length || v.kiem_luat.ngoai.length)) {
