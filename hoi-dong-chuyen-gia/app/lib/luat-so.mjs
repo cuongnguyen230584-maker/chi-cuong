@@ -11,6 +11,11 @@ export const LUAT_SO = `NUMBERS RULE (strict, no exceptions)
 
 // Ngày, giờ, tháng, mã nguồn, năm: không phải số liệu, xoá trước khi dò.
 const KHONG_PHAI_SO = [
+  // viện dẫn pháp luật, xoá trước các mẫu ngày để "144/2021" không còn sót lại phần năm
+  /(?<![\p{L}\d/])\d{1,4}\/(?:\d{4}\/)?(?:QH\d{0,2}|N[ĐD]-CP|NQ-[\p{L}\d]+|L-CTN|TTLT(?:-[A-ZĐ]+)+|TT(?:-[A-ZĐ]+)+|QĐ(?:-[\p{L}]+)+|CT-TTg|NĐ|NQ)(?![\p{L}\d])/gu, // 61/2020/QH14, 219/2025/NĐ-CP
+  /(?<![\p{L}])(?:Bộ luật|Luật|Nghị định|NĐ|Thông tư|TT|Nghị quyết|NQ|Quyết định|QĐ|Công văn|CV)(?:\s+[^\d\n()]{1,50}?)??\s*(?:số\s*)?\d{1,5}\/\d{4}(?![\/\d])/giu, // NĐ 144/2021, Luật Đầu tư 143/2025
+  /(?<![\p{L}])(?:Điều|điều|khoản|Khoản|Chương|chương|Phụ lục|phụ lục|Mẫu|mẫu)\s+\d{1,3}[a-zđ]?(?![\p{L}\d–-])/gu, // Điều 7, khoản 4, Mẫu 01 ("điểm" trong luật là chữ cái: điểm a)
+  /(?<![\p{L}\d])(?:DN|ĐT|LĐ|UĐ|NN|DH|HN|PV|VR|DL|LV|NG|SQ|EV|TT|HN|ĐK|LS|NĐ)\d{1,2}(?![\p{L}\d])/gu, // ký hiệu thị thực, thẻ: DN1, ĐT3, LĐ2
   /\b\d{4}-\d{2}(?:-\d{2})?\b/g,              // 2026-11-16, 2026-09
   /\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/g,      // 28/10, 28/10/2026
   /\b\d{1,2}:\d{2}\b/g,                        // 10:50

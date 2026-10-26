@@ -160,6 +160,8 @@ export function parseOptionScores(text, optionIds) {
   return scores;
 }
 
+const chonTrong = (t) => (String(t || "").match(/(?:phương án|phuong an|option|chọn|chon|choose|recommend)\s*\(?([A-D])\b/i) || [])[1]?.toUpperCase() || "";
+
 export function parseCard(text, optionIds) {
   const stance = field(text, "STANCE");
   const ruin = docRuin(field(text, "RUIN RISK"));
@@ -186,6 +188,8 @@ export function parseCard(text, optionIds) {
     risk: field(text, "THE RISK I SEE"),
     thisWeek: field(text, "WHAT I'D DO THIS WEEK"),
     premortem: field(text, "PRE-MORTEM"),
+    // phương án ghế thật sự chọn, đọc từ THE CALL rồi STANCE: "phương án D", "option B", "chọn A"
+    chon: chonTrong(field(text, "THE CALL")) || chonTrong(field(text, "STANCE")),
   };
 }
 

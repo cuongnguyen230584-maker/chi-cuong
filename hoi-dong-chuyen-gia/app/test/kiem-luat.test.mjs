@@ -35,3 +35,34 @@ test("đối chiếu với nguồn của não: còn, hết, ngoài nguồn", () 
   assert.match(canhBaoLuat(g), /HẾT HIỆU LỰC.*152\/2020\/NĐ-CP/);
   assert.equal(canhBaoLuat({ con: [{ so: "x" }], het: [], ngoai: [] }), "");
 });
+
+test("dạng viết tắt nối được với nguồn đầy đủ; CẦN KIỂM TRA không bị đọc là còn hiệu lực", async () => {
+  const { soHieuTat, ganSoHieu } = await import("../lib/kiem-luat.mjs");
+  assert.deepEqual(soHieuTat("NĐ 144/2021, Nghị định 96/2026 và Luật Đầu tư 143/2025, ngày 26/10/2026").map((x) => x.so), ["NĐ 144/2021", "NĐ 96/2026", "Luật 143/2025"]);
+  assert.equal(trangThaiDong("- S009 | TT 31/2015/TT-BCA | u | | | TÌNH TRẠNG: CẦN KIỂM TRA (chưa xác minh còn hiệu lực) | k"), "");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kl2-"));
+  fs.mkdirSync(path.join(dir, "xnc"));
+  fs.writeFileSync(path.join(dir, "xnc", "sources.md"), [
+    "- S001 | Luật 47/2014/QH13 | u | | | TÌNH TRẠNG: còn hiệu lực | k",
+    "- S002 | Luật 51/2019/QH14 sửa đổi Luật 47/2014/QH13 | u | | | TÌNH TRẠNG: còn hiệu lực | k",
+    "- S015 | Nghị định 144/2021/NĐ-CP | u | | | TÌNH TRẠNG: đã thay thế bởi Nghị định 282/2025/NĐ-CP | k",
+  ].join("\n"));
+  const idx = chiMucLuat(["xnc"], dir);
+  const k = kiemLuat("Phạt theo NĐ 144/2021; đổi tại chỗ theo Luật 51/2019", idx);
+  assert.deepEqual(k.het.map((x) => x.so), ["144/2021/NĐ-CP"]);
+  assert.deepEqual(k.con.map((x) => x.so), ["51/2019/QH14"]);
+  // mã S trần của một ghế được gắn số hiệu theo não của chính ghế đó
+  assert.equal(ganSoHieu("Đổi tại chỗ (S002, Điều 7). Phạt (S015).", "xnc", dir), "Đổi tại chỗ (S002: 51/2019/QH14, Điều 7). Phạt (S015: 144/2021/NĐ-CP).");
+  assert.equal(ganSoHieu("Luật 51/2019/QH14 (S002)", "xnc", dir), "Luật 51/2019/QH14 (S002)", "đã có số hiệu ngay trước thì để nguyên");
+});
+
+test("thẻ tự mâu thuẫn và máy dò số bỏ qua viện dẫn luật", async () => {
+  const { parseCard } = await import("../lib/seats.mjs");
+  const { theMauThuan } = await import("../lib/council.mjs");
+  const { soTrong } = await import("../lib/luat-so.mjs");
+  const p = parseCard("STANCE: Conditional yes (phương án A)\nOPTION SCORES: A 5 · B 3 · D 8\nTHE CALL: Tôi chọn A, kèm bước D.", ["A", "B", "D"]);
+  assert.equal(p.chon, "A");
+  const st = { seats: ["tuanthu"], cards: { 2: { tuanthu: { parsed: p } } } };
+  assert.deepEqual(theMauThuan(st, 2), [{ seat: "tuanthu", chon: "A", cao_nhat: "D" }]);
+  assert.deepEqual(soTrong("Theo NĐ 282/2025/NĐ-CP Điều 21 khoản 3, Luật Đầu tư 143/2025, DN1 sang ĐT3, phạt 30 triệu").map((x) => x.so), ["30 triệu"]);
+});

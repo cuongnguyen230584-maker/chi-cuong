@@ -6,7 +6,7 @@ import { S } from "./anthropic.mjs";
 import { SESSIONS_DIR, env } from "./env.mjs";
 import { LUAT_SO, kiemSo } from "./luat-so.mjs";
 import { goi, chuToa, gheCua, banMacDinh } from "./nganh.mjs";
-import { chiMucLuat, kiemLuat, gopKiemLuat, canhBaoLuat } from "./kiem-luat.mjs";
+import { chiMucLuat, kiemLuat, gopKiemLuat, canhBaoLuat, ganSoHieu } from "./kiem-luat.mjs";
 import { slugVi, NHAN } from "./phieu.mjs";
 import { ngayIso, ngayVN } from "./ngay.mjs";
 
@@ -106,7 +106,7 @@ SEAT: ${seat.short.toUpperCase()} (${seat.pillar})
 STANCE: Strong yes | Yes | Conditional yes | No | Strong no   (on the option you recommend)
 OPTION SCORES: ${optLine(st)}
 PILLAR SCORE: n/10   (${seat.dimension}: the option you recommend, judged on your pillar alone)
-CONFIDENCE: n/5
+CONFIDENCE: n/5   (5 = the decisive facts are in hand; 3 = key facts still unknown; 1 = guessing)
 RUIN RISK: none | possible | likely
 DOOR: one-way | two-way
 
@@ -314,7 +314,17 @@ ${LUAT_SO}`,
   });
 }
 
-async function chairVerdict(st, finalScores, recommended) {
+// Thẻ tự mâu thuẫn: ghế nói chọn một phương án nhưng chấm phương án khác cao hơn.
+export function theMauThuan(st, round) {
+  return st.seats.map((k) => {
+    const p = st.cards[round]?.[k]?.parsed;
+    if (!p?.chon) return null;
+    const top = Object.entries(p.optionScores || {}).sort((a, b) => b[1] - a[1])[0];
+    return top && top[0] !== p.chon && top[1] > (p.optionScores[p.chon] ?? -1) ? { seat: k, chon: p.chon, cao_nhat: top[0] } : null;
+  }).filter(Boolean);
+}
+
+async function chairVerdict(st, finalScores, recommended, sua = "") {
   const lastRound = st.rounds.at(-1);
   const schema = S.obj({
     label: S.enum("GO", "GO WITH CONDITIONS", "RESHAPE", "WAIT", "DON'T DO IT"),
@@ -329,6 +339,7 @@ async function chairVerdict(st, finalScores, recommended) {
     cheapest_test: S.str,
     kill_criteria: S.str,
     revisit: S.str,
+    huong_ghe_neu: S.arr(S.obj({ huong: S.str, ghe: S.str, xu_ly: S.enum("đưa vào", "gạt"), ly_do: S.str })),
     du_bao: S.obj({ ket_qua: S.str, xac_suat: S.int, han: S.str, co_so: S.str }),
     so_lieu: SO_LIEU,
   });
@@ -346,6 +357,7 @@ ${lastRound === 3 ? `DRAFT RESOLUTION\n${JSON.stringify(st.draft)}\n\nROUND 3 VO
 FINAL WEIGHTED OPTION SCORES (computed, do not change): ${JSON.stringify(Object.fromEntries(Object.entries(finalScores).map(([k, v]) => [k, v.score])))}
 Recommended option by score: ${recommended}. Band for it: ${bandFor(finalScores[recommended]?.score)}.
 Any seat at ruin risk likely: ${st.seats.filter((k) => st.cards[lastRound][k]?.parsed.ruin === "likely" || st.cards[2][k]?.parsed.ruin === "likely").join(", ") || "none"}.
+${theMauThuan(st, lastRound).length ? `Cards that contradict themselves (THE CALL names one option, the scores rank another higher), weigh what they argue, not the score: ${theMauThuan(st, lastRound).map((x) => `${byKey[x.seat].short} (chọn ${x.chon}, chấm ${x.cao_nhat} cao nhất)`).join("; ")}.` : ""}
 
 Write the verdict for the founder.
 - label: the band, or WAIT if the recommended option depends on an unmet prerequisite, or a cap from an override. If you change the band, say why in override_note; otherwise override_note is "".
@@ -355,8 +367,9 @@ Write the verdict for the founder.
 - minority: the strongest losing view; quote copies the seat's own words exactly from a card; would_have_to_be_true in one line. If unanimous, use the least-tested assumption instead.
 - amendments: every Round 3 amendment, adopted or not, with the reason (empty in quick mode). Adopt when no seat objected or the argument went unanswered.
 - conditions, next_steps (with when), cheapest_test, kill_criteria, revisit: final, merged, checkable.
+- huong_ghe_neu: every distinct path a seat proposed in any card that is NOT one of the options (a different visa or residence route, a different legal structure, a different sequence). For each: the path, the seat, whether the verdict takes it in (as a condition, a step or the fallback) or sets it aside, and the reason in one sentence. A path set aside without a reason is a defect. Empty only if no seat proposed one.
 - du_bao: a calibrated forecast the founder can score later. ket_qua = one observable outcome by the revisit date if they follow the call (yes or no, no judgment needed, e.g. "Khách có thẻ tạm trú trước 30/11"); xac_suat = your probability 0 to 100 that it happens; han = the date; co_so = in one sentence, what the number rests on (the seats' confidence, the spread, the unknowns). Do not round to 90+ or 10- unless the council had decisive evidence; with many CẦN KIỂM TRA or Chưa có số items stay between 30 and 70. In Vietnamese.
-- so_lieu: every number that appears in call, why, conditions, next_steps, cheapest_test and kill_criteria (not dates, deadlines, option letters or the computed scores). so = the number exactly as you wrote it; y = what it measures; loai = "đề bài" (the founder gave it), "số liệu" (from the SỐ LIỆU sheet; nguon = its source as listed there), "tính" (nguon = the arithmetic, using only đề bài and SỐ LIỆU numbers), or "giả định" (nguon = how to check it within 30 days). Write y and nguon in Vietnamese. Never list a number you cannot source as "số liệu": mark it "giả định" or take it out of the verdict.
+- so_lieu: every number that appears in call, why, conditions, next_steps, cheapest_test and kill_criteria (not dates, deadlines, option letters or the computed scores). so = the number exactly as you wrote it; y = what it measures; loai = "đề bài" (the founder gave it), "số liệu" (from the SỐ LIỆU sheet; nguon = its source as listed there), "tính" (nguon = the arithmetic, using only đề bài and SỐ LIỆU numbers), or "giả định" (nguon = how to check it within 30 days). Write y and nguon in Vietnamese. Never list a number you cannot source as "số liệu": mark it "giả định" or take it out of the verdict.${sua ? `\n\n${sua}` : ""}
 
 ${LUAT_SO}`,
   });
@@ -408,16 +421,18 @@ KẾT LUẬN CỦA HỘI ĐỒNG (đã chốt theo điểm, không đổi): ${v.
 Bạn là Chủ toạ của hội đồng này, nói bằng kiến thức của chính mình (não ở trên). Bạn không bỏ phiếu và không đổi kết luận của hội đồng. Viết tiếng Việt, câu ngắn, xưng "tôi", gọi người hỏi là "bạn":
 - dong_y: bạn đồng ý, đồng ý có điều kiện, hay không đồng ý với kết luận.
 - nhan_dinh: tối đa 2 câu, dưới 50 từ, ý chính của bạn (câu này được đọc to ở bàn).
-- ly_do: 2 đến 4 lý do, mỗi lý do tối đa 3 câu, có con số khi có. Mỗi lý do gắn một khung của bạn (khung, tên ngắn) và một mã nguồn S0xx có trong não (nguon). Muốn trích nguyên văn thì để câu đó trong ngoặc kép, đúng ngôn ngữ như trong não, ngay sau là (S0xx), dưới 45 từ, chép đúng từng chữ.
+- ly_do: 2 đến 4 lý do, mỗi lý do tối đa 3 câu, có con số khi có. Mỗi lý do gắn một khung của bạn (khung, tên ngắn) và một nguồn có trong não (nguon)${st.goi?.loai === "vai-tro" ? ': ghi số hiệu đầy đủ của văn bản rồi mới tới mã, ví dụ "Luật 47/2014/QH13, Điều 7 (S001)"; không bao giờ ghi mã S0xx trần' : ": mã nguồn S0xx"}. Muốn trích nguyên văn thì để câu đó trong ngoặc kép, đúng ngôn ngữ như trong não, ngay sau là (S0xx), dưới 45 từ, chép đúng từng chữ.
 - bo_buoc: một yêu cầu hoặc một bước nên xoá, kèm người sở hữu nếu biết.
 - thu_nhanh: thí nghiệm nhanh nhất theo bạn, có con số và hạn.
 - so_lieu: mọi con số về doanh nghiệp này bạn viết ở trên (không tính ngày tháng, mã nguồn S0xx, điểm của hội đồng): so là con số đúng như bạn viết, y là nó đo cái gì, loai là "đề bài", "số liệu" (nguon = nguồn ghi trong tờ SỐ LIỆU), "tính" (nguon = phép tính, chỉ từ số đề bài và SỐ LIỆU) hoặc "giả định" (nguon = cách kiểm trong 30 ngày). Số kể về công ty của chính bạn không thuộc doanh nghiệp này, không kê.
 
 ${LUAT_SO}`,
     })]);
+    if (st.luatIdx) for (const l of view.ly_do || []) { l.nguon = ganSoHieu(l.nguon, byKey[key].slug); l.y = ganSoHieu(l.y, byKey[key].slug); }
     const text = [view.nhan_dinh, ...view.ly_do.map((l) => `${l.y} (${l.nguon})`), view.bo_buoc, view.thu_nhanh].join("\n");
+    const kiem_luat = st.luatIdx ? kiemLuat(text, st.luatIdx) : undefined;
     const kiem_so = kiemSo({ dauVao: dauVaoSo(st), soLieu: [...(view.so_lieu || []), ...(v.so_lieu || [])], cacBan: cacBanSo(v, st), vanBan: text.replace(/\(S\d{3}[^)]*\)/g, " ") });
-    emit(s, "chair_view", { view, quotes: checkQuotes(key, text), kiem_so });
+    emit(s, "chair_view", { view, quotes: checkQuotes(key, text), kiem_so, ...(kiem_luat ? { kiem_luat } : {}) });
   } catch (e) {
     console.error("chair_view", e);
     emit(s, "chair_view", { error: String(e.message || e) });
@@ -441,6 +456,8 @@ async function runSeat(s, st, round, key, prompt) {
     emit(s, "seat_error", { round, seat: key, error: String(e.message || e) });
     throw e;
   }
+  // gói vai nghề: mã S0xx của ghế được gắn số hiệu văn bản theo não của chính ghế đó
+  if (st.luatIdx) text = ganSoHieu(text, seat.slug);
   const parsed = parseCard(text, st.options.map((o) => o.id));
   const quotes = checkQuotes(key, text);
   const kiem_luat = st.luatIdx ? kiemLuat(text, st.luatIdx) : undefined;
@@ -531,7 +548,15 @@ async function run(s) {
   const { last, finalScores, recommended, spreadF, confidence, support, votes } = finalNumbers(st);
 
   emit(s, "phase", { phase: "verdict", label: "Chủ toạ đang viết kết luận" });
-  const v = await chairVerdict(st, finalScores, recommended);
+  let v = await chairVerdict(st, finalScores, recommended);
+  // kết luận dẫn văn bản hết hiệu lực thì Chủ toạ viết lại một lần, thay bằng văn bản thay thế hoặc ghi CẦN KIỂM TRA
+  if (st.luatIdx) {
+    const het = kiemLuat(vanBanKetLuan(v), st.luatIdx).het;
+    if (het.length) {
+      emit(s, "phase", { phase: "verdict", label: "Chủ toạ sửa kết luận: bỏ văn bản hết hiệu lực" });
+      v = await chairVerdict(st, finalScores, recommended, `SỬA LẠI BẢN TRƯỚC: bản kết luận vừa viết dẫn văn bản đã hết hiệu lực hoặc đã bị thay thế: ${het.map((x) => `${x.so}${x.ten ? ` (${x.ten})` : ""}`).join("; ")}. Viết lại toàn bộ kết luận, giữ nguyên ý, nhưng thay mỗi văn bản đó bằng văn bản thay thế có trong các thẻ hoặc trong cảnh báo KIỂM ĐIỀU LUẬT; nếu không biết văn bản thay thế thì bỏ số hiệu và ghi CẦN KIỂM TRA.`);
+    }
+  }
   st.verdict = { ...v, recommended, scores: finalScores, spread: spreadF, confidence, support, votes, disclaimer: tuyenBo(st) };
   st.verdict.kiem_so = kiemSo({ dauVao: dauVaoSo(st), soLieu: v.so_lieu, cacBan: cacBanSo(st.verdict, st), vanBan: vanBanKetLuan(v) });
   if (st.luatIdx) st.verdict.kiem_luat = gopKiemLuat([tongKiemLuat(st), kiemLuat(vanBanKetLuan(v), st.luatIdx)]);
@@ -564,7 +589,8 @@ export function finishRun(s, persist = save) {
 /** Chỉ số a dua: trong các ghế mở đầu khác số đông ở vòng 1, bao nhiêu ghế sang vòng 2 đổi sang đúng
  * phương án số đông. Cao không có nghĩa là sai (có thể bị thuyết phục), nhưng là dấu hiệu để đọc lại lý do đổi. */
 export function chiSoADua(st) {
-  const top = (c) => { const e = Object.entries(c?.parsed.optionScores || {}).sort((a, b) => b[1] - a[1]); return e.length ? e[0][0] : null; };
+  // lựa chọn thật của ghế: phương án ghế gọi tên trong THE CALL, không có thì phương án điểm cao nhất
+  const top = (c) => { if (c?.parsed.chon) return c.parsed.chon; const e = Object.entries(c?.parsed.optionScores || {}).sort((a, b) => b[1] - a[1]); return e.length ? e[0][0] : null; };
   const r1 = Object.fromEntries(st.seats.map((k) => [k, top(st.cards[1][k])]));
   const dem = {};
   for (const o of Object.values(r1)) if (o) dem[o] = (dem[o] || 0) + 1;
@@ -582,7 +608,13 @@ export function finalNumbers(st) {
   const fv = st.seats.map((k) => st.cards[last][k]?.parsed.optionScores[recommended]).filter((v) => typeof v === "number");
   const confs = st.seats.map((k) => st.cards[2][k]?.parsed.confidence ?? st.cards[1][k]?.parsed.confidence).filter((v) => typeof v === "number");
   const spreadF = fv.length ? Math.max(...fv) - Math.min(...fv) : 0;
-  const confidence = confs.length ? Math.max(1, Math.min(10, Math.round((confs.reduce((a, b) => a + b, 0) / confs.length) * 2) - (spreadF >= 5 ? 1 : 0))) : null;
+  // độ tin cậy: trung bình tự chấm của ghế, rồi trừ khi hội đồng chia rẽ, hai phương án đầu sát nhau,
+  // hay còn nhiều điều chưa biết (CẦN KIỂM TRA, Chưa có số) trong thẻ cuối; cộng khi phương án đề xuất bỏ xa
+  const xep = Object.values(finalScores).map((x) => x.score ?? 0).sort((a, b) => b - a);
+  const cachBiet = xep.length > 1 ? xep[0] - xep[1] : 10;
+  const chuaBiet = st.seats.reduce((n, k) => n + (String(st.cards[last][k]?.text || "").match(/CẦN KIỂM TRA|Chưa có số/g) || []).length, 0);
+  const dieuChinh = (spreadF >= 5 ? -1 : 0) + (cachBiet < 0.5 ? -1 : cachBiet >= 2 ? 1 : 0) + (chuaBiet >= 3 * st.seats.length ? -2 : chuaBiet >= st.seats.length ? -1 : 0);
+  const confidence = confs.length ? Math.max(1, Math.min(10, Math.round((confs.reduce((a, b) => a + b, 0) / confs.length) * 2) + dieuChinh)) : null;
   const support = last === 3 ? (() => {
     let n = 0, d = 0;
     for (const k of st.seats) { const v = st.cards[3][k]?.parsed.finalScore; if (typeof v === "number") { n += v * st.weights[k].weight; d += st.weights[k].weight; } }
@@ -652,6 +684,7 @@ function verdictMarkdown(st) {
     if (v.kiem_luat.het.length) L.push(`- **Hết hiệu lực hoặc đã bị thay thế (không dùng làm căn cứ):** ${v.kiem_luat.het.map((x) => `${x.so}${x.ten ? ` (${x.ten})` : ""}`).join("; ")}`);
     if (v.kiem_luat.ngoai.length) L.push(`- **Chưa có trong nguồn đã xác minh (CẦN KIỂM TRA):** ${v.kiem_luat.ngoai.map((x) => x.so).join("; ")}`);
   }
+  if (v.huong_ghe_neu?.length) L.push("", "## Hướng các ghế nêu thêm", "", ...v.huong_ghe_neu.map((h) => `- **${h.huong}** (${h.ghe}): ${h.xu_ly}. ${h.ly_do}`));
   if (v.du_bao?.ket_qua) L.push("", "## Dự báo", "", `${v.du_bao.ket_qua}: **${v.du_bao.xac_suat}%** (hạn ${v.du_bao.han}). ${v.du_bao.co_so}`, "", "Khi xem lại, ghi kết quả thật (xảy ra hay không) để chấm độ chính xác của hội đồng.");
   if (v.a_dua?.doi_theo) L.push("", `Chỉ số a dua: ${v.a_dua.doi_theo}/${v.a_dua.khac_so_dong} ghế mở đầu khác số đông đã đổi sang phương án ${v.a_dua.so_dong} ở vòng tranh luận (${v.a_dua.ghe.join(", ")}). Đọc lại lý do đổi trong thẻ vòng 2.`);
   L.push("", `**Cách thử rẻ nhất:** ${v.cheapest_test}`, `**Dừng nếu:** ${v.kill_criteria}`, `**Xem lại vào:** ${v.revisit}`, "", "---", tuyenBo(st), "");
