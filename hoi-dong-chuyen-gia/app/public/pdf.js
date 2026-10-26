@@ -380,7 +380,7 @@ export function noiDungPhieuKhach({ setup = {}, verdict: ev = {}, tuyenBo = "" }
   };
 }
 
-export async function downloadPhieuKhach({ setup, verdict, id, tuyenBo = "" }) {
+export async function downloadPhieuKhach({ setup, verdict, id, tuyenBo = "", donVi = "" }) {
   await loadLib();
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "a4", compress: true });
@@ -401,6 +401,8 @@ export async function downloadPhieuKhach({ setup, verdict, id, tuyenBo = "" }) {
 
     // header
     if (draw) doc.addImage(logo, "PNG", M, y - 2, 26, 26, "logo", "SLOW");
+    // tên đơn vị phát hành phiếu (TEN_DON_VI trong .env), cạnh logo
+    if (donVi) text(split(donVi, CW / 2 - 40, 8.5, "semibold"), M + 34, y + 8, 8.5, "semibold", C.ink);
     text("PHIẾU TƯ VẤN", W - M, y + 9, sz(12), "bold", C.ink, { align: "right" });
     text(`Tài liệu gửi khách · ${dateLine(null)}`, W - M, y + 21, 8, "normal", C.mute, { align: "right" });
     y += 32;

@@ -218,6 +218,7 @@ async function refreshSeats() {
   state.byKey = Object.fromEntries(r.seats.map((s) => [s.key, s]));
   state.chair = state.byKey[r.chair] ? r.chair : null;
   state.thuKyRaw = r.thu_ky || null;
+  state.donVi = r.don_vi || "";
   state.packs = r.nganh || [];
   state.thuKy = state.chair && r.thu_ky ? r.thu_ky : null; // stands behind the Chair; not a seat, never votes
   if (state.thuKy) state.byKey[THU_KY] = state.thuKy;
@@ -1622,7 +1623,7 @@ async function inPdf(btn, busy, make) {
     if (!p.setup || !p.verdict) throw new Error("Hội đồng này chưa có kết luận.");
     const g = goiCuaPhien(p.setup);
     const vaiTro = g?.loai === "vai-tro" || (p.setup.seats || []).some((k) => state.byKey[k]?.loai === "vai-tro");
-    await make({ ...p, byKey: state.byKey, tuyenBo: p.verdict.verdict?.disclaimer || g?.tuyen_bo || "", vaiTro });
+    await make({ ...p, byKey: state.byKey, tuyenBo: p.verdict.verdict?.disclaimer || g?.tuyen_bo || "", vaiTro, donVi: state.donVi || "" });
   } catch (e) {
     console.error(e);
     toast("Không tạo được PDF: " + loiVi(e.message || e));

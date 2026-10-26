@@ -62,7 +62,7 @@ const server = http.createServer(async (req, res) => {
       // the secretary stands behind the Chair and reads out the numbers; not a seat, never votes
       const tk = Object.fromEntries(["base", "open", "mid", "blink"].map((sh) => [sh, frame("thuky", sh)]).filter(([, f]) => f).map(([sh, f]) => [sh, `/portraits/${f}`]));
       const thu_ky = { key: "thuky", name: "Thư ký", short: "Thư ký", initials: "TK", color: "#7c8fa6", portraits: tk };
-      return send(res, 200, { seats, nganh: goiChoTrang(), board: BOARD, models: MODELS, runner: RUNNER, chair: chairSeat(), thu_ky, hasKey: Boolean(env("ANTHROPIC_API_KEY") || env("CLAUDE_CODE_OAUTH_TOKEN") || env("COUNCIL_BACKEND").toLowerCase() === "cli") });
+      return send(res, 200, { seats, nganh: goiChoTrang(), don_vi: env("TEN_DON_VI"), board: BOARD, models: MODELS, runner: RUNNER, chair: chairSeat(), thu_ky, hasKey: Boolean(env("ANTHROPIC_API_KEY") || env("CLAUDE_CODE_OAUTH_TOKEN") || env("COUNCIL_BACKEND").toLowerCase() === "cli") });
     }
     if (p === "/api/usage") return send(res, 200, usage);
     if (p === "/api/hoi" && req.method === "POST") {
