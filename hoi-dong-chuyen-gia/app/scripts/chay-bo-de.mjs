@@ -2,8 +2,10 @@
 // Chạy bộ đề chuẩn (docs/bo-de-chuan.json) qua phòng họp đang mở, rồi chấm tự động từng kết luận:
 // điểm bắt buộc có mặt, điểm cấm vắng mặt, không dẫn văn bản hết hiệu lực, không có mã S0xx trần,
 // có dự báo xác suất, mọi hướng ghế nêu thêm đều được xử lý.
-//   node app/scripts/chay-bo-de.mjs [--port 4730] [--ca id1,id2] [--cham-lai <thư mục sessions>]
+//   node app/scripts/chay-bo-de.mjs [--port 4730] [--ca id1,id2] [--tap hoc|kiem_tra] [--cham-lai <thư mục sessions>]
 // Mỗi ca là một hội đồng thật (tốn hạn mức Claude). --cham-lai chỉ chấm các phiên đã có, không chạy mới.
+// --tap: "hoc" là các ca đã dùng để sửa prompt (hồi quy), "kiem_tra" là các ca chưa dùng; mặc định chạy tất cả.
+// Điểm in riêng từng tập, để không lẫn điểm trên tập đã học với điểm trên tập kiểm tra.
 import fs from "node:fs";
 import path from "node:path";
 import { REPO_ROOT, SESSIONS_DIR } from "../lib/env.mjs";
@@ -13,7 +15,15 @@ const opt = (n) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 
 const BASE = `http://localhost:${opt("port") || 4730}`;
 const bo = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, "docs", "bo-de-chuan.json"), "utf8"));
 const chon = opt("ca") ? opt("ca").split(",") : null;
-const cacCa = bo.ca.filter((c) => !chon || chon.includes(c.id));
+const TAP = ["hoc", "kiem_tra"];
+const tapChon = opt("tap");
+if (tapChon && !TAP.includes(tapChon)) {
+  console.error(`--tap phải là ${TAP.join(" hoặc ")}`);
+  process.exit(1);
+}
+/** Tập của một ca; ca chưa gắn tập coi như "kiem_tra". */
+export const tapCua = (c) => c.tap || "kiem_tra";
+const cacCa = bo.ca.filter((c) => (!chon || chon.includes(c.id)) && (!tapChon || tapCua(c) === tapChon));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** Chữ của kết luận để chấm: quyết định, lý do, điều kiện, bước tiếp theo, dừng nếu. */
@@ -80,9 +90,17 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       } else phien = await chayMot(ca);
     } catch (e) { console.log(`- ${ca.id}: LỖI ${e.message}`); continue; }
     const c = chamPhien(ca, phien);
-    ketQua.push({ id: ca.id, phien: phien.id, ...c });
+    ketQua.push({ id: ca.id, tap: tapCua(ca), phien: phien.id, ...c });
     console.log(`- ${ca.id} (${phien.id}): ${c.diem}/${c.toi_da} · ${c.nhan || "-"} ${c.phuong_an || ""} · tin cậy ${c.tin_cay ?? "-"} · dự báo ${c.du_bao ?? "-"}%${c.loi.length ? `\n    ${c.loi.join("\n    ")}` : ""}`);
   }
-  const tong = ketQua.reduce((a, x) => [a[0] + x.diem, a[1] + x.toi_da], [0, 0]);
-  if (ketQua.length) console.log(`TỔNG: ${tong[0]}/${tong[1]} (${Math.round((tong[0] / tong[1]) * 100)}%)`);
+  const inTong = (nhan, ds) => {
+    const t = ds.reduce((a, x) => [a[0] + x.diem, a[1] + x.toi_da], [0, 0]);
+    console.log(`${nhan}: ${t[0]}/${t[1]} (${Math.round((t[0] / t[1]) * 100)}%) · ${ds.length} ca`);
+  };
+  for (const tap of TAP) {
+    const ds = ketQua.filter((x) => x.tap === tap);
+    if (ds.length) inTong(`TẬP ${tap}`, ds);
+  }
+  if (ketQua.length) inTong("TỔNG", ketQua);
+  if (!cacCa.length) console.log("Không có ca nào khớp --ca và --tap.");
 }

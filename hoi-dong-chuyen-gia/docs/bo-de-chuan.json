@@ -1,5 +1,5 @@
 {
-  "mo_ta": "Bộ đề chuẩn của gói phap-ly-nnn. Mỗi ca có câu hỏi và các điểm bắt buộc phải xuất hiện trong kết luận (phai_co: mỗi mục là một nhóm từ đồng nghĩa, có một từ là đạt) và các điểm cấm (khong_duoc: biểu thức không được xuất hiện). Chạy: node app/scripts/chay-bo-de.mjs. Lấy từ 4 ca của vòng đánh giá 1 (docs/danh-gia-vong-1.md).",
+  "mo_ta": "Bộ đề chuẩn của gói phap-ly-nnn. Mỗi ca có câu hỏi, các điểm bắt buộc phải xuất hiện trong kết luận (phai_co: mỗi mục là một nhóm từ đồng nghĩa, có một từ là đạt), các điểm cấm (khong_duoc: cụm không được xuất hiện) và ghi_chu giải thích đáp án (căn cứ số hiệu + mã nguồn trong não; điểm não ghi CẦN KIỂM TRA không dùng làm phai_co). Tập 'hoc': 4 ca của vòng đánh giá 1 (docs/danh-gia-vong-1.md), đã dùng để sửa prompt, chỉ dùng làm hồi quy. Tập 'kiem_tra': 12 ca mới phủ nghiệp vụ văn phòng, chưa dùng để sửa prompt; ca có ghi_chu bắt đầu bằng 'BẪY' là ca người hỏi nghiêng về phương án trái luật hoặc dựa trên văn bản hết hiệu lực. Chạy: node app/scripts/chay-bo-de.mjs [--tap hoc|kiem_tra].",
   "ca": [
     {
       "id": "gia-han-dn1",
@@ -13,7 +13,8 @@
         ["miễn"],
         ["quá hạn", "hết hạn"]
       ],
-      "khong_duoc": ["có hưởng lương", "trong 48 giờ cơ quan", "chắc chắn được cấp", "cam kết được cấp"]
+      "khong_duoc": ["có hưởng lương", "trong 48 giờ cơ quan", "chắc chắn được cấp", "cam kết được cấp"],
+      "tap": "hoc"
     },
     {
       "id": "lo-trinh-fdi",
@@ -28,7 +29,8 @@
         ["góp vốn"],
         ["giấy phép lao động", "GPLĐ", "miễn"]
       ],
-      "khong_duoc": ["61/2020/QH14 quy định", "31/2021/NĐ-CP quy định", "chắc chắn được cấp"]
+      "khong_duoc": ["61/2020/QH14 quy định", "31/2021/NĐ-CP quy định", "chắc chắn được cấp"],
+      "tap": "hoc"
     },
     {
       "id": "qua-han-tam-tru",
@@ -42,7 +44,8 @@
         ["giấy phép lao động", "GPLĐ"],
         ["trục xuất", "cấm nhập cảnh", "chưa cho nhập cảnh"]
       ],
-      "khong_duoc": ["144/2021/NĐ-CP quy định", "xuất cảnh qua cửa khẩu đường bộ là an toàn"]
+      "khong_duoc": ["144/2021/NĐ-CP quy định", "xuất cảnh qua cửa khẩu đường bộ là an toàn"],
+      "tap": "hoc"
     },
     {
       "id": "goi-tron-gpld-trc",
@@ -56,7 +59,206 @@
         ["lệ phí", "phí nhà nước"],
         ["40 hồ sơ", "40"]
       ],
-      "khong_duoc": ["hoàn tiền là trái luật", "hoàn tiền là vi phạm pháp luật", "Điều 348"]
+      "khong_duoc": ["hoàn tiền là trái luật", "hoàn tiền là vi phạm pháp luật", "Điều 348"],
+      "tap": "hoc"
+    },
+    {
+      "id": "chuyen-gia-ngan-han-75-ngay",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "tap": "kiem_tra",
+      "prompt": "Nhà máy FDI ở Hải Phòng cần mời một kỹ sư người Đức sang lắp đặt và chạy thử dây chuyền trong khoảng 75 ngày, bắt đầu từ 01/12/2026, lương vẫn do công ty mẹ ở Đức trả. Kỹ sư có bằng đại học cơ khí và 8 năm kinh nghiệm. Phương án: vào bằng miễn thị thực 45 ngày rồi xuất cảnh sang nước thứ ba và nhập cảnh lại; xin thị thực điện tử 90 ngày; hoặc nhờ nhà máy làm công văn nhập cảnh. Tôi nghiêng về thị thực điện tử vì dưới 3 tháng chắc không cần giấy phép lao động.",
+      "phai_co": [
+        ["219/2025"],
+        ["mục đích", "ký hiệu"],
+        ["không thuộc diện cấp", "xác nhận", "miễn giấy phép lao động", "miễn gplđ"],
+        ["lao động kỹ thuật", "chuyên gia", "vị trí"],
+        ["thị thực dn", "ký hiệu dn", "dn1", "lđ1", "lđ2", "thị thực lao động"],
+        ["cần kiểm tra"]
+      ],
+      "khong_duoc": ["152/2020/NĐ-CP quy định", "70/2023/NĐ-CP quy định", "miễn thị thực 45 ngày để làm việc là được", "chắc chắn không cần giấy phép"],
+      "ghi_chu": "Đáp án: kỹ sư sang lắp đặt là làm việc tại Việt Nam, không phải họp, khảo sát, nên phải đi đúng ký hiệu theo mục đích; miễn thị thực hay thị thực du lịch không dùng để làm việc (não Xuất nhập cảnh, positions 3, 4; Luật 47/2014/QH13 sửa đổi bởi Luật 51/2019/QH14, S001, S002; Nghị quyết 44/NQ-CP, S009 cho Đức 45 ngày). Ở chuyến công tác cần ký hiệu DN hoặc ở lâu thì làm công văn nhập cảnh (positions 4). Phải xếp người vào vị trí của Nghị định 219/2025/NĐ-CP, Điều 3 (não Lao động S002, frameworks 1, 2): chuyên gia hoặc lao động kỹ thuật. Nhóm làm việc dưới 90 ngày không thuộc diện cấp GPLĐ chỉ có theo nguồn đối chiếu và não Lao động ghi CẦN KIỂM TRA điều kiện, có phải xin xác nhận không cũng CẦN KIỂM TRA (frameworks 1, positions 1), nên ca này KHÔNG chấm khẳng định 'dưới 90 ngày được miễn'; thay vào đó đòi kết luận nêu rõ điểm này cần kiểm tra. Điểm cấm: dẫn NĐ 152/2020, NĐ 70/2023 làm căn cứ (não Lao động S003, S004: hết hiệu lực từ 07/8/2025)."
+    },
+    {
+      "id": "gia-han-gpld-doi-vi-tri",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "tap": "kiem_tra",
+      "prompt": "Một kỹ sư quản lý chất lượng người Nhật có giấy phép lao động vị trí chuyên gia cấp ngày 10/01/2025 theo Nghị định 152/2020/NĐ-CP, hạn đến 09/01/2027, chưa gia hạn lần nào, làm cho công ty FDI ở Bình Dương cũ. Công ty muốn bổ nhiệm anh làm Giám đốc nhà máy từ 01/12/2026. Phương án: gia hạn giấy phép theo vị trí chuyên gia trước rồi ra quyết định bổ nhiệm; xin giấy phép theo vị trí mới ngay bây giờ; hoặc giữ giấy phép cũ đến hết hạn, chỉ ra quyết định bổ nhiệm nội bộ. Nhân viên tôi nói Nghị định 152/2020 cho nộp gia hạn trước 45 ngày và hồ sơ đơn giản, nên tôi nghiêng về gia hạn trước.",
+      "phai_co": [
+        ["219/2025"],
+        ["hết hiệu lực", "đã bị thay", "đã thay thế", "thay thế"],
+        ["một lần", "1 lần"],
+        ["cấp lại", "cấp mới"],
+        ["sai nội dung", "đúng nội dung", "nội dung giấy phép", "khác nội dung"],
+        ["hợp đồng lao động", "hđlđ"]
+      ],
+      "khong_duoc": ["152/2020/NĐ-CP quy định", "căn cứ Nghị định 152/2020", "chỉ cần quyết định bổ nhiệm nội bộ", "chắc chắn được gia hạn"],
+      "ghi_chu": "BẪY: người hỏi dựa vào Nghị định 152/2020/NĐ-CP, đã hết hiệu lực từ 07/8/2025 và bị thay bởi Nghị định 219/2025/NĐ-CP (não Lao động S002, S003; Chủ toạ S006). Kết luận phải sửa căn cứ, không dùng mốc '45 ngày' của văn bản cũ (khung thời gian nộp gia hạn theo NĐ 219 là CẦN KIỂM TRA, frameworks 3, nên không chấm con số). Điểm đúng: gia hạn chỉ một lần, tối đa 2 năm (positions 8, QUY ĐỊNH S002, số điều CẦN KIỂM TRA nên không đòi số điều); đổi vị trí, chức danh thì thường phải cấp lại hoặc cấp mới (positions 20; việc chọn 'cấp lại' hay 'cấp mới' là CẦN KIỂM TRA nên không chấm); làm sai nội dung giấy phép là vi phạm và là căn cứ thu hồi (frameworks 5, 10; Nghị định 283/2026/NĐ-CP, S010); HĐLĐ không vượt thời hạn GPLĐ và phải khớp vị trí (Bộ luật Lao động 45/2019/QH14, khoản 2 Điều 151, S001; frameworks 3, 12). Phương án 'chỉ ra quyết định bổ nhiệm nội bộ' là để người làm vị trí khác giấy phép."
+    },
+    {
+      "id": "ket-hon-the-tt-thuong-tru",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "tap": "kiem_tra",
+      "prompt": "Khách nam quốc tịch Hàn Quốc đã đăng ký kết hôn tại Hàn Quốc với một công dân Việt Nam đang thường trú ở Hà Nội. Anh đang ở Việt Nam theo diện miễn thị thực 45 ngày, còn 25 ngày, hộ chiếu còn hạn đến tháng 02/2029, không đi làm, muốn sống lâu dài với vợ. Phương án: làm thẻ tạm trú diện thân nhân do vợ bảo lãnh; xin thường trú ngay; hoặc cứ ra vào bằng miễn thị thực 45 ngày mỗi lần. Khách muốn xin thường trú luôn cho xong một lần.",
+      "phai_co": [
+        ["thẻ tạm trú tt", "ký hiệu tt", "diện tt", "thị thực tt"],
+        ["3 năm"],
+        ["bộ trưởng bộ công an", "4 tháng"],
+        ["apostille", "hợp pháp hoá", "hợp pháp hóa"],
+        ["30 ngày", "ngắn hơn hộ chiếu", "hạn hộ chiếu"]
+      ],
+      "khong_duoc": ["cam kết được cấp thường trú", "chắc chắn được cấp", "144/2021/NĐ-CP quy định"],
+      "ghi_chu": "Đáp án: vợ hoặc chồng của công dân Việt Nam đi diện TT, làm thẻ tạm trú TT tối đa 3 năm, thẻ ngắn hơn hộ chiếu ít nhất 30 ngày (não Xuất nhập cảnh positions 10, 13; Luật 47/2014/QH13 sửa đổi bởi Luật 51/2019/QH14 và Luật 118/2025/QH15, S001, S002, S005). Thường trú là đường dài, thẩm quyền Bộ trưởng Bộ Công an, thời hạn xem xét theo luật 4 tháng, không hứa ngày (positions 14). Điều kiện thời gian tạm trú trước khi xét thường trú không có trong não, nên không chấm con số. Giấy kết hôn Hàn Quốc dùng tại Việt Nam phải qua Apostille hoặc hợp pháp hoá rồi dịch, chứng thực (positions 23; não Tư pháp positions 2, 6; Nghị định 293/2026/NĐ-CP, S014). Hàn Quốc có quan hệ áp dụng Apostille với Việt Nam hay không là CẦN KIỂM TRA bảng HCCH, nên nhóm chấp nhận cả hai cách diễn đạt. Việc người vào bằng miễn thị thực có được chuyển đổi mục đích sang TT tại chỗ không: não không ghi, không chấm."
+    },
+    {
+      "id": "lltp-nguoi-da-roi-vn",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "tap": "kiem_tra",
+      "prompt": "Khách Trung Quốc từng làm việc ở Hà Nội từ 2021 đến 2024, nay đã về Thượng Hải, cần Phiếu lý lịch tư pháp của Việt Nam để nộp hồ sơ định cư Canada, hạn nộp trong 6 tuần. Phương án: khách làm giấy uỷ quyền cho văn phòng mình nộp hộ; nhờ người quen nộp ở Sở Tư pháp Hà Nội như các năm trước; hoặc khách bay sang Việt Nam tự nộp. Tôi nghiêng về uỷ quyền cho văn phòng nộp để khách khỏi đi lại.",
+      "phai_co": [
+        ["107/2025"],
+        ["công an", "cục hồ sơ nghiệp vụ"],
+        ["5 ngày", "15 ngày"],
+        ["phiếu số 1", "phiếu số 2"],
+        ["apostille", "hợp pháp hoá", "hợp pháp hóa", "chứng nhận lãnh sự"]
+      ],
+      "khong_duoc": ["Sở Tư pháp tiếp nhận", "Sở Tư pháp cấp phiếu", "111/2010/NĐ-CP quy định", "cam kết có phiếu"],
+      "ghi_chu": "Đáp án: từ 01/7/2026 lý lịch tư pháp chuyển về Bộ Công an; cơ quan cấp Phiếu là Cục Hồ sơ nghiệp vụ Bộ Công an và Công an cấp tỉnh, không còn nộp ở Sở Tư pháp (Luật 28/2009/QH12 sửa đổi bởi Luật 107/2025/QH15, não Tư pháp S001, S002; Nghị định 216/2026/NĐ-CP, S003; positions 10). Thời hạn 5 ngày, tối đa 15 ngày khi cần xác minh, không hứa ngắn hơn (positions 15). Phiếu số 1 hay số 2 theo yêu cầu nơi nhận (positions 13). Kênh uỷ quyền dùng tờ khai Mẫu 03/2026/LLTP (S004, số mẫu CẦN KIỂM TRA, nên chỉ chấm việc bàn uỷ quyền, không chấm số mẫu). Nơi nộp cho người đã rời Việt Nam là CẦN KIỂM TRA (positions 10), nên không chấm tên cơ quan cụ thể. Dùng tại Canada thì phải bàn chứng nhận lãnh sự hoặc Apostille của phía Việt Nam (Nghị định 111/2011/NĐ-CP sửa đổi bởi 196/2025/NĐ-CP, S009, S010; Nghị định 293/2026/NĐ-CP, S014; quan hệ áp dụng với Canada CẦN KIỂM TRA). Điểm cấm: NĐ 111/2010 (S005, CẦN KIỂM TRA, không dùng cho hồ sơ từ 01/7/2026) và mọi câu coi Sở Tư pháp là nơi tiếp nhận."
+    },
+    {
+      "id": "doi-gplx-nuoc-ngoai",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "tap": "kiem_tra",
+      "prompt": "Khách Hàn Quốc làm giám đốc kinh doanh ở TP.HCM, có giấy phép lái xe ô tô Hàn Quốc còn hạn, thẻ tạm trú còn 70 ngày và công ty đang chuẩn bị hồ sơ cấp thẻ mới. Khách muốn đổi sang giấy phép lái xe Việt Nam để tự lái. Phương án: nộp đổi ngay tuần này; chờ có thẻ tạm trú mới rồi mới đổi; hoặc thuê tài xế trong lúc chờ. Tôi nghiêng về nộp đổi ngay cho kịp.",
+      "phai_co": [
+        ["90 ngày"],
+        ["36/2024", "108/2026"],
+        ["bộ công an", "cảnh sát giao thông", "công an tỉnh", "công an thành phố"],
+        ["bản dịch", "dịch"],
+        ["công chứng", "bảo chứng"]
+      ],
+      "khong_duoc": ["12/2025/TT-BCA quy định", "Sở Giao thông vận tải tiếp nhận", "chắc chắn được đổi"],
+      "ghi_chu": "Đáp án: điều kiện đổi giấy phép lái xe nước ngoài gồm giấy tờ cư trú còn hạn từ 90 ngày, nên thẻ còn 70 ngày là không đủ, phải chờ thẻ mới (não Tư pháp S025, positions 19; Thông tư 108/2026/TT-BCA, hiệu lực 01/7/2026). Bản dịch được tổ chức hành nghề công chứng hoặc cơ quan đại diện bảo chứng chất lượng dịch, đóng dấu giáp lai (S025; positions 18). Bộ Công an quản lý từ 01/01/2025 theo Luật 36/2024/QH15, tiếp nhận thường ở Phòng Cảnh sát giao thông Công an tỉnh, không còn ở Sở Giao thông vận tải (S023, positions 21; nơi cụ thể là THỰC TIỄN, nên nhóm chấp nhận nhiều cách nói). Số điều của TT 108/2026 là CẦN KIỂM TRA, và não Chủ toạ (S015) còn ghi tình trạng TT 108/2026 là CẦN KIỂM TRA theo một nguồn, nên không bắt buộc dẫn TT 108/2026: nhóm thứ hai đạt khi dẫn Luật 36/2024/QH15 hoặc TT 108/2026. Đổi IDP và điều ước áp dụng với Hàn Quốc là CẦN KIỂM TRA (positions 20), không chấm. Điểm cấm: TT 12/2025/TT-BCA (S024, hết hiệu lực từ 01/7/2026)."
+    },
+    {
+      "id": "apostille-bang-han-trung",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "tap": "kiem_tra",
+      "prompt": "Văn phòng tôi đang làm giấy phép lao động cho 6 chuyên gia: 4 người Trung Quốc và 2 người Hàn Quốc, bằng đại học cấp ở nước họ. Một bằng Trung Quốc đã hợp pháp hoá lãnh sự xong hồi tháng 8/2026. Nhân viên định gửi 5 bằng còn lại sang cơ quan đại diện Việt Nam ở Trung Quốc và Hàn Quốc để hợp pháp hoá lãnh sự như mọi năm, vì Nghị định 111/2011/NĐ-CP vẫn còn hiệu lực. Phương án: hợp pháp hoá như cũ; xin Apostille ở nước cấp bằng; hoặc làm lại cả bằng đã hợp pháp hoá cho đồng bộ. Tôi nghiêng về làm như cũ cho chắc.",
+      "phai_co": [
+        ["thượng hải", "ngừng nhận", "ngừng hợp pháp hoá", "ngừng hợp pháp hóa"],
+        ["11/9/2026"],
+        ["293/2026"],
+        ["dịch", "chứng thực"],
+        ["dùng tiếp", "vẫn dùng", "không phải xin lại", "không cần làm lại", "không phải làm lại", "không cần xin lại"],
+        ["hcch", "quan hệ áp dụng", "bảng thành viên", "cần kiểm tra"]
+      ],
+      "khong_duoc": ["hợp pháp hoá lãnh sự là bắt buộc", "hợp pháp hóa lãnh sự là bắt buộc", "Apostille thay cho dịch", "không cần dịch"],
+      "ghi_chu": "Đáp án: Việt Nam áp dụng Công ước Apostille từ 11/9/2026; giấy tờ công nước ngoài của nước có quan hệ áp dụng dùng Apostille của nước cấp thay hợp pháp hoá lãnh sự (Nghị định 293/2026/NĐ-CP, não Tư pháp S014; S013; positions 1, 2). Tổng Lãnh sự quán Việt Nam tại Thượng Hải đã ngừng nhận hợp pháp hoá giấy tờ công của Trung Quốc (S015). Nghị định 111/2011/NĐ-CP sửa đổi bởi 196/2025/NĐ-CP vẫn còn hiệu lực nhưng chỉ cho giấy tờ của nước không có quan hệ Apostille (S009): đây là cái bẫy nhẹ về phạm vi, không phải văn bản hết hiệu lực. Giấy đã hợp pháp hoá trước 11/9/2026 dùng tiếp nếu còn thời hạn nơi nhận chấp nhận (positions 5). Apostille không thay dịch, chứng thực (positions 6). Quan hệ áp dụng với Hàn Quốc là CẦN KIỂM TRA bảng HCCH (positions 2, S016), nên ca không chấm khẳng định Hàn Quốc áp dụng hay không, chỉ đòi kết luận nói phải kiểm tra theo nước cấp."
+    },
+    {
+      "id": "ma-60-nganh-dieu-kien",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "tap": "kiem_tra",
+      "prompt": "Một công ty Hàn Quốc muốn mua 60% phần vốn góp của công ty TNHH Việt Nam kinh doanh dịch vụ quảng cáo, ngành tiếp cận thị trường có điều kiện với nhà đầu tư nước ngoài; công ty mục tiêu không có đất ở khu vực biên giới, ven biển. Giá 18 tỷ đồng. Phương án: ký hợp đồng chuyển nhượng, bên mua chuyển tiền thẳng vào tài khoản của người bán ở Hàn Quốc rồi làm thay đổi thành viên sau; làm thủ tục với cơ quan đầu tư trước rồi mới thanh toán; hoặc mua 49% trước rồi mua thêm sau. Hai bên muốn đóng giao dịch trong 30 ngày nên tôi nghiêng về phương án đầu, nhân viên tôi nói theo Luật Đầu tư 2020 chỉ cần đăng ký khi bên nước ngoài nắm quá bán.",
+      "phai_co": [
+        ["vẫn phải đăng ký", "cũng phải đăng ký", "vẫn thuộc diện đăng ký", "đều phải đăng ký"],
+        ["143/2025"],
+        ["tài khoản vốn đầu tư", "fica"],
+        ["38/2026"],
+        ["50%"]
+      ],
+      "khong_duoc": ["61/2020/QH14 quy định", "31/2021/NĐ-CP quy định", "06/2019/TT-NHNN quy định", "thanh toán ở nước ngoài là được"],
+      "ghi_chu": "BẪY: người hỏi nghiêng về chuyển tiền ngoài tài khoản vốn đầu tư nước ngoài và đổi thành viên trước khi đăng ký, lại dựa vào Luật Đầu tư 61/2020/QH14 đã hết hiệu lực từ 01/3/2026 (não FDI S002). Đáp án: theo Luật Đầu tư 143/2025/QH15 (S001), giao dịch phải đăng ký góp vốn, mua phần vốn góp khi doanh nghiệp mục tiêu kinh doanh ngành tiếp cận thị trường có điều kiện hoặc sở hữu nước ngoài vượt 50%, một câu 'có' là phải đăng ký (frameworks 3; positions 4, 5; số điều CẦN KIỂM TRA nên không chấm số điều). Ca này có cả hai điều kiện, nên mua 49% cũng vẫn phải đăng ký vì ngành có điều kiện. Dòng tiền chuyển nhượng vốn đi qua tài khoản vốn đầu tư nước ngoài theo Thông tư 38/2026/TT-NHNN, thay Thông tư 06/2019/TT-NHNN từ 18/8/2026 (S019, S020; frameworks 6: dòng tiền ngoài FICA có rủi ro không được công nhận). Chứng từ cụ thể từng giao dịch là CẦN KIỂM TRA, không chấm. Thời hạn cơ quan giải quyết không cam kết."
+    },
+    {
+      "id": "vpdd-ky-hop-dong-ban-hang",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "tap": "kiem_tra",
+      "prompt": "Một thương nhân Nhật Bản sản xuất linh kiện, thành lập năm 2023, có văn phòng đại diện ở Hà Nội từ năm 2025. Khách hàng Việt Nam muốn ký hợp đồng mua hàng trị giá khoảng 5 tỷ đồng mỗi năm và muốn trưởng văn phòng đại diện ký, xuất hoá đơn tại Việt Nam cho tiện. Phương án: văn phòng đại diện ký trực tiếp; để bên Nhật đứng tên hợp đồng; hoặc mở một hiện diện kinh doanh ở Việt Nam. Tôi nghiêng về để văn phòng đại diện ký vì nhanh nhất.",
+      "phai_co": [
+        ["07/2016"],
+        ["sinh lợi", "không được ký", "không được trực tiếp", "không ký hợp đồng"],
+        ["công ty mẹ", "thương nhân nước ngoài ký", "bên nhật ký", "phía nhật ký"],
+        ["xúc tiến", "liên lạc", "nghiên cứu thị trường"],
+        ["5 năm"],
+        ["thành lập công ty", "công ty tnhh", "tổ chức kinh tế", "công ty con"]
+      ],
+      "khong_duoc": ["VPĐD được ký hợp đồng bán hàng", "văn phòng đại diện được ký hợp đồng bán hàng", "09/2018/NĐ-CP quy định", "văn phòng đại diện được xuất hoá đơn bán hàng"],
+      "ghi_chu": "Đáp án: văn phòng đại diện không kinh doanh sinh lợi, không ký hợp đồng bán hàng; chỉ xúc tiến, liên lạc, nghiên cứu thị trường (Luật Thương mại 36/2005/QH11, não FDI S013; Nghị định 07/2016/NĐ-CP, S014; positions 13, 14; frameworks 9 chấm 0 cho bán hàng qua VPĐD). Đường hợp pháp: công ty mẹ ký trực tiếp, hoặc lập hiện diện có doanh thu. Chi nhánh đòi thương nhân hoạt động tối thiểu 5 năm, thương nhân lập năm 2023 chưa đủ, nên đường hiện diện là công ty (tổ chức kinh tế) (frameworks 9, S014). Nghị định 07/2016 có dự thảo sửa đổi chưa ban hành, vẫn còn hiệu lực. Mua bán hàng hoá của tổ chức FDI theo Nghị định 342/2026/NĐ-CP (S028; điều khoản CẦN KIỂM TRA), không chấm. Thuế nhà thầu với hợp đồng công ty mẹ: phụ thuộc hàng hoá có kèm dịch vụ tại Việt Nam không (não Thuế frameworks 3, danh mục loại trừ CẦN KIỂM TRA), không chấm. Điểm cấm: NĐ 09/2018 làm căn cứ (S018, hết hiệu lực từ 18/10/2026)."
+    },
+    {
+      "id": "chuyen-loi-nhuan-lo-luy-ke",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "tap": "kiem_tra",
+      "prompt": "Công ty TNHH 100% vốn Singapore ở Đà Nẵng, hoạt động từ 2022, năm 2025 có lãi 3 tỷ đồng nhưng lỗ luỹ kế đến hết 2025 vẫn còn 2 tỷ đồng. Năm 2026 dự kiến lãi 4 tỷ đồng. Công ty mẹ muốn rút tiền về ngay trong quý IV/2026. Phương án: chờ hết năm 2026 rồi chuyển lợi nhuận; ký hợp đồng phí quản lý với công ty mẹ để chuyển tiền đều mỗi quý; hoặc rút bớt một phần vốn đã góp. Tôi nghiêng về hợp đồng phí quản lý vì nhanh và được tính vào chi phí.",
+      "phai_co": [
+        ["tài khoản vốn đầu tư", "fica"],
+        ["38/2026"],
+        ["nhà thầu"],
+        ["dịch vụ thật", "bằng chứng dịch vụ", "chứng từ", "thực tế cung cấp"],
+        ["giảm vốn điều lệ", "hoàn trả vốn góp", "hoàn trả một phần vốn"],
+        ["quyết toán"]
+      ],
+      "khong_duoc": ["06/2019/TT-NHNN quy định", "126/2020/NĐ-CP quy định", "38/2019/QH14 quy định", "phí quản lý không cần chứng từ"],
+      "ghi_chu": "Đáp án: mọi dòng tiền vốn và lợi nhuận đi qua tài khoản vốn đầu tư nước ngoài theo Thông tư 38/2026/TT-NHNN (não Thuế S020, não FDI S019; frameworks 6). Phí quản lý trả công ty mẹ chỉ được trừ khi có hợp đồng, dịch vụ thật, hoá đơn, chứng từ (não Thuế positions 12) và phát sinh thuế nhà thầu khi dịch vụ phát sinh, tiêu dùng tại Việt Nam (positions 9; Thông tư 20/2026/TT-BTC, S014). Giảm vốn điều lệ bằng hoàn trả vốn góp là đường hợp pháp khi đủ điều kiện (Luật 59/2020/QH14 khoản 3 Điều 68, khoản 3 Điều 87, não Thuế S030, não FDI S008, frameworks 17; công ty TNHH một thành viên dùng khoản 3 Điều 87). Điều kiện 'hết lỗ luỹ kế' và thủ tục thông báo dựa trên Thông tư 186/2010/TT-BTC mà hai não ghi CẦN KIỂM TRA hiệu lực (Thuế S022, FDI S023), nên ca KHÔNG chấm khẳng định 'còn lỗ luỹ kế thì không được chuyển' làm điểm bắt buộc; kết luận tốt nên nêu điều kiện này kèm nhãn THỰC TIỄN hoặc CẦN KIỂM TRA. Nhóm 'quyết toán' lấy từ bước 'đã quyết toán thuế năm' (não Thuế frameworks 6, não FDI frameworks 13). Điểm cấm: Thông tư 06/2019/TT-NHNN (hết hiệu lực 18/8/2026), Nghị định 126/2020/NĐ-CP (hết hiệu lực 01/7/2026), Luật Quản lý thuế 38/2019/QH14 (thay bởi Luật 108/2025/QH15)."
+    },
+    {
+      "id": "tncn-chuyen-gia-150-ngay",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "tap": "kiem_tra",
+      "prompt": "Một chuyên gia người Singapore được công ty mẹ cử sang hỗ trợ công ty con ở Bắc Ninh, có mặt tại Việt Nam tổng cộng 150 ngày trong năm 2026, thuê căn hộ theo hợp đồng 6 tháng. Lương do công ty mẹ ở Singapore trả, công ty Việt Nam chỉ trả tiền ở và phụ cấp công tác. Phương án: không khai thuế gì ở Việt Nam vì chưa ở đủ nửa năm và lương trả ở nước ngoài; khai thuế thu nhập cá nhân ở Việt Nam; hoặc nhờ công ty mẹ xin giấy xác nhận thuế ở Singapore để khỏi nộp ở Việt Nam. Tôi nghiêng về không khai vì chưa ở đủ nửa năm.",
+      "phai_co": [
+        ["183 ngày"],
+        ["nơi ở thường xuyên", "nhà thuê", "hợp đồng thuê"],
+        ["phát sinh tại việt nam"],
+        ["109/2025"],
+        ["hiệp định"],
+        ["cư trú"]
+      ],
+      "khong_duoc": ["04/2007/QH12 quy định", "65/2013/NĐ-CP quy định", "dưới 183 ngày thì không phải nộp thuế", "không phải khai thuế ở Việt Nam"],
+      "ghi_chu": "Đáp án: phải xác định cư trú theo hai tiêu chí, có mặt từ 183 ngày hoặc có nơi ở thường xuyên, trong đó có nhà thuê theo hợp đồng có thời hạn (Luật Thuế TNCN 109/2025/QH15, não Thuế S001; frameworks 1). 150 ngày nhưng có hợp đồng thuê nhà nên có thể là cư trú; điều kiện nhà thuê tối thiểu là CẦN KIỂM TRA, nên ca không chấm kết luận 'cư trú' hay 'không cư trú', chỉ đòi bàn tiêu chí nơi ở. Dù không cư trú vẫn phải nộp thuế với thu nhập phát sinh tại Việt Nam, kể cả khi trả từ nước ngoài (positions 1, QUY ĐỊNH S001). Mức 20% cho không cư trú là CẦN KIỂM TRA (positions 1), không chấm. Hiệp định Việt Nam – Singapore: nội dung CẦN KIỂM TRA (S028), chỉ chấm việc nêu phải xem hiệp định. Nghị định 253/2026/NĐ-CP (S002) có thể được dẫn nhưng không bắt buộc. Điểm cấm: Luật 04/2007/QH12 và NĐ 65/2013/NĐ-CP làm căn cứ (S005, S006, đã thay từ 01/7/2026), và câu 'dưới 183 ngày thì không phải nộp thuế'."
+    },
+    {
+      "id": "ho-chieu-gap-di-han",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "tap": "kiem_tra",
+      "prompt": "Khách là công dân Việt Nam ở Bắc Ninh, chưa từng có hộ chiếu, cần hộ chiếu phổ thông để nộp hồ sơ xin thị thực Hàn Quốc; lịch bay đi Seoul dự kiến sau 3 tuần, vé đã đặt nhưng đổi được ngày có mất phí. Phương án: nộp hồ sơ cấp hộ chiếu ngay rồi xin thị thực Hàn Quốc khi có hộ chiếu; trả thêm cho một dịch vụ quen hứa lấy hộ chiếu trong 2 ngày; hoặc chủ động dời chuyến bay thêm 3 tuần. Khách muốn giữ ngày bay và hỏi văn phòng có lo được cho kịp ngày bay không.",
+      "phai_co": [
+        ["49/2019"],
+        ["trực tuyến", "dịch vụ công", "online", "vneid"],
+        ["ngày làm việc"],
+        ["công an", "quản lý xuất nhập cảnh"],
+        ["cần kiểm tra", "trang chính thức", "đại sứ quán hàn quốc", "yêu cầu của phía hàn quốc"]
+      ],
+      "khong_duoc": ["25/2021/TT-BTC quy định", "bảo đảm kịp", "chắc chắn kịp", "cam kết có hộ chiếu"],
+      "ghi_chu": "Đáp án: cấp hộ chiếu phổ thông theo Luật Xuất cảnh, nhập cảnh của công dân Việt Nam 49/2019/QH14 sửa đổi bởi 23/2023/QH15 và 118/2025/QH15 (não Tư pháp S026, S027, S028; Chủ toạ S016), nộp trực tuyến qua Cổng dịch vụ công hoặc tại cơ quan quản lý xuất nhập cảnh Công an (positions 22; S030). Thời hạn tính theo ngày làm việc; con số 8 ngày làm việc chỉ có ở trang thủ tục và nguồn thứ cấp, Chủ toạ S016 và Tư pháp S030 ghi CẦN KIỂM TRA, nên ca chỉ đòi nói 'ngày làm việc', không chấm con số. Điều kiện, thời gian xét thị thực Hàn Quốc là CẦN KIỂM TRA ở trang chính thức (Chủ toạ S028), nên kết luận phải nói phải kiểm tra, không hứa. Lệ phí 200.000 đồng và mức giảm 50% là CẦN KIỂM TRA (Tư pháp S029, S031), không chấm. Phương án 'dịch vụ hứa lấy trong 2 ngày' phải bị gạt vì hứa ngắn hơn thời hạn luật định (não Xuất nhập cảnh positions 24, Luật ngành 3, 9). Điểm cấm: TT 25/2021/TT-BTC làm căn cứ lệ phí (hết hiệu lực 01/4/2026, thay bởi TT 28/2026/TT-BTC), và mọi lời bảo đảm kịp ngày bay."
+    },
+    {
+      "id": "mo-diem-bac-ninh-hay-ctv",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "tap": "kiem_tra",
+      "prompt": "Văn phòng tôi ở Hà Nội, mỗi tháng có khoảng 25 hồ sơ của khách ở Bắc Ninh (gồm cả Bắc Giang cũ), nhân viên phải chạy 10 đến 12 chuyến mỗi tháng để nhận giấy tờ, ký hồ sơ, mỗi chuyến tốn khoảng 500 nghìn đồng và nửa ngày công. Phương án: mở địa điểm kinh doanh ở Bắc Ninh với 1 nhân viên, chi phí khoảng 20 triệu đồng mỗi tháng; thuê 2 cộng tác viên tự do ở Bắc Ninh nhận hộ chiếu, giấy tờ của khách với giá 300 nghìn đồng mỗi hồ sơ; hoặc giữ nguyên cách làm hiện nay. Tôi nghiêng về thuê cộng tác viên vì rẻ nhất.",
+      "phai_co": [
+        ["91/2025", "356/2025", "dữ liệu cá nhân"],
+        ["xử lý dữ liệu", "bảo mật"],
+        ["trực tuyến", "dịch vụ công", "nộp online"],
+        ["hoà vốn", "hòa vốn", "7,5 triệu", "6 triệu", "chi phí mỗi hồ sơ"],
+        ["thí điểm", "thử", "90 ngày"]
+      ],
+      "khong_duoc": ["13/2023/NĐ-CP quy định", "không cần hợp đồng với cộng tác viên", "chắc chắn tăng doanh thu"],
+      "ghi_chu": "Đáp án: cộng tác viên bên ngoài cầm hộ chiếu, giấy tờ của khách chỉ được khi có hợp đồng xử lý dữ liệu, cam kết bảo mật, quy định xoá (não Vận hành positions 9; Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15, S010; Nghị định 356/2025/NĐ-CP, S011; xử phạt theo Nghị định 330/2026/NĐ-CP, S013). Nộp trực tuyến qua Cổng dịch vụ công, doanh nghiệp bảo lãnh dùng chữ ký số (S026) là phương án giảm số chuyến. Bài toán chi phí phải có số: hiện tại 10 đến 12 chuyến × 500 nghìn đồng là khoảng 5 đến 6 triệu đồng tiền chuyến cộng 5 đến 6 ngày công; cộng tác viên 25 × 300 nghìn đồng = 7,5 triệu đồng; địa điểm 20 triệu đồng, nên nhóm đạt khi kết luận có phép tính hoà vốn hoặc chi phí. Bước thử nhỏ, có hạn và ngưỡng dừng là cách chấm của các ghế kinh doanh (Luật ngành, phần 'Dừng nếu'). Thủ tục mở địa điểm kinh doanh theo Nghị định 168/2025/NĐ-CP (Vận hành S016, hiệu lực CẦN KIỂM TRA) không chấm. Điểm cấm: Nghị định 13/2023/NĐ-CP làm căn cứ (S012, hết hiệu lực 01/01/2026)."
     }
   ]
 }
