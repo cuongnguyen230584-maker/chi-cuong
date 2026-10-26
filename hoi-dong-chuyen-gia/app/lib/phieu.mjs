@@ -1,8 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { byKey, loadRoster } from "./seats.mjs";
+import { ngayVN } from "./ngay.mjs";
 
-export const NHAN = { "GO": "LÀM", "GO WITH CONDITIONS": "LÀM, CÓ ĐIỀU KIỆN", "RESHAPE": "ĐIỀU CHỈNH", "WAIT": "CHỜ", "DON'T DO IT": "KHÔNG LÀM" };
+export const NHAN = { "GO": "LÀM", "GO WITH CONDITIONS": "LÀM CÓ ĐIỀU KIỆN", "RESHAPE": "ĐIỀU CHỈNH", "WAIT": "CHỜ", "DON'T DO IT": "KHÔNG LÀM" };
 const HAN_NGAY = 30;
 const dong = (s) => String(s ?? "").replace(/\s+/g, " ").trim();
 const cut = (s, n) => { s = dong(s); return s.length > n ? s.slice(0, n - 1) + "…" : s; };
@@ -58,13 +59,13 @@ function noiDung({ hoi, setup, verdict, chairView, chairQuotes, chairKiemSo, ses
   const sl = [...(canh ? [`- **Cảnh báo:** ${canh}`] : []), ...(hoi.facts?.su_that ?? []).map((s) => `- ${dong(s.y)} — ${dong(s.so)} — ${dong(s.nguon)} — ${dong(s.ngay)}`)];
   const L = [
     `# ${dong(setup?.title || hoi.cauHoi)}`, "",
-    `Hội đồng chuyên gia · ${today} · phiên ${sessionId}`, "",
+    `Hội đồng chuyên gia · ${ngayVN(today)} · phiên ${sessionId}`, "",
     ...muc("Câu hỏi", [hoi.cauHoi]),
     ...muc(hoi.bo_qua_vong_hoi ? "Vấn đề gốc (lấy nguyên câu hỏi — người hỏi bỏ vòng hỏi)" : "Vấn đề gốc (người hỏi chốt)", [hoi.van_de_goc]),
     ...muc("Nếu phải quyết hôm nay, người hỏi chọn", [hoi.tra_loi_ban_dau || "chưa nêu"]),
     ...muc("Vòng hỏi", vong.flatMap((x, i) => (i ? ["", x] : [x]))),
     ...muc("Số liệu đã đọc", sl),
-    ...muc("Kết luận", [`**${nhan}**${pa ? ` — phương án ${pa.id}: ${dong(pa.label)}` : ""}`, "", verdict.call, "", `Độ tin cậy: ${verdict.confidence ?? "-"}/10. Xem lại trước ${han}.`]),
+    ...muc("Kết luận", [`**${nhan}**${pa ? ` — phương án ${pa.id}: ${dong(pa.label)}` : ""}`, "", verdict.call, "", `Độ tin cậy: ${verdict.confidence ?? "-"}/10. Xem lại trước ${ngayVN(han)}.`]),
     ...muc("Góc nhìn Chủ toạ", gocNhin(chairView, chairQuotes)),
     ...muc("Số dùng trong kết luận", soDung(verdict.kiem_so)),
     ...muc("Giả định cần kiểm", giaDinh(verdict.kiem_so)),
@@ -83,7 +84,7 @@ function noiDung({ hoi, setup, verdict, chairView, chairQuotes, chairKiemSo, ses
 
 const cong30 = (today) => new Date(new Date(`${today}T00:00:00Z`).getTime() + HAN_NGAY * 86400000).toISOString().slice(0, 10);
 
-// Sổ mới cho người dùng chưa có: một bảng, mới nhất lên đầu.
+// Sổ mới cho người dùng chưa có: một bảng, mới nhất lên đầu. Tên file giữ ngày ISO (sắp xếp được); chữ trong phiếu và sổ in dd/mm/yyyy.
 const SO_MOI = `# Sổ phiếu quyết định
 
 Hội đồng chuyên gia ghi mỗi phiếu ở đây, mới nhất lên đầu. Phiếu quá "Hạn xem lại" mà còn \`mo\` thì nên mở lại xem kết quả.
@@ -109,7 +110,7 @@ export function ghiPhieu({ dir, hoi, setup, verdict, chairView = null, chairQuot
     const i = lines.findIndex((l) => /^\|[\s:|-]*---[\s:|-]*$/.test(l));
     if (i >= 0) {
       const nhan = NHAN[verdict.label] || verdict.label;
-      lines.splice(i + 1, 0, `| ${today} | ${o(cut(hoi.cauHoi, 160))} | ${o(cut(verdict.call || nhan, 160))} | ${han} | mo | [file](${ten}) |`);
+      lines.splice(i + 1, 0, `| ${ngayVN(today)} | ${o(cut(hoi.cauHoi, 160))} | ${o(cut(verdict.call || nhan, 160))} | ${ngayVN(han)} | mo | [file](${ten}) |`);
       fs.writeFileSync(so, lines.join("\n"));
     }
   }
@@ -125,7 +126,7 @@ export function ghiHopTiep({ dir, file, lan, boSung, setup, verdict, chairView, 
   const nhan = NHAN[verdict.label] || verdict.label;
   const ds = (tieuDe, xs) => (xs.length ? [`**${tieuDe}:**`, ...xs, ""] : []);
   const L = [
-    "", `## Lần họp ${lan} (${today})`, "",
+    "", `## Lần họp ${lan} (${ngayVN(today)})`, "",
     `**Bổ sung:** ${dong(boSung)}`, "",
     `**Kết luận:** ${nhan} · ${dong(verdict.call)}${pa ? ` (phương án ${pa.id}: ${dong(pa.label)})` : ""}`, "",
     ...ds("Vì sao", (verdict.why ?? []).map((w) => `- ${dong(w.point)}`)),
@@ -146,7 +147,7 @@ export function ghiHopTiep({ dir, file, lan, boSung, setup, verdict, chairView, 
     const c = i >= 0 ? lines[i].split(" | ") : [];
     if (c.length === 6) {
       c[2] = o(cut(`(họp lần ${lan} ${ddmm(today)}) ${verdict.call || nhan}`, 180));
-      c[3] = cong30(today);
+      c[3] = ngayVN(cong30(today));
       lines[i] = c.join(" | ");
       fs.writeFileSync(so, lines.join("\n"));
       return { file, so: true };

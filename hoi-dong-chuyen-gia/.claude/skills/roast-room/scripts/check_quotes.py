@@ -13,14 +13,16 @@ Exit code 1 if any quote is unaccounted for.
 """
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 BRAINS = Path(__file__).resolve().parents[1] / "brains"
 
 
 def norm(s):
-    s = s.lower().replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
-    s = re.sub(r"[^a-z0-9' ]+", " ", s)
+    # NFC so "ệ" typed as e + dấu matches the precomposed form; \w is Unicode-aware, so Vietnamese letters stay
+    s = unicodedata.normalize("NFC", s).lower().replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
+    s = re.sub(r"[^\w' ]+|_", " ", s)
     return re.sub(r"\s+", " ", s).strip()
 
 

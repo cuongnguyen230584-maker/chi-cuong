@@ -57,7 +57,7 @@ async function startServer(runner, replyPath, extraEnv = {}) {
   await new Promise((res, rej) => {
     let out = "";
     const t = setTimeout(() => rej(new Error("server không lên: " + out)), 10000);
-    child.stdout.on("data", (c) => { out += c; if (out.includes("on http://localhost")) { clearTimeout(t); res(); } });
+    child.stdout.on("data", (c) => { out += c; if (out.includes("đang chạy tại http://localhost")) { clearTimeout(t); res(); } });
     child.stderr.on("data", (c) => { out += c; });
     child.on("exit", (code) => { clearTimeout(t); rej(new Error(`server thoát (${code}): ${out}`)); });
   });
@@ -213,7 +213,7 @@ test("họp tiếp trọn luồng: lan 2, phiên mới lưu liên kết, phiếu
   assert.equal(ev.so_doi, true);
   assert.ok(j.events.some((e) => e.type === "chair_view" && e.view?.dong_y === "đồng ý"));
   const phieu = fs.readFileSync(path.join(PHIEU, "2026-10-25-hoi-dong-tang-gia.md"), "utf8");
-  assert.match(phieu, /## Lần họp 2 \(\d{4}-\d{2}-\d{2}\)\n\n\*\*Bổ sung:\*\* Ca tối đã kín 90%\./);
+  assert.match(phieu, /## Lần họp 2 \(\d{2}\/\d{2}\/\d{4}\)\n\n\*\*Bổ sung:\*\* Ca tối đã kín 90%\./);
   assert.match(fs.readFileSync(path.join(PHIEU, "00-so-phieu.md"), "utf8"), /\| Có nên tăng giá\? \| \(họp lần 2 \d\d\/\d\d\) Chỉ tăng ca tối\. \|/);
   assert.equal((await fetch(`${full}/api/sessions/2026-10-25-co-phieu`)).status, 200);
 });

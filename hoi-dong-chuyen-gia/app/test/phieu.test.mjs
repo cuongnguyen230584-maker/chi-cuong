@@ -21,11 +21,13 @@ test("ghiPhieu ghi file và chèn dòng mới lên đầu sổ phiếu", () => {
   assert.equal(path.basename(f), "2026-10-25-hoi-dong-tang-gia-kham.md");
   const body = fs.readFileSync(f, "utf8");
   assert.match(body, /Giá thấp hơn chi phí sàn/);
-  assert.match(body, /LÀM, CÓ ĐIỀU KIỆN/);
+  assert.match(body, /LÀM CÓ ĐIỀU KIỆN/);
+  assert.match(body, /Hội đồng chuyên gia · 25\/10\/2026 · phiên 2026-10-24-abc/);
+  assert.match(body, /Xem lại trước 24\/11\/2026\./);
   assert.match(body, /wiki\/a\.md/);
   const so = fs.readFileSync(path.join(dir, "00-so-phieu.md"), "utf8").split("\n");
-  assert.match(so[4], /^\| 2026-10-25 \| Có nên tăng giá khám\? \|/);
-  assert.match(so[4], /\| 2026-11-24 \| mo \| \[file\]\(2026-10-25-hoi-dong-tang-gia-kham\.md\) \|$/);
+  assert.match(so[4], /^\| 25\/10\/2026 \| Có nên tăng giá khám\? \|/);
+  assert.match(so[4], /\| 24\/11\/2026 \| mo \| \[file\]\(2026-10-25-hoi-dong-tang-gia-kham\.md\) \|$/);
   assert.match(so[5], /Cũ/);
 });
 
@@ -34,7 +36,7 @@ test("ghiPhieu: chưa có sổ phiếu thì tạo sổ mới có dòng phiếu; 
   const f = ghiPhieu({ dir, today: "2026-10-25", sessionId: "s1", hoi, setup, verdict: { ...verdict, call: "Tăng | giữ " + "x".repeat(300) }, seats: [] });
   assert.ok(fs.existsSync(f));
   assert.deepEqual(fs.readdirSync(dir).sort(), ["00-so-phieu.md", path.basename(f)].sort());
-  assert.match(fs.readFileSync(path.join(dir, "00-so-phieu.md"), "utf8"), /^# Sổ phiếu quyết định[\s\S]*\|---\|---\|---\|---\|---\|---\|\n\| 2026-10-25 \|/);
+  assert.match(fs.readFileSync(path.join(dir, "00-so-phieu.md"), "utf8"), /^# Sổ phiếu quyết định[\s\S]*\|---\|---\|---\|---\|---\|---\|\n\| 25\/10\/2026 \|/);
   const dir2 = dirMoi();
   fs.writeFileSync(path.join(dir2, "00-so-phieu.md"), "# Sổ\n\n| Ngày | Câu hỏi | Kết luận | Hạn xem lại | Trạng thái | File |\n|---|---|---|---|---|---|\n");
   ghiPhieu({ dir: dir2, today: "2026-10-25", sessionId: "s1", hoi, setup, verdict: { ...verdict, call: "Tăng | giữ " + "x".repeat(300) }, seats: [] });
@@ -98,13 +100,13 @@ test("ghiHopTiep nối 'Lần họp n' vào cuối phiếu và sửa đúng mộ
   ghiHopTiep({ dir, file: f, lan: 2, boSung: "Ca tối đã kín 90%.", setup, verdict: v2, chairView: { dong_y: "đồng ý", nhan_dinh: "Hợp lý.", ly_do: [], bo_buoc: "", thu_nhanh: "" }, today: "2026-11-02" });
   const sau = fs.readFileSync(f, "utf8");
   assert.ok(sau.startsWith(truoc));
-  assert.match(sau.slice(truoc.length), /^\n## Lần họp 2 \(2026-11-02\)\n\n\*\*Bổ sung:\*\* Ca tối đã kín 90%\.\n\n\*\*Kết luận:\*\* ĐIỀU CHỈNH · Chỉ tăng ca tối\. \(phương án B: Giữ\)\n/);
+  assert.match(sau.slice(truoc.length), /^\n## Lần họp 2 \(02\/11\/2026\)\n\n\*\*Bổ sung:\*\* Ca tối đã kín 90%\.\n\n\*\*Kết luận:\*\* ĐIỀU CHỈNH · Chỉ tăng ca tối\. \(phương án B: Giữ\)\n/);
   assert.match(sau, /\*\*Điều kiện:\*\*\n- Ca tối kín 85%/);
   assert.match(sau, /\*\*Dừng nếu:\*\* Khách giảm 20%/);
   assert.match(sau, /\*\*Góc nhìn Chủ toạ:\*\* Đồng ý\. Hợp lý\./);
   const so = fs.readFileSync(path.join(dir, "00-so-phieu.md"), "utf8").split("\n");
   const moi = so.find((l) => l.includes(`(${path.basename(f)})`));
-  assert.match(moi, /^\| 2026-10-25 \| Có nên tăng giá khám\? \| \(họp lần 2 02\/11\) Chỉ tăng ca tối\. \| 2026-12-02 \| mo \| \[file\]/);
+  assert.match(moi, /^\| 25\/10\/2026 \| Có nên tăng giá khám\? \| \(họp lần 2 02\/11\) Chỉ tăng ca tối\. \| 02\/12\/2026 \| mo \| \[file\]/);
   assert.ok(so.includes("| 2026-10-24 | Khác | khác | 2026-11-23 | mo | [file](khac.md) |"));
   assert.equal(so.length, so0.split("\n").length + 1);
 });
@@ -115,7 +117,7 @@ test("ghiHopTiep: không có sổ thì chỉ nối vào file; không có góc nh
   fs.rmSync(path.join(dir, "00-so-phieu.md")); // the user removed their sổ
   ghiHopTiep({ dir, file: f, lan: 2, boSung: "Thêm số", setup, verdict, chairView: null, today: "2026-10-26" });
   assert.deepEqual(fs.readdirSync(dir), [path.basename(f)]);
-  assert.match(fs.readFileSync(f, "utf8"), /## Lần họp 2 \(2026-10-26\)[\s\S]*\*\*Góc nhìn Chủ toạ:\*\* Chưa có góc nhìn Chủ toạ\./);
+  assert.match(fs.readFileSync(f, "utf8"), /## Lần họp 2 \(26\/10\/2026\)[\s\S]*\*\*Góc nhìn Chủ toạ:\*\* Chưa có góc nhìn Chủ toạ\./);
 });
 
 test("phieuTrongThuMuc: chỉ nhận file .md có thật nằm ngay trong thư mục phiếu", () => {

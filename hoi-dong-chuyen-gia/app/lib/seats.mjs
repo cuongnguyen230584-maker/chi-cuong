@@ -14,7 +14,7 @@ export const BOARD = { mode: "default", default: [] };
 let rosterStamp = 0;
 export function loadRoster() {
   let stat;
-  try { stat = fs.statSync(ROSTER); } catch { throw new Error(`roster not found at ${ROSTER}`); }
+  try { stat = fs.statSync(ROSTER); } catch { throw new Error(`Không thấy roster.json tại ${ROSTER}`); }
   if (stat.mtimeMs === rosterStamp && SEATS.length) return SEATS;
   const r = JSON.parse(fs.readFileSync(ROSTER, "utf8"));
   const seats = (r.seats || []).filter((s) => s.key && s.slug && fs.existsSync(path.join(AGENTS_DIR, `council-${s.key}.md`)));

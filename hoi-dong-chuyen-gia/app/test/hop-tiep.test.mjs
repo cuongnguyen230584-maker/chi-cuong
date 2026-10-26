@@ -30,7 +30,7 @@ test("promptHopTiep ≤ 6000 ký tự, luôn giữ bổ sung và kết luận tr
   assert.equal(MAX_PROMPT_TIEP, 6000);
   assert.ok(p.startsWith("HỌP TIẾP LẦN 2. Người hỏi bổ sung sau kết luận lần trước:\n"));
   assert.ok(p.includes(boSung));
-  assert.match(p, /KẾT LUẬN LẦN TRƯỚC: LÀM, CÓ ĐIỀU KIỆN · Tăng 10% cho khách mới\. · Điều kiện: Khách giảm dưới 5%; Đo 30 ngày · Góc nhìn Chủ toạ: Đồng ý nếu xoá bước duyệt giá\./);
+  assert.match(p, /KẾT LUẬN LẦN TRƯỚC: LÀM CÓ ĐIỀU KIỆN · Tăng 10% cho khách mới\. · Điều kiện: Khách giảm dưới 5%; Đo 30 ngày · Góc nhìn Chủ toạ: Đồng ý nếu xoá bước duyệt giá\./);
   assert.match(p, /ĐỀ BÀI GỐC:\nG+/);
   const ngan = promptHopTiep({ lan: 3, boSung: "Giá vốn 200k", verdict, chairView: null, gocPrompt: "ngắn" });
   assert.ok(!ngan.includes("Góc nhìn Chủ toạ"));

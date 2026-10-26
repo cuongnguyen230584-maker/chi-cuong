@@ -20,15 +20,16 @@ const KHONG_PHAI_SO = [
 ];
 // thời hạn số nguyên (thử 14 ngày, trong 30 ngày): chỉ bỏ khi quét chữ của kết luận; "7,1 ngày chờ" vẫn là số liệu
 const THOI_HAN = /(?<![\d.,])\d+\s+(?:ngày|tuần|tháng|năm|giờ|phút)(?![\p{L}])/gu;
-const SO = /(?<![\p{L}\d.,])(\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?)(?:\s*(%|tỷ|ty|triệu|trieu|tr|nghìn|ngàn|k)(?![\p{L}]))?/gu;
-const NHAN = { "tỷ": 1e9, ty: 1e9, "triệu": 1e6, trieu: 1e6, tr: 1e6, "nghìn": 1e3, "ngàn": 1e3, k: 1e3 };
+// "1.000", "1 000" (dấu cách phân nghìn), "7,5"; đơn vị không phân biệt hoa thường ("Tỷ", "TỶ"), "tỉ" là biến thể của "tỷ".
+const SO = /(?<![\p{L}\d.,])(\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d{1,3}(?:[ \u00a0\u202f]\d{3})+(?:,\d+)?(?![\d.])|\d+(?:[.,]\d+)?)(?:\s*(%|tỷ|tỉ|ty|ti|triệu|trieu|tr|nghìn|ngàn|k)(?![\p{L}]))?/giu;
+const NHAN = { "tỷ": 1e9, "tỉ": 1e9, ty: 1e9, ti: 1e9, "triệu": 1e6, trieu: 1e6, tr: 1e6, "nghìn": 1e3, "ngàn": 1e3, k: 1e3 };
 
 function giaTri(raw, donVi) {
-  let s = raw;
+  let s = raw.replace(/[ \u00a0\u202f]/g, "");                                                // 1 000 → 1000
   if (/^\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(s)) s = s.replace(/\./g, "").replace(",", ".");   // 1.698.960.000 / 1.096
   else if (/^\d+,\d{3}$/.test(s) && !donVi) s = s.replace(",", "");                         // 1,258 đơn
   else s = s.replace(",", ".");                                                             // 5,6 / 1,70 tỷ
-  return Number(s) * (NHAN[donVi] || 1);
+  return Number(s) * (NHAN[donVi?.toLowerCase()] || 1);
 }
 
 /** Các con số trong một đoạn chữ, theo thứ tự xuất hiện: { so (nguyên văn), value, pct, i, ketQua }.
@@ -36,7 +37,8 @@ function giaTri(raw, donVi) {
  * một chữ số không đơn vị (2 người); đầu vào và danh sách số đã kê thì giữ hết (7 đơn, 8 tuần là số liệu).
  * ketQua: số đứng ngay sau "=" hoặc "≈", tức kết quả của một phép tính. */
 export function soTrong(text, { chu = true } = {}) {
-  let t = String(text ?? "");
+  // NFC: chữ dán từ macOS (NFD) vẫn khớp "tỷ", "triệu"
+  let t = String(text ?? "").normalize("NFC");
   for (const re of [...KHONG_PHAI_SO, ...(chu ? [THOI_HAN] : [])]) t = t.replace(re, (m) => " ".repeat(m.length));
   const out = [];
   for (const m of t.matchAll(SO)) {
@@ -89,7 +91,7 @@ export function kiemSo({ dauVao = "", soLieu = [], cacBan = [], vanBan = "" }) {
     }
   }
   const chua = [], thay = new Set();
-  const t = String(vanBan ?? "");
+  const t = String(vanBan ?? "").normalize("NFC");
   for (const x of soTrong(t)) {
     if (coTrong(x.value, duoc) || coTrong(x.value, giaDinh) || thay.has(x.so)) continue;
     thay.add(x.so);

@@ -18,11 +18,12 @@ const STALE_MS = 3 * 60 * 60 * 1000; // a folder untouched this long is an aband
 const readText = (p) => { try { return fs.readFileSync(p, "utf8"); } catch { return null; } };
 const readJson = (p) => { const t = readText(p); if (!t) return null; try { return JSON.parse(t); } catch { return null; } };
 
-/** "Gary V", "garyvee", "GARY V (Marketing)", "Warren Buffett" -> seat key */
+/** "Gary V", "garyvee", "GARY V (Marketing)", "Warren Buffett", "Luật sư FDI (trọng số 3)" -> seat key */
 export function seatKey(x) {
-  const t = String(x || "").toLowerCase().replace(/\(.*$/, "").replace(/[^a-z ]/g, " ").replace(/\s+/g, " ").trim();
+  const t = String(x || "").normalize("NFC").toLowerCase().replace(/\(.*$/, "").replace(/[^\p{L}\p{N} -]/gu, " ").replace(/\s+/g, " ").trim();
   if (!t) return null;
-  return SEATS.find((s) => t === s.key || t === s.short.toLowerCase() || t === s.name.toLowerCase())?.key || seatIn(t)?.key || null;
+  const lo = (v) => String(v || "").normalize("NFC").toLowerCase();
+  return SEATS.find((s) => t === s.key || t === lo(s.short) || t === lo(s.name))?.key || seatIn(t)?.key || null;
 }
 
 /** Split a round file into seat cards. A card is the text under a "## <Seat>" heading
@@ -30,7 +31,7 @@ export function seatKey(x) {
  * Chair sections are dropped. */
 export function splitCards(md) {
   const heads = [...md.matchAll(/^#{2,3}[ \t]+(.+)$/gm)];
-  const seatHeads = heads.filter((h) => !/chair/i.test(h[1]) && seatKey(h[1]));
+  const seatHeads = heads.filter((h) => !/chair|chủ toạ|chủ tọa/i.test(h[1]) && seatKey(h[1]));
   if (seatHeads.length) {
     return seatHeads.map((h) => {
       const next = heads.find((n) => n.index > h.index);
@@ -38,7 +39,7 @@ export function splitCards(md) {
       return { key: seatKey(h[1]), text };
     }).filter((c) => c.text);
   }
-  const body = md.split(/^#{1,4}[^\n]*\bchair\b[^\n]*$/im)[0];
+  const body = md.split(/^#{1,4}[^\n]*(?:\bchair\b|chủ toạ|chủ tọa)[^\n]*$/imu)[0];
   const marks = [...body.matchAll(/^\**SEAT\**[ \t]*:[ \t]*(.+)$/gim)];
   return marks.map((m, i) => {
     const end = i + 1 < marks.length ? marks[i + 1].index : body.length;
@@ -121,14 +122,14 @@ function sync(x) {
     Object.assign(st, normalizeSetup(c));
     x.title = st.title;
     x.mode = st.mode;
-    emit(x, "phase", { phase: "setup", label: "The Chair is reading your question", at: mtime(f("council.json")) });
+    emit(x, "phase", { phase: "setup", label: "Chủ toạ đang đọc câu hỏi", at: mtime(f("council.json")) });
     emit(x, "setup", { title: st.title, decision: st.decision, brief: st.brief, options: st.options, assumptions: st.assumptions, weights: st.weights, seats: st.seats, mode: st.mode, nganh: st.nganh });
-    startRound(x, 1, "Round 1: opening positions", mtime(f("council.json")));
+    startRound(x, 1, "Vòng 1: quan điểm mở đầu", mtime(f("council.json")));
     x.step = "r1";
   }
   if (x.step === "r1") {
     if (!readRound(x, 1, has("cruxes.json"))) return;
-    emit(x, "phase", { phase: "cruxes", label: "The Chair is finding the fault lines", at: mtime(f("round-1.md")) });
+    emit(x, "phase", { phase: "cruxes", label: "Chủ toạ đang tìm điểm vênh", at: mtime(f("round-1.md")) });
     x.step = "cruxes";
   }
   if (x.step === "cruxes") {
@@ -136,12 +137,12 @@ function sync(x) {
     if (!c) return;
     const cruxes = (c.cruxes || []).map((q) => ({ question: q.question || "", sides: (q.sides || []).map((sd) => ({ position: sd.position || "", seats: (sd.seats || []).map(seatKey).filter(Boolean) })) }));
     emit(x, "cruxes", { cruxes, unanimous: Boolean(c.unanimous), note: c.note || "", pressure: {} });
-    startRound(x, 2, "Round 2: the debate", mtime(f("cruxes.json")));
+    startRound(x, 2, "Vòng 2: tranh luận", mtime(f("cruxes.json")));
     x.step = "r2";
   }
   if (x.step === "r2") {
     if (!readRound(x, 2, has("draft.json") || has("verdict.json"))) return;
-    emit(x, "phase", { phase: "draft", label: "The Chair is weighing the debate", at: mtime(f("round-2.md")) });
+    emit(x, "phase", { phase: "draft", label: "Chủ toạ đang cân nhắc cuộc tranh luận", at: mtime(f("round-2.md")) });
     x.step = "draft";
   }
   if (x.step === "draft") {
@@ -149,16 +150,16 @@ function sync(x) {
     if (d) {
       st.draft = { option: d.option || "", label: d.label || "", recommendation: d.recommendation || "", conditions: d.conditions || [], next_steps: d.next_steps || [], cheapest_test: d.cheapest_test || "", kill_criteria: d.kill_criteria || "" };
       emit(x, "draft", { draft: st.draft });
-      startRound(x, 3, "Round 3: the vote", mtime(f("draft.json")));
+      startRound(x, 3, "Vòng 3: bỏ phiếu", mtime(f("draft.json")));
       x.step = "r3";
     } else if (has("verdict.json")) {
-      emit(x, "phase", { phase: "skip3", label: "Quick mode: the vote round is skipped", at: mtime(f("round-2.md")) });
+      emit(x, "phase", { phase: "skip3", label: "Chế độ nhanh: bỏ vòng bỏ phiếu", at: mtime(f("round-2.md")) });
       x.step = "verdict";
     } else return;
   }
   if (x.step === "r3") {
     if (!readRound(x, 3, has("verdict.json"))) return;
-    emit(x, "phase", { phase: "verdict", label: "The Chair is writing the verdict", at: mtime(f("round-3.md")) });
+    emit(x, "phase", { phase: "verdict", label: "Chủ toạ đang viết kết luận", at: mtime(f("round-3.md")) });
     x.step = "verdict";
   }
   if (x.step === "verdict") {

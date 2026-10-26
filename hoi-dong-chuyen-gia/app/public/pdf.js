@@ -9,8 +9,8 @@ const C = {
 const LABEL = { go: [63, 207, 142], amber: [255, 144, 37], red: [255, 90, 79] };
 const labelColor = (l) => (/DON'T/.test(l) ? LABEL.red : /RESHAPE|WAIT/.test(l) ? LABEL.amber : LABEL.go);
 // Chủ toạ trả nhãn tiếng Anh; báo cáo in bản tiếng Việt.
-const VERDICT_VI = { "GO": "LÀM", "GO WITH CONDITIONS": "LÀM, CÓ ĐIỀU KIỆN", "RESHAPE": "ĐIỀU CHỈNH", "WAIT": "CHỜ", "DON'T DO IT": "KHÔNG LÀM" };
-const VOTE_VI = { endorse: "Đồng ý", amend: "Sửa đổi", dissent: "Phản đối" };
+const VERDICT_VI = { "GO": "LÀM", "GO WITH CONDITIONS": "LÀM CÓ ĐIỀU KIỆN", "RESHAPE": "ĐIỀU CHỈNH", "WAIT": "CHỜ", "DON'T DO IT": "KHÔNG LÀM" };
+const VOTE_VI = { endorse: "Đồng ý", amend: "Sửa đổi", dissent: "Phản đối", chua_ro: "Chưa rõ" };
 const DONG_Y_VI = { "đồng ý": "Đồng ý", "đồng ý có điều kiện": "Đồng ý có điều kiện", "không đồng ý": "Không đồng ý" };
 const DISCLAIMER_VI = "Cố vấn mô phỏng, dựng từ tác phẩm công khai của từng người. Họ không phải người thật và không phát ngôn thay những người đó.";
 
@@ -21,7 +21,7 @@ function loadLib() {
     const s = document.createElement("script");
     s.src = "/vendor/jspdf.umd.min.js";
     s.onload = res;
-    s.onerror = () => rej(new Error("could not load the PDF library"));
+    s.onerror = () => rej(new Error("Không tải được thư viện tạo PDF"));
     document.head.appendChild(s);
   });
   return libReady;
@@ -204,7 +204,7 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
     const bx = W - M - 170, bw = 120;
     doc.setFillColor(...C.track); doc.roundedRect(bx, y + 8, bw, 5, 2.5, 2.5, "F");
     if (typeof sc === "number") { doc.setFillColor(...(isBest ? C.accent : [150, 205, 235])); doc.roundedRect(bx, y + 8, Math.max(5, bw * sc / 10), 5, 2.5, 2.5, "F"); }
-    font(14, "bold", C.ink); doc.text(typeof sc === "number" ? String(sc) : "-", W - M, y + 15, { align: "right" });
+    font(14, "bold", C.ink); doc.text(typeof sc === "number" ? String(sc).replace(".", ",") : "-", W - M, y + 15, { align: "right" });
     if (isBest) { font(7.5, "semibold", C.accent); doc.text("ĐỀ XUẤT", bx, y + 24); }
     y += rowH + 6;
   }
@@ -231,8 +231,8 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
       let x = M;
       font(10, "semibold", C.ink); doc.text(info.name || s.key, x, y + 13); x += cols[0].w;
       font(10, "normal", C.soft); doc.text(String(s.weight ?? "-"), x + cols[1].w / 2, y + 13, { align: "center" }); x += cols[1].w;
-      for (const o of options) { font(10, "semibold", C.ink); doc.text(String(s.optionScores?.[o.id] ?? "-"), x + 20, y + 13, { align: "center" }); x += 40; }
-      if (showVote) { font(9.5, "normal", C.soft); doc.text(VOTE_VI[s.stance || "endorse"] || String(s.stance), x, y + 13); }
+      for (const o of options) { font(10, "semibold", C.ink); doc.text(String(s.optionScores?.[o.id] ?? "-").replace(".", ","), x + 20, y + 13, { align: "center" }); x += 40; }
+      if (showVote) { font(9.5, "normal", C.soft); doc.text(VOTE_VI[s.stance] || (s.stance ? String(s.stance) : "Chưa rõ"), x, y + 13); }
       y += 20; doc.setDrawColor(...C.rule); doc.line(M, y, W - M, y); y += 2;
     }
   }
@@ -264,7 +264,7 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
     doc.text(doc.splitTextToSize(DISCLAIMER_VI, CW - tagW - 24), M, H - 34, { lineHeightFactor: 1.35 });
   }
 
-  const name = `Hội đồng chuyên gia - ${String(setup.title || id || "verdict").replace(/[\\/:*?"<>|]+/g, "").slice(0, 80)}.pdf`;
+  const name = `Hội đồng chuyên gia - ${String(setup.title || id || "ket-luan").replace(/[\\/:*?"<>|]+/g, "").slice(0, 80)}.pdf`;
   doc.save(name);
   return name;
 }

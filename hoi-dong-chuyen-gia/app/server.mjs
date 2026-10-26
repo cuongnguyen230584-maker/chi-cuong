@@ -10,6 +10,7 @@ import * as watch from "./lib/watch.mjs";
 import { startHoiGocApp } from "./lib/hoi-goc.mjs";
 import { ghiPhieu, ghiHopTiep, phieuTrongThuMuc } from "./lib/phieu.mjs";
 import { gocCuaPhien, promptHopTiep, lanKeTiep } from "./lib/hop-tiep.mjs";
+import { ngayIso } from "./lib/ngay.mjs";
 
 const PORT = Number(process.env.PORT) || 4730;
 const PUBLIC = path.join(APP_ROOT, "public");
@@ -21,7 +22,7 @@ let running = null; // one council at a time (API runner)
 const dangHop = () => Boolean(running && getSession(running)?.status === "running");
 // PHIEU_DIR moves the phiếu and its sổ elsewhere (a test run writes to a copy, never the real sổ).
 const phieuDir = () => path.resolve(env("PHIEU_DIR") || path.join(REPO_ROOT, "phieu"));
-const homNay = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" });
+const homNay = () => ngayIso(); // yyyy-mm-dd theo giờ Việt Nam (tên file phiếu); phần chữ in dd/mm/yyyy
 
 // "viewer" (default): the room plays councils that /roast-room runs in Claude Code.
 // "api": the room can also run councils itself on ANTHROPIC_API_KEY (COUNCIL_RUNNER=api in .env).
@@ -87,14 +88,14 @@ const server = http.createServer(async (req, res) => {
       }
     }
     if (p === "/api/council" && req.method === "POST") {
-      if (RUNNER !== "api") return send(res, 403, { error: "This room is a viewer. Run /roast-room in Claude Code, or set COUNCIL_RUNNER=api in .env." });
+      if (RUNNER !== "api") return send(res, 403, { error: "Phòng đang ở chế độ xem. Chạy /roast-room trong Claude Code, hoặc đặt COUNCIL_RUNNER=api trong .env." });
       const { prompt, mode, hoi_id, nganh } = await readJson(req);
-      if (!prompt || prompt.trim().length < 10) return send(res, 400, { error: "Give the council a real decision (at least a sentence)." });
+      if (!prompt || prompt.trim().length < 10) return send(res, 400, { error: "Hãy đưa cho hội đồng một quyết định cụ thể (ít nhất một câu)." });
       // hỏi state lives in memory: after a restart the phiếu could not be written, so say so instead of running unrecorded
       const hoi = hoi_id ? hoiGoc.get(String(hoi_id)) : null;
       if (hoi_id && !hoi) return send(res, 409, { error: "Phiên hỏi đã hết hạn (server vừa khởi động lại). Hỏi lại từ đầu.", code: "hoi_het_han" });
       // checked after the body is read, with no await before `running` is set, so two requests cannot both start one
-      if (dangHop()) return send(res, 409, { error: "A council is already in session. Wait for its verdict." });
+      if (dangHop()) return send(res, 409, { error: "Đang có một hội đồng họp. Chờ kết luận rồi triệu tập tiếp." });
       // gói ngành: của lượt hỏi gốc nếu có, không thì gói trang gửi lên (gói lạ thành gói mặc định)
       const s = startCouncil(prompt.trim().slice(0, 4000), mode === "quick" ? "quick" : "full", { nganh: goi(hoi?.nganh || String(nganh ?? "")).key });
       running = s.id;
@@ -145,7 +146,7 @@ const server = http.createServer(async (req, res) => {
     if (p.startsWith("/api/stream/")) {
       const id = decodeURIComponent(p.split("/").pop());
       const s = getSession(id) || watch.getLive(id);
-      if (!s) return send(res, 404, { error: "no such session" });
+      if (!s) return send(res, 404, { error: "Không thấy phiên này" });
       res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-store", connection: "keep-alive" });
       res.write(": connected\n\n");
       const ping = setInterval(() => res.write(": ping\n\n"), 15000);
@@ -161,11 +162,11 @@ const server = http.createServer(async (req, res) => {
       const id = decodeURIComponent(p.split("/").pop());
       const x = watch.getLive(id);
       const j = loadSaved(id) || (x && { id, title: x.title, mode: x.mode, status: x.status, events: x.events });
-      return j ? send(res, 200, j) : send(res, 404, { error: "not found" });
+      return j ? send(res, 200, j) : send(res, 404, { error: "Không thấy phiên này" });
     }
     // static
     const file = path.normalize(path.join(PUBLIC, p === "/" ? "index.html" : p));
-    if (!file.startsWith(PUBLIC) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) return send(res, 404, "Not found", "text/plain");
+    if (!file.startsWith(PUBLIC) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) return send(res, 404, "Không tìm thấy", "text/plain; charset=utf-8");
     res.writeHead(200, { "content-type": TYPES[path.extname(file)] || "application/octet-stream", "cache-control": "no-store" });
     fs.createReadStream(file).pipe(res);
   } catch (e) {
@@ -173,4 +174,4 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, "127.0.0.1", () => console.log(`Hội đồng chuyên gia on http://localhost:${PORT} (${RUNNER === "api" ? "viewer + API runner" : "viewer: run /roast-room in Claude Code"})`));
+server.listen(PORT, "127.0.0.1", () => console.log(`Hội đồng chuyên gia đang chạy tại http://localhost:${PORT} (${RUNNER === "api" ? "chế độ xem + tự chạy hội đồng" : "chỉ xem: chạy /roast-room trong Claude Code"})`));

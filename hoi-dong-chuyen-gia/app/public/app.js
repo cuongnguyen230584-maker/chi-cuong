@@ -75,7 +75,7 @@ const SEAT_VI = {
 };
 const pillarOf = (s) => SEAT_VI[s.key]?.[0] || s.pillar;
 const questionOf = (s) => SEAT_VI[s.key]?.[1] || s.question;
-const VERDICT_VI = { "GO": "LÀM", "GO WITH CONDITIONS": "LÀM, CÓ ĐIỀU KIỆN", "RESHAPE": "ĐIỀU CHỈNH", "WAIT": "CHỜ", "DON'T DO IT": "KHÔNG LÀM" };
+const VERDICT_VI = { "GO": "LÀM", "GO WITH CONDITIONS": "LÀM CÓ ĐIỀU KIỆN", "RESHAPE": "ĐIỀU CHỈNH", "WAIT": "CHỜ", "DON'T DO IT": "KHÔNG LÀM" };
 const verdictVi = (l) => VERDICT_VI[String(l || "").toUpperCase()] || l;
 const VOTE_VI = { endorse: "đồng ý", amend: "sửa đổi", dissent: "phản đối", chua_ro: "chưa đọc được phiếu" };
 const voteVi = (v) => VOTE_VI[v] || v;
@@ -94,7 +94,38 @@ const PHASE_VI = [
 ];
 const phaseVi = (l = "") => { for (const [re, vi] of PHASE_VI) if (re.test(l)) return l.replace(re, vi); return l; };
 const MODE_VI = { full: "đầy đủ", quick: "nhanh" };
-const STATUS_VI = { done: "xong", running: "đang chạy", error: "lỗi" };
+const STATUS_VI = { done: "xong", running: "đang chạy", error: "lỗi", stopped: "đã dừng" };
+// "2026-10-26-…" (mã phiên) → "26/10/2026"
+const ngayCuaMa = (id) => { const m = String(id || "").match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : String(id || "").slice(0, 10); };
+
+// Hộp "Mở thẻ": nhãn trường và giá trị liệt kê của phiếu (tiếng Anh, vì bộ đọc phiếu dò theo chúng) in ra tiếng Việt.
+// Chỉ đổi lúc hiển thị; văn bản gốc trong events.json giữ nguyên.
+const NHAN_PHIEU_VI = {
+  "SEAT": "GHẾ", "STANCE": "LẬP TRƯỜNG", "OPTION SCORES": "ĐIỂM PHƯƠNG ÁN", "PILLAR SCORE": "ĐIỂM THEO MẢNG",
+  "CONFIDENCE": "ĐỘ TỰ TIN", "RUIN RISK": "RỦI RO SẬP", "DOOR": "CỬA", "THE CALL": "KẾT LUẬN CỦA GHẾ", "WHY": "VÌ SAO",
+  "THE RISK I SEE": "RỦI RO TÔI THẤY", "WHAT WOULD CHANGE MY MIND": "ĐIỀU LÀM TÔI ĐỔI Ý", "WHAT I'D DO THIS WEEK": "VIỆC TÔI LÀM TUẦN NÀY",
+  "PRE-MORTEM": "NẾU 12 THÁNG SAU THẤT BẠI", "QUESTION FOR THE FOUNDER": "CÂU HỎI CHO NGƯỜI HỎI", "I DISAGREE MOST WITH": "TÔI PHẢN BÁC NHẤT",
+  "I CONCEDE": "TÔI THỪA NHẬN", "ON THE CRUXES": "VỀ CÁC ĐIỂM VÊNH", "MOVED": "ĐỔI Ý", "MY CONDITIONS FOR YES": "ĐIỀU KIỆN ĐỂ TÔI ĐỒNG Ý",
+  "VOTE": "PHIẾU", "FINAL SCORE": "ĐIỂM CUỐI", "FINAL PILLAR SCORE": "ĐIỂM MẢNG CUỐI", "AMENDMENT OR DISSENT": "SỬA ĐỔI HOẶC PHẢN ĐỐI",
+  "ONE LINE FOR THE FOUNDER": "MỘT CÂU CHO NGƯỜI HỎI",
+};
+const GIA_TRI_PHIEU_VI = {
+  "STANCE": [[/^strong yes\b/i, "Rất ủng hộ"], [/^conditional yes\b/i, "Ủng hộ có điều kiện"], [/^strong no\b/i, "Phản đối mạnh"], [/^yes\b/i, "Ủng hộ"], [/^no\b/i, "Phản đối"]],
+  "RUIN RISK": [[/^none\b/i, "không"], [/^possible\b/i, "có thể"], [/^likely\b/i, "khả năng cao"]],
+  "DOOR": [[/^one-way\b/i, "một chiều"], [/^two-way\b/i, "hai chiều"]],
+  "VOTE": [[/^endorse with amendment\b/i, "Đồng ý có sửa đổi"], [/^endorse\b/i, "Đồng ý"], [/^amend(ment)?\b/i, "Sửa đổi"], [/^dissent\b/i, "Phản đối"]],
+  "MOVED": [[/^no\b/i, "không"], [/^yes\b/i, "có"], [/\bfrom (\S+) to (\S+?)(,?) because\b/i, "từ $1 sang $2$3 vì"], [/\bfrom (\S+) to (\S+)/i, "từ $1 sang $2"]],
+};
+const NHAN_PHIEU_RE = new RegExp(`(^|[·|][ \\t]*)(\\**)(${Object.keys(NHAN_PHIEU_VI).sort((a, b) => b.length - a.length).map((k) => k.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&")).join("|")})(\\**)([ \\t]*:[ \\t]*)([^\\n·|]*)`, "gim");
+function theVi(text) {
+  return String(text || "").replace(NHAN_PHIEU_RE, (m, truoc, b1, nhan, b2, hai, giaTri) => {
+    const k = nhan.toUpperCase();
+    const dau = giaTri.match(/^\**[ \t]*/)[0]; // "**RUIN RISK:** likely": dấu ** đóng nằm sau dấu hai chấm
+    let g = giaTri.slice(dau.length);
+    for (const [re, vi] of GIA_TRI_PHIEU_VI[k] || []) g = g.replace(re, vi);
+    return `${truoc}${b1}${NHAN_PHIEU_VI[k] || nhan}${b2}${hai}${dau}${g}`;
+  });
+}
 
 const state = {
   seats: [], byKey: {}, board: [], table: [], session: null, options: [], weights: {}, active: [], round: 0,
@@ -792,7 +823,7 @@ async function onSeatDone(ev) {
 function stanceWord(t = "") {
   const m = t.match(/strong yes|conditional yes|strong no|yes|no/i);
   if (!m) return "Đã nói";
-  return { "strong yes": "Rất ủng hộ", "conditional yes": "Ủng hộ, nếu", "strong no": "Phản đối mạnh", yes: "Ủng hộ", no: "Phản đối" }[m[0].toLowerCase()];
+  return { "strong yes": "Rất ủng hộ", "conditional yes": "Ủng hộ có điều kiện", "strong no": "Phản đối mạnh", yes: "Ủng hộ", no: "Phản đối" }[m[0].toLowerCase()];
 }
 
 function topOption(scores = {}) {
@@ -882,7 +913,7 @@ function openCard(seat, round) {
   $("#cardBody").innerHTML = `
     <div class="card-head"><img src="${portrait(seat)}" alt=""><div><div class="label">${esc(pillarOf(s))}</div><h3>${esc(s.name)}</h3><p class="muted" style="margin:0">Câu hỏi phụ trách: ${esc(questionOf(s))}</p></div></div>
     ${rounds.length > 1 ? `<p style="margin:0 0 6px">${rounds.slice().reverse().map((x) => `<button class="ghost" data-r="${x}" style="margin-right:6px">${ROUND_NAME[x]}</button>`).join("")}</p>` : ""}
-    ${c ? `<pre>${esc(c.text)}</pre>${c.quotes.length ? `<ul class="qcheck">${c.quotes.map((q) => `<li class="${q.verified ? "" : "bad"}">"${esc(shorten(q.quote, 110))}" (${q.source}) ${q.verified ? "có trong bộ não" : "không tìm thấy trong bộ não"}</li>`).join("")}</ul>` : ""}` : `<p class="muted">Ghế này chưa lên tiếng.</p>`}
+    ${c ? `<pre>${esc(theVi(c.text))}</pre>${c.quotes.length ? `<ul class="qcheck">${c.quotes.map((q) => `<li class="${q.verified ? "" : "bad"}">"${esc(shorten(q.quote, 110))}" (${q.source}) ${q.verified ? "có trong bộ não" : "không tìm thấy trong bộ não"}</li>`).join("")}</ul>` : ""}` : `<p class="muted">Ghế này chưa lên tiếng.</p>`}
     <p class="muted" style="font-size:12px">Cố vấn mô phỏng, dựng từ tác phẩm công khai của ${esc(s.name)}. Không phải người thật.</p>`;
   $$("#cardBody [data-r]").forEach((b) => b.addEventListener("click", () => openCard(seat, Number(b.dataset.r))));
   const dlg = $("#cardDialog");
@@ -1300,7 +1331,7 @@ async function hoiAct(act, btn) {
 /** Agree the root problem and have the Chair draft the brief. boQua: skip the rounds, the brief takes the question as asked. */
 async function hoiChot(vanDeGoc, boQua = false) {
   const h = state.hoi;
-  hoiWait("Đang đọc wiki và soạn đề bài…", { tag: "Đề bài", sub: "thường mất vài phút" });
+  hoiWait("Đang đọc tài liệu và soạn đề bài…", { tag: "Đề bài", sub: "thường mất vài phút" });
   try {
     const j = await postJson(`/api/hoi/${encodeURIComponent(h.id)}/chot`, boQua ? { van_de_goc: null, bo_qua: true } : { van_de_goc: vanDeGoc });
     if (state.hoi !== h) return;
@@ -1337,14 +1368,24 @@ async function convene(btn) {
 async function openHistory() {
   const { sessions } = await fetch("/api/sessions").then((x) => x.json());
   $("#historyList").innerHTML = sessions.length
-    ? sessions.map((s) => `<li><button data-id="${esc(s.id)}"><b>${esc(s.title)}</b><small>${esc(s.id.slice(0, 10))} · ${esc(MODE_VI[s.mode] || s.mode)} · ${esc(STATUS_VI[s.status] || s.status)}</small></button>${s.status === "done" ? `<button class="pdf" type="button" data-pdf="${esc(s.id)}" title="Tải kết luận dạng PDF">PDF</button>` : ""}</li>`).join("")
+    ? sessions.map((s) => `<li><button data-id="${esc(s.id)}"><b>${esc(s.title)}</b><small>${esc(ngayCuaMa(s.id))} · ${esc(MODE_VI[s.mode] || s.mode)} · ${esc(STATUS_VI[s.status] || s.status)}</small></button>${s.status === "done" ? `<button class="pdf" type="button" data-pdf="${esc(s.id)}" title="Tải kết luận dạng PDF">PDF</button>` : ""}</li>`).join("")
     : '<li class="muted">Chưa có phiên nào. Triệu tập hội đồng một lần là phiên hiện ở đây.</li>';
   $$("#historyList button[data-id]").forEach((b) => b.addEventListener("click", () => { $("#historyDialog").close(); replay(b.dataset.id); }));
   $("#historyDialog").showModal();
 }
 
+/** Một phiên đã lưu; phiên không còn (404) hay dữ liệu hỏng thì ném lỗi tiếng Việt thay vì lỗi JS. */
+async function taiPhien(id) {
+  let r;
+  try { r = await fetch(`/api/sessions/${encodeURIComponent(id)}`); } catch (e) { throw new Error(loiVi(e.message || e)); }
+  const j = await r.json().catch(() => null);
+  if (!r.ok || !j || !Array.isArray(j.events)) throw new Error(r.status === 404 || !j?.error ? "Không thấy phiên này" : j.error);
+  return j;
+}
+
 async function replay(id) {
-  const j = await fetch(`/api/sessions/${encodeURIComponent(id)}`).then((x) => x.json());
+  let j;
+  try { j = await taiPhien(id); } catch (e) { toast(`Không phát lại được phiên: ${e.message}`); return; }
   begin(id);
   state.replaying = true;
   state.expectChairView = j.events.some((e) => e.type === "chair_view");
@@ -1442,7 +1483,7 @@ async function savePdf(btn) {
   try {
     let setup = state.setup, verdict = state.verdict, chairView = state.chairView;
     if (id) { // a past session from the history list
-      const j = await fetch("/api/sessions/" + encodeURIComponent(id)).then((x) => x.json());
+      const j = await taiPhien(id);
       setup = j.events.find((e) => e.type === "setup");
       verdict = [...j.events].reverse().find((e) => e.type === "verdict");
       chairView = [...j.events].reverse().find((e) => e.type === "chair_view");
@@ -1451,7 +1492,7 @@ async function savePdf(btn) {
     await downloadVerdictPdf({ setup, verdict, chairView, byKey: state.byKey, id: id || state.session });
   } catch (e) {
     console.error(e);
-    toast("Không tạo được PDF: " + (e.message || e));
+    toast("Không tạo được PDF: " + loiVi(e.message || e));
   } finally {
     btn.disabled = false;
     btn.textContent = old;
@@ -1470,8 +1511,8 @@ function toast(msg) {
 async function refreshUsage() {
   const u = await fetch("/api/usage").then((x) => x.json()).catch(() => null);
   if (!u || !u.calls) { $("#usage").textContent = ""; return; }
-  const k = (n) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : `${Math.round(n / 1000)}k`);
-  $("#usage").textContent = `${u.calls} lượt gọi · ${k(u.input + u.cacheRead + u.cacheWrite)} vào · ${k(u.output)} ra`;
+  const k = (n) => (n >= 1e6 ? `${(n / 1e6).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} triệu` : `${Math.round(n / 1000).toLocaleString("vi-VN")} nghìn`);
+  $("#usage").textContent = `${u.calls} lượt gọi · ${k(u.input + u.cacheRead + u.cacheWrite)} token vào · ${k(u.output)} token ra`;
 }
 
 boot();

@@ -7,6 +7,8 @@ import { SESSIONS_DIR, env } from "./env.mjs";
 import { LUAT_SO, kiemSo } from "./luat-so.mjs";
 import { goi, chuToa, gheCua, banMacDinh } from "./nganh.mjs";
 import { chiMucLuat, kiemLuat, gopKiemLuat, canhBaoLuat } from "./kiem-luat.mjs";
+import { slugVi, NHAN } from "./phieu.mjs";
+import { ngayIso, ngayVN } from "./ngay.mjs";
 
 export const MODELS = {
   seat: env("SEAT_MODEL") || "claude-sonnet-5-5",
@@ -25,7 +27,7 @@ const chairSystem = (st) => {
     ? `${seats.length} simulated expert roles (not real people), each built from current law, official procedures and professional practice: ${seats.map((x) => `${x.name} (${x.pillar.toLowerCase()})`).join(", ")}`
     : `${seats.length} simulated advisors built from the public work of ${seats.map((x) => `${x.name} (${x.pillar.toLowerCase()})`).join(", ")}`;
   return `You are the Chair of a Hội đồng chuyên gia council (gói ngành: ${g.ten}): ${ai}.
-You never argue a side and never add your own pillar. You run the room, keep score, and write in plain English: short sentences, no em dashes, no hype, no tee-ups like "here's the thing", no filler. Seat keys (for key fields only): ${seats.map((x) => x.key).join(", ")}. Whenever you write a seat's name in prose or in a seat field, use its display name: ${seats.map((x) => x.short).join(", ")}. Viết mọi chữ hiển thị (title, decision, brief, options, verdict) bằng tiếng Việt khi câu hỏi bằng tiếng Việt.${luatNganh(st)}`;
+You never argue a side and never add your own pillar. You run the room and keep score. Write every human-readable field in formal Vietnamese (tiếng Việt trang trọng): short sentences, no em dashes, no hype, no tee-ups like "here's the thing", no filler. JSON keys and the label enum stay exactly as given in the schema. Seat keys (for key fields only): ${seats.map((x) => x.key).join(", ")}. Whenever you write a seat's name in prose or in a seat field, use its display name: ${seats.map((x) => x.short).join(", ")}. Viết mọi chữ hiển thị (title, decision, brief, options, verdict) bằng tiếng Việt trang trọng, câu ngắn.${luatNganh(st)}`;
 };
 
 // Luật riêng của gói ngành (nganh/<key>.md, mục "Luật ngành"), gửi cho Chủ toạ và mọi ghế.
@@ -36,14 +38,16 @@ export const tongKiemLuat = (st) => gopKiemLuat([1, 2, 3].flatMap((r) => Object.
 /** Lời miễn trừ của phiên: theo gói ngành, mặc định là lời của bản gốc. */
 export const tuyenBo = (st) => st?.goi?.tuyen_bo || DISCLAIMER;
 
-export const DISCLAIMER = "Simulated advisors built from each person's public work. They are not the people and do not speak for them.";
+// Trùng DISCLAIMER_VI trong app/public/pdf.js: sửa một chỗ thì sửa cả hai.
+export const DISCLAIMER = "Cố vấn mô phỏng, dựng từ tác phẩm công khai của từng người. Họ không phải người thật và không phát ngôn thay những người đó.";
 
 // ---------------------------------------------------------------- sessions
 const sessions = new Map();
 export const getSession = (id) => sessions.get(id);
 
-function slugify(t) {
-  return (t || "council").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "council";
+// Bỏ dấu đúng cách ("Đổi thẻ tạm trú" thành "doi-the-tam-tru"), không xoá chữ có dấu.
+export function slugify(t) {
+  return slugVi(t || "hoi-dong").slice(0, 50).replace(/-+$/, "") || "hoi-dong";
 }
 
 // A follow-up council (họp tiếp) also carries parent, lan, goc_prompt, phieu, bo_sung and
@@ -51,7 +55,8 @@ function slugify(t) {
 // meeting writes into, this meeting's addition and the earlier ones.
 const LINK = ["parent", "lan", "goc_prompt", "phieu", "bo_sung", "bo_sung_truoc", "nganh"];
 function newSession(prompt, mode, extra = {}) {
-  const id = `${new Date().toISOString().slice(0, 10)}-${Date.now().toString(36)}`;
+  // ngày theo giờ Việt Nam: hội đồng họp lúc 0 giờ đến 7 giờ sáng không mang ngày hôm trước
+  const id = `${ngayIso()}-${Date.now().toString(36)}`;
   const s = { id, prompt, mode, status: "running", events: [], subs: new Set(), started: Date.now(), state: {} };
   for (const k of LINK) if (extra[k] != null) s[k] = extra[k];
   sessions.set(id, s);
@@ -79,6 +84,9 @@ function briefBlock(st) {
   const goc = st.prompt ? `\n\nTHE FOUNDER'S BRIEF, VERBATIM, WITH THE SECRETARY'S SỐ LIỆU SHEET (the only source of numbers about this business):\n"""${st.prompt}"""` : "";
   return `THE DECISION: ${st.decision}\n\nOPTIONS:\n${opts}\n\n${st.brief}\n\nAssumptions the Chair made (marked as assumed; challenge them if they matter):\n${st.assumptions.map((a) => `- ${a}`).join("\n")}${goc}`;
 }
+// Nhãn trường và giá trị liệt kê là giao kèo với bộ đọc phiếu (seats.mjs parseCard): giữ tiếng Anh.
+// Mọi nội dung khác viết tiếng Việt trang trọng.
+const NGON_NGU_PHIEU = `LANGUAGE: Keep every field label (SEAT, STANCE, OPTION SCORES, PILLAR SCORE, CONFIDENCE, RUIN RISK, DOOR, THE CALL, WHY, THE RISK I SEE, WHAT WOULD CHANGE MY MIND, WHAT I'D DO THIS WEEK, PRE-MORTEM, QUESTION FOR THE FOUNDER, I DISAGREE MOST WITH, I CONCEDE, ON THE CRUXES, MOVED, MY CONDITIONS FOR YES, VOTE, FINAL SCORE, FINAL PILLAR SCORE, AMENDMENT OR DISSENT, ONE LINE FOR THE FOUNDER) exactly in English capitals as shown. On STANCE, RUIN RISK, DOOR, MOVED and VOTE, start with one of the English values shown (Strong yes | Yes | Conditional yes | No | Strong no; none | possible | likely; one-way | two-way; no | yes, from X to Y; Endorse | Endorse with amendment | Dissent); you may add a Vietnamese explanation after it. Write everything else in formal Vietnamese (tiếng Việt trang trọng), short sentences. Verbatim quotes from your brain stay in their original language inside quotation marks with the source id; add a Vietnamese gloss after them if useful.`;
 const optLine = (st) => st.options.map((o) => `${o.id} n/10`).join(" · ");
 
 function round1Prompt(st, seat) {
@@ -115,6 +123,8 @@ QUESTION FOR THE FOUNDER: the one question you would ask before signing off.
 
 Rules: argue from your pillar first. Quote only verbatim lines from your brain, with the source id. Do not hedge to sound balanced; the Chair balances the council.
 
+${NGON_NGU_PHIEU}
+
 ${LUAT_SO}${luatNganh(st)}`;
 }
 
@@ -123,7 +133,7 @@ ${LUAT_SO}${luatNganh(st)}`;
 const bam = (t) => [...String(t)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
 export function cardsBlock(st, round, choGhe = null) {
   const keys = choGhe ? st.seats.slice().sort((a, b) => bam(choGhe + a) - bam(choGhe + b)) : st.seats;
-  return keys.map((k) => `### ${byKey[k].short}${choGhe ? "" : ` (weight ${st.weights[k].weight})`}\n${st.cards[round][k]?.text || "(no card)"}`).join("\n\n");
+  return keys.map((k) => `### ${byKey[k].short}${choGhe ? "" : ` (trọng số ${st.weights[k].weight})`}\n${st.cards[round][k]?.text || "(không có phiếu)"}`).join("\n\n");
 }
 
 function round2Prompt(st, seat) {
@@ -158,6 +168,8 @@ MY CONDITIONS FOR YES: up to three, concrete and checkable (a number, a date, a 
 
 Rules: engage the actual arguments on the table. Move only for a better argument, never to be agreeable. If everyone agrees with you, attack the weakest part of your own case. A rebuttal built on a number with no source loses to one built on a sourced number.
 
+${NGON_NGU_PHIEU}
+
 ${LUAT_SO}${luatNganh(st)}`;
 }
 
@@ -191,6 +203,8 @@ FINAL SCORE: n/10   (your support for the draft resolution as written)
 FINAL PILLAR SCORE: n/10
 AMENDMENT OR DISSENT: one or two sentences. Blank if you endorse.
 ONE LINE FOR THE FOUNDER: the thing from your pillar they must not forget.
+
+${NGON_NGU_PHIEU}
 
 ${LUAT_SO}${luatNganh(st)}`;
 }
@@ -367,7 +381,7 @@ const CHAIR_VIEW = S.obj({
  * the fastest test. He never changes the verdict, and a failure here leaves the verdict and the
  * phiếu as they are: the page just says there is no view. */
 export async function addChairView(s, st, json = ai.json, { timeoutMs = Number(env("CHAIR_VIEW_TIMEOUT_MS")) || 300000 } = {}) {
-  emit(s, "phase", { phase: "chair_view", label: "The Chair is giving his own view" });
+  emit(s, "phase", { phase: "chair_view", label: "Chủ toạ đang nêu góc nhìn của mình" });
   const key = st.chair || chairSeat();
   if (!byKey[key]) return;
   const v = st.verdict;
@@ -463,7 +477,7 @@ async function run(s) {
   const st = (s.state = { prompt: s.prompt, mode: s.mode, pick, goi: g, chair, board: tableBoard(pick, gheCua(g), banMacDinh(g), chair), cards: { 1: {}, 2: {}, 3: {} }, scores: {}, rounds: [] });
   // gói theo vai nghề: dựng chỉ mục văn bản đã xác minh từ não của mọi ghế trong gói và Chủ toạ
   if (g.loai === "vai-tro") st.luatIdx = chiMucLuat([...gheCua(g), chair].filter((k) => byKey[k]).map((k) => byKey[k].slug));
-  emit(s, "phase", { phase: "setup", label: "The Chair is reading your question" });
+  emit(s, "phase", { phase: "setup", label: "Chủ toạ đang đọc câu hỏi" });
   const setup = await chairSetup(st);
   Object.assign(st, {
     title: setup.title, decision: setup.decision, brief: setup.brief,
@@ -480,17 +494,17 @@ async function run(s) {
   st.board = st.seats.slice(); // later Chair calls only see the seats at the table
   emit(s, "setup", { title: st.title, decision: st.decision, brief: st.brief, options: st.options, assumptions: st.assumptions, weights: st.weights, seats: st.seats, mode: s.mode, nganh: g.key, chair });
 
-  emit(s, "phase", { phase: "round1", label: "Round 1: opening positions" });
+  emit(s, "phase", { phase: "round1", label: "Vòng 1: quan điểm mở đầu" });
   st.rounds.push(1);
   await roundAll(s, st, 1, round1Prompt);
 
-  emit(s, "phase", { phase: "cruxes", label: "The Chair is finding the fault lines" });
+  emit(s, "phase", { phase: "cruxes", label: "Chủ toạ đang tìm điểm vênh" });
   const cx = await chairCruxes(st);
   st.cruxes = cx.cruxes;
   st.pressure = Object.fromEntries((cx.pressure || []).map((p) => [p.seat, p.ask]));
   emit(s, "cruxes", { cruxes: cx.cruxes, unanimous: cx.unanimous, note: cx.note, pressure: st.pressure });
 
-  emit(s, "phase", { phase: "round2", label: "Round 2: the debate" });
+  emit(s, "phase", { phase: "round2", label: "Vòng 2: tranh luận" });
   st.rounds.push(2);
   await roundAll(s, st, 2, round2Prompt);
 
@@ -502,19 +516,19 @@ async function run(s) {
   const skip3 = s.mode === "quick" && spread <= 3 && !ruin;
 
   if (!skip3) {
-    emit(s, "phase", { phase: "draft", label: "The Chair is drafting a resolution" });
+    emit(s, "phase", { phase: "draft", label: "Chủ toạ đang soạn đề xuất" });
     st.draft = await chairDraft(st, s2);
     emit(s, "draft", { draft: st.draft });
-    emit(s, "phase", { phase: "round3", label: "Round 3: the vote" });
+    emit(s, "phase", { phase: "round3", label: "Vòng 3: bỏ phiếu" });
     st.rounds.push(3);
     await roundAll(s, st, 3, round3Prompt);
   } else {
-    emit(s, "phase", { phase: "skip3", label: `Quick mode: spread ${spread} and no ruin risk, so the vote round is skipped` });
+    emit(s, "phase", { phase: "skip3", label: `Chế độ nhanh: độ chênh ${soVi(spread)}, không có rủi ro sập, nên bỏ vòng bỏ phiếu` });
   }
 
   const { last, finalScores, recommended, spreadF, confidence, support, votes } = finalNumbers(st);
 
-  emit(s, "phase", { phase: "verdict", label: "The Chair is writing the verdict" });
+  emit(s, "phase", { phase: "verdict", label: "Chủ toạ đang viết kết luận" });
   const v = await chairVerdict(st, finalScores, recommended);
   st.verdict = { ...v, recommended, scores: finalScores, spread: spreadF, confidence, support, votes, disclaimer: tuyenBo(st) };
   st.verdict.kiem_so = kiemSo({ dauVao: dauVaoSo(st), soLieu: v.so_lieu, cacBan: cacBanSo(st.verdict, st), vanBan: vanBanKetLuan(v) });
@@ -596,12 +610,12 @@ export function save(s) {
     const link = Object.fromEntries(LINK.filter((k) => s[k] != null).map((k) => [k, s[k]]));
     fs.writeFileSync(path.join(dir, "events.json"), JSON.stringify({ id: s.id, prompt: s.prompt, mode: s.mode, status: s.status, title: st.title, ...link, events: s.events }, null, 1));
     if (st.options) {
-      const lines = [`# ${st.title}`, "", `Asked: ${s.prompt}`, "", st.brief, "", "Options:", ...st.options.map((o) => `- ${o.id}: ${o.label}`), "", "Assumptions:", ...(st.assumptions || []).map((a) => `- ${a}`), "", "| Seat | Weight | Reason |", "|---|---|---|", ...st.seats.map((k) => `| ${byKey[k].short} | ${st.weights[k].weight} | ${st.weights[k].reason} |`)];
+      const lines = [`# ${st.title}`, "", `Câu hỏi: ${s.prompt}`, "", st.brief, "", "Phương án:", ...st.options.map((o) => `- ${o.id}: ${o.label}`), "", "Giả định:", ...(st.assumptions || []).map((a) => `- ${a}`), "", "| Ghế | Trọng số | Lý do |", "|---|---|---|", ...st.seats.map((k) => `| ${byKey[k].short} | ${st.weights[k].weight} | ${st.weights[k].reason} |`)];
       fs.writeFileSync(path.join(dir, "brief.md"), lines.join("\n") + "\n");
     }
     for (const r of st.rounds || []) {
-      const body = (st.seats || []).map((k) => `## ${byKey[k].name} (weight ${st.weights[k].weight})\n\n${st.cards[r][k]?.text || ""}`).join("\n\n");
-      fs.writeFileSync(path.join(dir, `round-${r}.md`), `# Round ${r}\n\n${body}\n`);
+      const body = (st.seats || []).map((k) => `## ${byKey[k].name} (trọng số ${st.weights[k].weight})\n\n${st.cards[r][k]?.text || ""}`).join("\n\n");
+      fs.writeFileSync(path.join(dir, `round-${r}.md`), `# Vòng ${r}\n\n${body}\n`);
     }
     if (st.verdict) fs.writeFileSync(path.join(dir, "verdict.md"), verdictMarkdown(st));
     s.dir = dir;
@@ -610,28 +624,33 @@ export function save(s) {
   }
 }
 
+// Số kiểu Việt: 7,5 thay vì 7.5.
+const soVi = (x) => (typeof x === "number" ? String(x).replace(".", ",") : x ?? "-");
+const CHE_DO = { full: "đầy đủ", quick: "nhanh" };
+
 function verdictMarkdown(st) {
   const v = st.verdict;
   const opt = (id) => st.options.find((o) => o.id === id)?.label || id;
+  const cachTinh = (m) => String(m || "").replace(/(\d)x(\d)/g, "$1×$2").replace(/(\d)\.(\d)/g, "$1,$2");
   const L = [];
-  L.push(`# Hội đồng chuyên gia: ${st.title}`, "", `${new Date().toISOString().slice(0, 10)} · Seats: ${st.seats.map((k) => byKey[k].short).join(", ")} · Rounds: ${st.rounds.length} · Mode: ${st.mode}`, "");
-  L.push(`## Verdict: ${v.label} (Option ${v.recommended}: ${opt(v.recommended)})`, "", `**The call:** ${v.call}`, "");
-  L.push(`Option scores: ${st.options.map((o) => `${o.id} ${v.scores[o.id]?.score ?? "-"}`).join(" · ")}${v.support != null ? ` · Support for the resolution ${v.support}/10` : ""} · Confidence ${v.confidence ?? "-"}/10 · Spread ${v.spread}`);
+  L.push(`# Hội đồng chuyên gia: ${st.title}`, "", `${ngayVN(new Date())} · Ghế: ${st.seats.map((k) => byKey[k].short).join(", ")} · Số vòng: ${st.rounds.length} · Chế độ: ${CHE_DO[st.mode] || st.mode}`, "");
+  L.push(`## Kết luận: ${NHAN[v.label] || v.label} (phương án ${v.recommended}: ${opt(v.recommended)})`, "", `**Quyết định đề xuất:** ${v.call}`, "");
+  L.push(`Điểm các phương án: ${st.options.map((o) => `${o.id} ${soVi(v.scores[o.id]?.score)}`).join(" · ")}${v.support != null ? ` · Mức ủng hộ đề xuất ${soVi(v.support)}/10` : ""} · Độ tin cậy ${soVi(v.confidence)}/10 · Độ chênh ${soVi(v.spread)}`);
   if (v.override_note) L.push("", v.override_note);
-  L.push("", "Math: " + st.options.map((o) => `${o.id} ${v.scores[o.id]?.math} = ${v.scores[o.id]?.score}`).join(" · "));
-  L.push("", "## Why the council landed here", "", ...v.why.map((w) => `- ${w.point} (${w.seat}, ${w.framework})`));
-  L.push("", "## Where they fought", "", ...v.fights.map((f) => `- **${f.crux}** ${f.story}`));
-  L.push("", "## Minority report", "", `${v.minority.seat}: "${v.minority.quote}" For this to be right: ${v.minority.would_have_to_be_true}`);
-  if (v.amendments?.length) L.push("", "## Amendments", "", ...v.amendments.map((a) => `- ${a.seat}: ${a.amendment} ${a.adopted ? "Adopted" : "Not adopted"}: ${a.reason}`));
-  L.push("", "## Conditions", "", ...v.conditions.map((c, i) => `${i + 1}. ${c}`));
-  L.push("", "## What to do next", "", ...v.next_steps.map((n) => `- **${n.when}:** ${n.action}`));
+  L.push("", "Cách tính: " + st.options.map((o) => `${o.id} ${cachTinh(v.scores[o.id]?.math)} = ${soVi(v.scores[o.id]?.score)}`).join(" · "));
+  L.push("", "## Vì sao hội đồng đi đến kết luận này", "", ...v.why.map((w) => `- ${w.point} (${w.seat}, ${w.framework})`));
+  L.push("", "## Chỗ họ tranh cãi", "", ...v.fights.map((f) => `- **${f.crux}** ${f.story}`));
+  L.push("", "## Ý kiến thiểu số", "", `${v.minority.seat}: "${v.minority.quote}" Để ý kiến này đúng thì: ${v.minority.would_have_to_be_true}`);
+  if (v.amendments?.length) L.push("", "## Đề xuất sửa đổi", "", ...v.amendments.map((a) => `- ${a.seat}: ${a.amendment} ${a.adopted ? "Được chấp nhận" : "Không chấp nhận"}: ${a.reason}`));
+  L.push("", "## Điều kiện", "", ...v.conditions.map((c, i) => `${i + 1}. ${c}`));
+  L.push("", "## Việc làm tiếp theo", "", ...v.next_steps.map((n) => `- **${n.when}:** ${n.action}`));
   if (v.kiem_luat && (v.kiem_luat.het.length || v.kiem_luat.ngoai.length)) {
     L.push("", "## Kiểm điều luật", "");
     if (v.kiem_luat.het.length) L.push(`- **Hết hiệu lực hoặc đã bị thay thế (không dùng làm căn cứ):** ${v.kiem_luat.het.map((x) => `${x.so}${x.ten ? ` (${x.ten})` : ""}`).join("; ")}`);
     if (v.kiem_luat.ngoai.length) L.push(`- **Chưa có trong nguồn đã xác minh (CẦN KIỂM TRA):** ${v.kiem_luat.ngoai.map((x) => x.so).join("; ")}`);
   }
   if (v.a_dua?.doi_theo) L.push("", `Chỉ số a dua: ${v.a_dua.doi_theo}/${v.a_dua.khac_so_dong} ghế mở đầu khác số đông đã đổi sang phương án ${v.a_dua.so_dong} ở vòng tranh luận (${v.a_dua.ghe.join(", ")}). Đọc lại lý do đổi trong thẻ vòng 2.`);
-  L.push("", `**Cheapest test:** ${v.cheapest_test}`, `**Kill criteria:** ${v.kill_criteria}`, `**Revisit:** ${v.revisit}`, "", "---", tuyenBo(st), "");
+  L.push("", `**Cách thử rẻ nhất:** ${v.cheapest_test}`, `**Dừng nếu:** ${v.kill_criteria}`, `**Xem lại vào:** ${v.revisit}`, "", "---", tuyenBo(st), "");
   return L.join("\n");
 }
 

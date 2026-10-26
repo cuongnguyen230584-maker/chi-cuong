@@ -19,11 +19,12 @@ if (!buildArg || !targets.length) {
 const BUILD = path.resolve(buildArg);
 const sources = JSON.parse(fs.readFileSync(path.join(BUILD, "sources.json"), "utf8"));
 
-const norm = (s) => s.toLowerCase()
+// NFC + \p{L}: Vietnamese letters with dấu stay, so a quote with a wrong dấu does not match.
+const norm = (s) => s.normalize("NFC").toLowerCase()
   .replace(/[‘’`]/g, "'").replace(/[“”]/g, '"')
   .replace(/'\s+(t|s|re|ll|ve|d|m)\b/g, "'$1")
   .replace(/\[\d\d:\d\d(:\d\d)?\]/g, " ")
-  .replace(/[^a-z0-9' ]+/g, " ").replace(/\s+/g, " ").trim();
+  .replace(/[^\p{L}\p{N}' ]+/gu, " ").replace(/\s+/g, " ").trim();
 const corpus = new Map(sources.map((s) => [s.id, norm(fs.readFileSync(path.join(BUILD, s.file), "utf8"))]));
 
 const files = [];

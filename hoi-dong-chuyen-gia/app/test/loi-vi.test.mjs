@@ -12,3 +12,16 @@ test("loiVi: lỗi CLI tiếng Anh hay gặp ra tiếng Việt, giữ chuỗi g�
   assert.equal(loiVi("Không thấy phiên hỏi abc"), "Không thấy phiên hỏi abc");
   assert.ok(loiVi("usage limit " + "x".repeat(500)).length < 260);
 });
+
+test("loiVi: lỗi của anthropic.mjs và lỗi mạng cũng ra tiếng Việt", () => {
+  assert.match(loiVi("Anthropic 529: overloaded_error"), /^Máy chủ Claude đang quá tải, thử lại sau · /);
+  assert.match(loiVi("Anthropic API kept refusing after retries"), /^Máy chủ Claude liên tục từ chối/);
+  assert.match(loiVi('Anthropic stream error: {"type":"api_error"}'), /^Kết nối tới Claude bị ngắt giữa chừng · /);
+  assert.match(loiVi("Chair output hit max_tokens"), /^Câu trả lời của Chủ toạ bị cắt vì quá dài · /);
+  assert.match(loiVi("claude CLI exited 127: command not found"), /^Không chạy được Claude Code CLI/);
+  assert.match(loiVi("spawn claude ENOENT"), /^Không chạy được Claude Code CLI/);
+  assert.match(loiVi(`Unexpected token 'x', "xx" is not valid JSON`), /^Claude trả về dữ liệu sai định dạng/);
+  assert.match(loiVi("TypeError: Failed to fetch"), /^Mất kết nối tới máy chủ · /);
+  assert.match(loiVi("Claude Code: something odd"), /^Claude Code báo lỗi · Claude Code: something odd$/);
+  assert.match(loiVi("Anthropic 400: bad request"), /^Máy chủ Claude báo lỗi · /);
+});
