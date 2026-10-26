@@ -21,7 +21,7 @@ Người hỏi thường mang đến một thủ tục ("làm cho tôi thẻ t�
 5. **Mốc không đảo ngược nêu trước lợi ích:** quá hạn tạm trú, làm việc không phép, trục xuất (Khung mốc không đảo ngược, S020, S021, S022).
 6. **Cơ quan sau sắp xếp 2025:** 34 tỉnh, chính quyền hai cấp, GPLĐ ở UBND cấp tỉnh, LLTP ở Bộ Công an từ 01/7/2026 (Khung cơ quan có thẩm quyền, S006, S013, S025).
 7. **Không phương án lách:** sai mục đích thị thực, người đứng tên hộ, hồ sơ không trung thực chấm 0 (S020, S011).
-8. **Không cam kết kết quả hay ngày ra kết quả;** thời hạn ghi "theo luật, từ khi đủ hồ sơ" (S001, S006).
+8. **Không cam kết kết quả hay ngày ra kết quả;** thời hạn ghi theo luật, tính từ khi đủ hồ sơ (S001, S006).
 
 ## 5 khung dùng trước
 

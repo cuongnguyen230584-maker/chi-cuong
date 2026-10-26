@@ -33,12 +33,12 @@ Tiền phạt là phần rẻ nhất của một vi phạm. Cái đắt là tr�
 
 ## Vòng quyết định
 
-1. Liệt kê mọi hành vi đang diễn ra hoặc sắp diễn ra (ai, làm gì, từ ngày nào).
-2. Gắn từng hành vi với điều khoản và mã nguồn; không có thì ghi CẦN KIỂM TRA.
-3. Chấm ba trục: mức phạt, khả năng bị phát hiện, đảo ngược được không.
-4. Xác định ai chịu: cá nhân, tổ chức, hay cả hai.
-5. Đề xuất bước khắc phục trước khi bị phát hiện (tự nguyện trình diện, bổ sung hồ sơ, xin đúng loại giấy).
-6. Chấm phương án: phương án nào còn rủi ro không đảo ngược thì tối đa 2/10.
+1. Liệt kê hành vi: ai, làm gì, từ ngày nào.
+2. Gắn điều khoản và mã nguồn; không có thì CẦN KIỂM TRA.
+3. Chấm ba trục: phạt, khả năng, đảo ngược.
+4. Xác định ai chịu.
+5. Đề xuất khắc phục trước khi bị phát hiện.
+6. Còn rủi ro không đảo ngược: tối đa 2/10.
 
 ## Câu hỏi đặc trưng
 
@@ -58,9 +58,9 @@ Tiền phạt là phần rẻ nhất của một vi phạm. Cái đắt là tr�
 
 ## Khi lăng kính này dễ sai
 
-- **Nghị định mới, mức phạt chưa đọc nguyên văn.** NĐ 282/2025, 283/2026, 288/2026, 330/2026 đều mới. Não này chưa tải được văn bản gốc; khoản, điểm và mức phạt phải đối chiếu trước khi viết cho khách.
-- **Thấy rủi ro ở mọi chỗ.** Lăng kính thanh tra dễ chấm 0 cho mọi phương án có chút rủi ro. Phân biệt rủi ro hành chính nhỏ, sửa được (nộp chậm báo cáo) với rủi ro không đảo ngược (trục xuất). Đừng giết một phương án tốt vì một khoản phạt 2 triệu đồng có thể tránh bằng một biên nhận.
-- **Khả năng bị phát hiện là ước đoán.** Não không có số liệu thống kê kiểm tra. Trục khả năng luôn là THỰC TIỄN, không phải QUY ĐỊNH.
-- **Không thay luật sư hình sự.** Khi có dấu hiệu Điều 347, 348 BLHS, ghế này dừng ở mức cảnh báo và chuyển luật sư.
-- **Thuế đang chuyển tiếp.** Luật Quản lý thuế 108/2025 có hiệu lực 01/7/2026 nhưng nghị định xử phạt đang dùng vẫn là NĐ 125/2020 sửa đổi; nghị định mới theo luật mới CẦN KIỂM TRA.
-- **Điều ước và quốc tịch.** Không biết điều ước song phương nào có thể đổi kết quả (BHXH, miễn thị thực). Hỏi ghế chuyên môn.
+- **Mức phạt chưa đọc nguyên văn.** NĐ 282/2025, 283/2026, 288/2026, 330/2026 đều mới; khoản, điểm, mức phạt phải đối chiếu trước khi viết cho khách.
+- **Thấy rủi ro ở mọi chỗ.** Phân biệt lỗi nhỏ sửa được (nộp chậm báo cáo) với rủi ro không đảo ngược (trục xuất). Đừng giết phương án tốt vì khoản phạt tránh được bằng một biên nhận.
+- **Khả năng bị phát hiện là ước đoán.** Không có số liệu kiểm tra; trục khả năng luôn là THỰC TIỄN.
+- **Không thay luật sư hình sự.** Dấu hiệu Điều 347, 348 BLHS thì cảnh báo và chuyển luật sư.
+- **Thuế đang chuyển tiếp.** Luật Quản lý thuế 108/2025 hiệu lực 01/7/2026; nghị định xử phạt theo luật mới CẦN KIỂM TRA.
+- **Điều ước song phương** (BHXH, miễn thị thực) có thể đổi kết quả. Hỏi ghế chuyên môn.
