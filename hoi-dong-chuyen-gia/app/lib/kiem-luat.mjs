@@ -62,6 +62,8 @@ export function kiemLuat(text, idx) {
     const x = idx.get(so);
     if (!x) r.ngoai.push({ so });
     else if (x.trang_thai === "het") r.het.push({ so, ten: x.ten, nguon: x.nguon });
+    // có trong nguồn nhưng tình trạng chưa xác minh: cũng phải ghi CẦN KIỂM TRA
+    else if (!x.trang_thai) r.ngoai.push({ so, ten: x.ten, nguon: x.nguon, chua_ro: true });
     else r.con.push({ so, ten: x.ten, nguon: x.nguon });
   }
   return r;
@@ -79,6 +81,6 @@ export function canhBaoLuat(k) {
   if (!k || (!k.het.length && !k.ngoai.length)) return "";
   const L = ["KIỂM ĐIỀU LUẬT (máy dò số hiệu văn bản trong các thẻ, đối chiếu nguồn đã xác minh của các não):"];
   if (k.het.length) L.push(`- HẾT HIỆU LỰC hoặc ĐÃ BỊ THAY THẾ, không được dùng làm căn cứ: ${k.het.map((x) => `${x.so}${x.ten ? ` (${x.ten})` : ""}`).join("; ")}.`);
-  if (k.ngoai.length) L.push(`- CHƯA CÓ trong nguồn đã xác minh, chỉ được nhắc kèm nhãn CẦN KIỂM TRA: ${k.ngoai.map((x) => x.so).join("; ")}.`);
+  if (k.ngoai.length) L.push(`- CHƯA XÁC MINH tình trạng hoặc CHƯA CÓ trong nguồn đã xác minh, chỉ được nhắc kèm nhãn CẦN KIỂM TRA: ${k.ngoai.map((x) => x.so).join("; ")}.`);
   return L.join("\n");
 }

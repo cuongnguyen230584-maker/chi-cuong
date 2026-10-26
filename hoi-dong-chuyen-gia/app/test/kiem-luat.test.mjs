@@ -21,9 +21,11 @@ test("đối chiếu với nguồn của não: còn, hết, ngoài nguồn", () 
   fs.mkdirSync(path.join(dir, "a"));
   fs.writeFileSync(path.join(dir, "a", "sources.md"), [
     "- S001 | Luật Đầu tư số 61/2020/QH14 | u | ban hành 17/6/2020 | hiệu lực 01/01/2021 | TÌNH TRẠNG: còn hiệu lực | kiểm tra ngày 26/10/2026",
+    "- S003 | Thông tư 31/2015/TT-BCA | u | | | TÌNH TRẠNG: CẦN KIỂM TRA | k",
     "- S002 | Nghị định 152/2020/NĐ-CP | u | | | TÌNH TRẠNG: hết hiệu lực, thay thế bởi Nghị định 219/2025/NĐ-CP | k",
   ].join("\n"));
   const idx = chiMucLuat(["a", "khong-co"], dir);
+  assert.equal(kiemLuat("TT 31/2015/TT-BCA", idx).ngoai[0]?.chua_ro, true, "tình trạng chưa rõ thì không coi là còn hiệu lực");
   const k = kiemLuat("Căn cứ 61/2020/QH14 và NĐ 152/2020/NĐ-CP, thêm 99/2099/NĐ-CP", idx);
   assert.deepEqual(k.con.map((x) => x.so), ["61/2020/QH14"]);
   assert.deepEqual(k.het.map((x) => x.so), ["152/2020/NĐ-CP"]);

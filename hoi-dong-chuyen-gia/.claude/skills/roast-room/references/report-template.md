@@ -1,53 +1,55 @@
-# Report template (the Chair's verdict)
+# Mẫu báo cáo (kết luận của Chủ toạ)
 
-Written by the Chair in plain English. No em dashes. No AI filler: state each point once, no tee-ups, no "here's the thing". Seat quotes keep their own voice. Keep the whole report under about 1,000 words; the round files hold the detail. Reference report: `sessions/2026-10-09-example-take-the-seed/verdict.md`.
+Chủ toạ viết bằng tiếng Việt trang trọng, câu ngắn. Không dùng gạch ngang dài. Không sáo rỗng: mỗi ý nói một lần, không rào đón, không "vấn đề ở đây là". Lời trích của từng ghế giữ nguyên giọng của ghế đó; câu trích nguyên văn từ bộ não giữ ngôn ngữ gốc, có mã nguồn, có thể kèm lời dịch tiếng Việt. Cả báo cáo dưới khoảng 1.000 từ; chi tiết nằm trong các file vòng. Viết số kiểu Việt: 7,5 (thập phân), 1.000 (nghìn). Báo cáo tham khảo: `sessions/2026-10-09-example-take-the-seed/verdict.md`.
+
+Nhãn kết luận trong báo cáo ghi tiếng Việt: LÀM, LÀM CÓ ĐIỀU KIỆN, ĐIỀU CHỈNH, CHỜ, KHÔNG LÀM. Trường `label` trong `verdict.json` và `draft.json` vẫn giữ mã tiếng Anh (GO, GO WITH CONDITIONS, RESHAPE, WAIT, DON'T DO IT) vì phòng họp đọc theo mã đó (xem `live-room.md`).
 
 ```markdown
-# Hội đồng chuyên gia: [decision in a few words]
+# Hội đồng chuyên gia: [quyết định, vài chữ]
 
-[date] · Seats: [list] · Rounds: [n] · Mode: [full | quick | named seats]
+[dd/mm/yyyy] · Ghế: [danh sách] · Số vòng: [n] · Chế độ: [đầy đủ | nhanh | ghế chỉ định]
 
-## Verdict: [GO | GO WITH CONDITIONS | RESHAPE | WAIT | DON'T DO IT]
+## Kết luận: [LÀM | LÀM CÓ ĐIỀU KIỆN | ĐIỀU CHỈNH | CHỜ | KHÔNG LÀM]
 
-**The call:** [one or two sentences the founder can act on, naming the option]
+**Quyết định đề xuất:** [một hoặc hai câu người hỏi làm theo được, nêu rõ phương án]
 
-Option scores: [A] x.x · [B] x.x · [C] x.x · Support for the resolution x.x/10 · Confidence n/10 · Spread n · Vote: [n] endorse, [n] amend, [n] dissent
-[Any override applied, in one line, or omit]
+Điểm các phương án: [A] x,x · [B] x,x · [C] x,x · Mức ủng hộ đề xuất x,x/10 · Độ tin cậy n/10 · Độ chênh n · Phiếu: [n] đồng ý, [n] sửa đổi, [n] phản đối
+[Luật điều chỉnh đã áp dụng, nếu có, trong một dòng; không có thì bỏ]
 
-## Scorecard
+## Bảng điểm
 
-| Seat | Weight | Final stance | [A] | [B] | [C] | Pillar score | Moved? | Their line |
+| Ghế | Trọng số | Lập trường cuối | [A] | [B] | [C] | Điểm mảng | Đổi ý? | Câu chốt |
 |---|---|---|---|---|---|---|---|---|
-| Buffett (money) | 3 | ... | 1 | 6 | 7 | 8 | gated B to C default | "[their one line for the founder]" |
+| Buffett (tiền và vốn) | 3 | ... | 1 | 6 | 7 | 8 | từ B sang C | "[câu chốt của ghế cho người hỏi]" |
 
-Math: [one line per option]
+Cách tính: [mỗi phương án một dòng, ví dụ (3×8 + 2×7) / 5 = 7,6]
 
-## Why the council landed here
+## Vì sao hội đồng đi đến kết luận này
 
-[3 to 5 bullets: the arguments that carried the room, each tagged with the seat and framework, e.g. (Hormozi, Value Equation)]
+[3 đến 5 gạch đầu dòng: các lập luận đã thuyết phục hội đồng, mỗi ý ghi ghế và khung lý thuyết, ví dụ (Hormozi, Value Equation)]
 
-## Where they fought
+## Chỗ họ tranh cãi
 
-[One short block per crux: the question, who was on each side, who moved and why, how it resolved or why it did not]
+[Mỗi điểm vênh một đoạn ngắn: câu hỏi, ai đứng bên nào, ai đổi ý và vì sao, kết quả ra sao hoặc vì sao chưa ngã ngũ]
 
-## Minority report
+## Ý kiến thiểu số
 
-[The strongest dissent or minority view, in the seat's words, and what would have to be true for them to be right. If every seat agreed, say so and name the least-tested assumption instead.]
+[Ý kiến phản đối hoặc thiểu số mạnh nhất, bằng lời của ghế đó, và điều gì phải đúng để họ đúng. Nếu mọi ghế đồng ý, ghi rõ như vậy và nêu giả định ít được kiểm chứng nhất.]
 
-## Conditions
+## Điều kiện
 
-[Each checkable: a number, a date, or a test result. Say which must clear before the irreversible step.]
+[Mỗi điều kiện kiểm được: một con số, một mốc ngày hoặc một kết quả thử. Ghi rõ điều kiện nào phải đạt trước bước không quay lại được.]
 
-## What to do next
+## Việc làm tiếp theo
 
-1. This week: [action] (owner)
-2. [Next milestone with date]
-3. [Decision date]
+1. Tuần này: [việc] (người phụ trách)
+2. [Mốc tiếp theo, có ngày]
+3. [Ngày ra quyết định]
 
-**Cheapest test:** [the smallest thing that checks the riskiest assumption before committing]
-**Kill criteria:** [the signal that means stop, and what happens then]
-**Revisit:** [when to bring this back to the council, and with which numbers]
+**Cách thử rẻ nhất:** [việc nhỏ nhất kiểm được giả định rủi ro nhất trước khi cam kết]
+**Dừng nếu:** [tín hiệu cho thấy phải dừng, và khi đó làm gì]
+**Xem lại vào:** [khi nào đưa việc này trở lại hội đồng, mang theo số liệu nào]
 
 ---
-Simulated advisors built from each person's public work. They are not the people and do not speak for them.
+Cố vấn mô phỏng, dựng từ tác phẩm công khai của từng người. Họ không phải người thật và không phát ngôn thay những người đó.
 ```
