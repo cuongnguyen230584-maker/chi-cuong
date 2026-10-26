@@ -1,7 +1,7 @@
 ---
 name: roast-room
 description: Use when a founder wants a hard business decision debated by a council of world-class operators, says "hội đồng chuyên gia", "put this in the Hội đồng chuyên gia", "founder council", "convene the council", "take this to the board", "what would Hormozi, Bezos, or Buffett say", "should I do X", or can't make up their mind on pricing, hiring, raising money, a new product, a partnership, a pivot, an event, or spending. A board of sub-agents, each built from one expert's public work (Bezos, Paul Graham, Hormozi, Gary Vaynerchuk, Dan Martell, Gino Wickman, and Buffett out of the box, plus any seat added with /newroaster), argue it over three rounds, then a Chair returns a scored verdict, the reasoning, the dissent, and next steps. Also does a one-seat consult ("ask the Hormozi seat"). Not /roast (generic personas, idea validation).
-argument-hint: "[the decision] [--quick] [--all] [--seats hormozi,buffett,...] | ask <seat> [question] | board"
+argument-hint: "[the decision] [--nganh kinh-doanh|phap-ly-nnn] [--quick] [--all] [--seats hormozi,buffett,...] | ask <seat> [question] | board"
 ---
 
 ## What this does
@@ -18,6 +18,16 @@ Read once before the first run: `roster.json` (every seat and the default board)
 - **Everyone** (`--all`): every seat in `roster.json`, up to nine.
 - **Consult** (`ask <seat> ...`): one seat, one answer, using the single-seat prompt. No scoring, no session folder needed. Works for any seat in the roster.
 - **Board settings** (`board`): show and change who sits at the table by default. See "Board settings" below. No council runs.
+
+## Gói ngành (industry pack)
+
+Every council runs inside one industry pack, declared in the `"nganh"` array of `roster.json`. Each pack has its own Chair (`chair`), its own seats (seats whose `"nganh"` list holds the pack key; a seat with no list belongs to `kinh-doanh`), its own default board, and a text file `nganh/<key>.md` with four sections: `Giới thiệu Chủ toạ`, `Công cụ hỏi`, `Luật ngành`, `Tuyên bố`.
+
+1. Pick the pack: `--nganh <key>` wins. Otherwise match the decision against each pack's `tu_khoa`; the pack with the most hits wins; no hits means `kinh-doanh`. When two packs tie, or the user's question clearly mixes both (a visa decision that is really a pricing decision), ask with one AskUserQuestion (header "Gói ngành").
+2. Only seats of that pack can sit at the table. "Default board" below means the pack's `default` list. The pack's `chair` is the Chair: in a `vai-tro` pack the Chair's root questions come from the pack's `Công cụ hỏi`, not from Musk.
+3. Read `nganh/<key>.md` once. Paste its `Luật ngành` section, verbatim, at the end of every seat prompt in every round, and follow it yourself when you write the brief, the draft and the verdict. In the `phap-ly-nnn` pack this means: every legal claim carries QUY ĐỊNH (with the document number, article and source id), THỰC TIỄN, or CẦN KIỂM TRA; never cite a document that is no longer in force; never promise an outcome or a timeline.
+4. The verdict's last line is the pack's `Tuyên bố`, not the default disclaimer. Write `"nganh": "<key>"` into `council.json`.
+5. Seats of a `vai-tro` pack are simulated professional roles, not people. Never give them a real person's name.
 
 ## Pick the board
 

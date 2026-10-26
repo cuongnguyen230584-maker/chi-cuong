@@ -69,6 +69,10 @@ function noiDung({ hoi, setup, verdict, chairView, chairQuotes, chairKiemSo, ses
     ...muc("Số dùng trong kết luận", soDung(verdict.kiem_so)),
     ...muc("Giả định cần kiểm", giaDinh(verdict.kiem_so)),
     ...muc("Số chưa có nguồn", chuaNguon(verdict.kiem_so, chairKiemSo)),
+    ...muc("Văn bản cần kiểm lại", [
+      ...(verdict.kiem_luat?.het ?? []).map((x) => `- ${x.so}: hết hiệu lực hoặc đã bị thay thế, không dùng làm căn cứ`),
+      ...(verdict.kiem_luat?.ngoai ?? []).map((x) => `- ${x.so}: chưa có trong nguồn đã xác minh (CẦN KIỂM TRA)`),
+    ]),
     ...muc("Điểm", opts.map((x) => `- ${x.id}. ${dong(x.label)}: ${verdict.scores?.[x.id]?.score ?? "-"}`)),
     ...muc("Vì sao", (verdict.why ?? []).map((w) => `- ${dong(w.point)} (${tenGhe(w.seat)})`)),
     ...muc("Bước tiếp theo", (verdict.next_steps ?? []).map((n) => `- **${dong(n.when)}:** ${dong(n.action)}`)),

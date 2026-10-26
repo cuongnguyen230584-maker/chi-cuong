@@ -122,7 +122,31 @@ const field = (text, label) => {
   const m = text.match(new RegExp(`(?:^|[·|])[ \\t]*\\**${label}\\**[ \\t]*:[ \\t]*([^\\n·]+)`, "im"));
   return m ? m[1].replace(/\*+/g, "").trim() : "";
 };
-const num = (s) => { const m = (s || "").match(/(\d+(?:\.\d+)?)/); return m ? Number(m[1]) : null; };
+// "7,5" kiểu Việt và "7.5" kiểu Anh đều là bảy rưỡi
+const num = (s) => { const m = (s || "").match(/(\d+(?:[.,]\d+)?)/); return m ? Number(m[1].replace(",", ".")) : null; };
+// Giá trị liệt kê: prompt yêu cầu tiếng Anh, nhưng ghế viết tiếng Việt vẫn phải đọc đúng.
+// Thứ tự quan trọng: "không tán thành" trước "tán thành", "endorse with amendment" trước "endorse".
+const lowerVi = (s) => String(s || "").normalize("NFC").toLowerCase();
+export function docRuin(s) {
+  const t = lowerVi(s);
+  if (/likely|cao|rất có thể|nhiều khả năng/.test(t)) return "likely";
+  if (/possible|có thể|trung bình/.test(t)) return "possible";
+  if (/none|không|thấp|^\s*no\b/.test(t)) return "none";
+  return "";
+}
+export function docDoor(s) {
+  const t = lowerVi(s);
+  if (/one-way|một chiều|không đảo ngược/.test(t)) return "one-way";
+  if (/two-way|hai chiều|đảo ngược được/.test(t)) return "two-way";
+  return "";
+}
+export function docVote(s) {
+  const t = lowerVi(s);
+  if (/dissent|phản đối|không tán thành|không đồng ý|bác/.test(t)) return "dissent";
+  if (/amend|sửa đổi|điều chỉnh|kèm điều kiện|có điều kiện/.test(t)) return "amend";
+  if (/endorse|tán thành|đồng ý|ủng hộ|thông qua/.test(t)) return "endorse";
+  return "";
+}
 
 export function parseOptionScores(text, optionIds) {
   // the option line itself uses "·" between options, so read to end of line
@@ -130,19 +154,18 @@ export function parseOptionScores(text, optionIds) {
   const line = (lm ? lm[1] : "").split(/PILLAR SCORE|CONFIDENCE|FINAL SCORE/i)[0];
   const scores = {};
   for (const id of optionIds) {
-    const m = line.match(new RegExp(`\\b${id}\\b\\s*[:=]?\\s*(\\d+(?:\\.\\d+)?)`));
-    if (m) scores[id] = Math.max(0, Math.min(10, Number(m[1])));
+    const m = line.match(new RegExp(`\\b${id}\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)`));
+    if (m) scores[id] = Math.max(0, Math.min(10, Number(m[1].replace(",", "."))));
   }
   return scores;
 }
 
 export function parseCard(text, optionIds) {
   const stance = field(text, "STANCE");
-  const ruin = (field(text, "RUIN RISK").match(/none|possible|likely/i) || [""])[0].toLowerCase();
+  const ruin = docRuin(field(text, "RUIN RISK"));
   const disagree = field(text, "I DISAGREE MOST WITH");
   const target = seatIn(disagree.slice(0, 40));
-  const voteRaw = field(text, "VOTE");
-  const vote = /dissent/i.test(voteRaw) ? "dissent" : /amend/i.test(voteRaw) ? "amend" : /endorse/i.test(voteRaw) ? "endorse" : "";
+  const vote = docVote(field(text, "VOTE"));
   return {
     stance,
     call: field(text, "THE CALL"),
@@ -151,7 +174,7 @@ export function parseCard(text, optionIds) {
     finalScore: num(field(text, "FINAL SCORE")),
     confidence: num(field(text, "CONFIDENCE")),
     ruin,
-    door: (field(text, "DOOR").match(/one-way|two-way/i) || [""])[0].toLowerCase(),
+    door: docDoor(field(text, "DOOR")),
     disagreeWith: target ? target.key : null,
     disagreeLine: disagree,
     concede: field(text, "I CONCEDE"),
@@ -162,6 +185,7 @@ export function parseCard(text, optionIds) {
     question: field(text, "QUESTION FOR THE FOUNDER"),
     risk: field(text, "THE RISK I SEE"),
     thisWeek: field(text, "WHAT I'D DO THIS WEEK"),
+    premortem: field(text, "PRE-MORTEM"),
   };
 }
 

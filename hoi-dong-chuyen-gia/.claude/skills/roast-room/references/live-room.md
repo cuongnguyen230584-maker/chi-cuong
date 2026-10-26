@@ -21,6 +21,7 @@ The room is optional. Write these files anyway; they cost a few lines and the co
 ```json
 {
   "title": "Raise coaching price to $3,500",
+  "nganh": "kinh-doanh",
   "decision": "Raise the price from $2,000 to $3,500, and for whom.",
   "mode": "full",
   "options": [

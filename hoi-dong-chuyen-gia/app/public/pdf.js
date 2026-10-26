@@ -181,6 +181,14 @@ export async function downloadVerdictPdf({ setup, verdict: ev, chairView, byKey,
     for (const e of (ks?.so_lieu || []).slice(0, 14)) bullet(e.so, `${e.y} (${e.loai}${e.nguon ? `: nguồn ${e.nguon}` : ""})${e.trang_thai === "khong_thay" ? " — không thấy trong số liệu" : ""}`);
   }
 
+  // ---------------------------------------------------------------- văn bản pháp luật được viện dẫn
+  const kl = v.kiem_luat;
+  if (kl && (kl.het?.length || kl.ngoai?.length)) {
+    section("Kiểm điều luật");
+    if (kl.het?.length) para(`Hết hiệu lực hoặc đã bị thay thế, không dùng làm căn cứ: ${kl.het.map((x) => x.so).join(", ")}`, { size: 10.5, style: "semibold", color: [180, 83, 9], gap: 6 });
+    if (kl.ngoai?.length) para(`Chưa có trong nguồn đã xác minh, CẦN KIỂM TRA: ${kl.ngoai.map((x) => x.so).join(", ")}`, { size: 10.5, style: "semibold", color: [180, 83, 9], gap: 6 });
+  }
+
   // ---------------------------------------------------------------- scores
   section("Điểm");
   const best = v.recommended;

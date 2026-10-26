@@ -6,6 +6,7 @@ import { S } from "./anthropic.mjs";
 import { SESSIONS_DIR, env } from "./env.mjs";
 import { LUAT_SO, kiemSo } from "./luat-so.mjs";
 import { goi, chuToa, gheCua, banMacDinh } from "./nganh.mjs";
+import { chiMucLuat, kiemLuat, gopKiemLuat, canhBaoLuat } from "./kiem-luat.mjs";
 
 export const MODELS = {
   seat: env("SEAT_MODEL") || "claude-sonnet-5-5",
@@ -28,7 +29,10 @@ You never argue a side and never add your own pillar. You run the room, keep sco
 };
 
 // Luật riêng của gói ngành (nganh/<key>.md, mục "Luật ngành"), gửi cho Chủ toạ và mọi ghế.
-const luatNganh = (st) => (st.goi?.luat_nganh ? `\n\nLUẬT NGÀNH (${st.goi.ten}), BẮT BUỘC:\n${st.goi.luat_nganh}` : "");
+// Kèm cảnh báo của máy kiểm điều luật (văn bản hết hiệu lực hoặc ngoài nguồn đã xác minh) tính tới vòng vừa xong.
+const luatNganh = (st) => (st.goi?.luat_nganh ? `\n\nLUẬT NGÀNH (${st.goi.ten}), BẮT BUỘC:\n${st.goi.luat_nganh}` : "") + (st.luatIdx && canhBaoLuat(tongKiemLuat(st)) ? `\n\n${canhBaoLuat(tongKiemLuat(st))}` : "");
+/** Kết quả kiểm điều luật gộp qua mọi thẻ đã có. */
+export const tongKiemLuat = (st) => gopKiemLuat([1, 2, 3].flatMap((r) => Object.values(st.cards?.[r] || {}).map((c) => c.kiem_luat)));
 /** Lời miễn trừ của phiên: theo gói ngành, mặc định là lời của bản gốc. */
 export const tuyenBo = (st) => st?.goi?.tuyen_bo || DISCLAIMER;
 
@@ -106,6 +110,7 @@ WHY:
 THE RISK I SEE: the single biggest thing that goes wrong.
 WHAT WOULD CHANGE MY MIND: a concrete fact or number.
 WHAT I'D DO THIS WEEK: one action.
+PRE-MORTEM: imagine it is 12 months later and the option you recommend has failed. The single most likely reason, in one sentence${st.goi?.loai === "vai-tro" ? ", and any consequence that cannot be undone (deportation, entry ban, licence revoked, criminal liability)" : ""}.
 QUESTION FOR THE FOUNDER: the one question you would ask before signing off.
 
 Rules: argue from your pillar first. Quote only verbatim lines from your brain, with the source id. Do not hedge to sound balanced; the Chair balances the council.
@@ -113,8 +118,12 @@ Rules: argue from your pillar first. Quote only verbatim lines from your brain, 
 ${LUAT_SO}${luatNganh(st)}`;
 }
 
-function cardsBlock(st, round) {
-  return st.seats.map((k) => `### ${byKey[k].short} (weight ${st.weights[k].weight})\n${st.cards[round][k]?.text || "(no card)"}`).join("\n\n");
+// Chống a dua: thẻ đưa cho một ghế đọc thì không kèm trọng số và xếp theo thứ tự riêng của ghế đó,
+// để không ghế nào luôn được đọc trước và không ai nể ghế "nặng ký". Chủ toạ vẫn thấy trọng số.
+const bam = (t) => [...String(t)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+export function cardsBlock(st, round, choGhe = null) {
+  const keys = choGhe ? st.seats.slice().sort((a, b) => bam(choGhe + a) - bam(choGhe + b)) : st.seats;
+  return keys.map((k) => `### ${byKey[k].short}${choGhe ? "" : ` (weight ${st.weights[k].weight})`}\n${st.cards[round][k]?.text || "(no card)"}`).join("\n\n");
 }
 
 function round2Prompt(st, seat) {
@@ -127,8 +136,8 @@ You hold the ${seat.short.toUpperCase()} seat.
 THE BRIEF
 ${briefBlock(st)}
 
-ROUND 1, EVERY SEAT'S CARD
-${cardsBlock(st, 1)}
+ROUND 1, EVERY SEAT'S CARD (order shuffled for you; argue with the arguments, not the names)
+${cardsBlock(st, 1, seat.key)}
 
 THE CRUXES THE CHAIR SEES
 ${cr}
@@ -418,8 +427,9 @@ async function runSeat(s, st, round, key, prompt) {
   }
   const parsed = parseCard(text, st.options.map((o) => o.id));
   const quotes = checkQuotes(key, text);
-  st.cards[round][key] = { text, parsed, quotes };
-  emit(s, "seat_done", { round, seat: key, text, parsed, quotes, name: seat.name });
+  const kiem_luat = st.luatIdx ? kiemLuat(text, st.luatIdx) : undefined;
+  st.cards[round][key] = { text, parsed, quotes, kiem_luat };
+  emit(s, "seat_done", { round, seat: key, text, parsed, quotes, name: seat.name, ...(kiem_luat ? { kiem_luat } : {}) });
 }
 
 async function roundAll(s, st, round, promptFn) {
@@ -451,6 +461,8 @@ async function run(s) {
   s.nganh = g.key;
   const chair = chuToa(g);
   const st = (s.state = { prompt: s.prompt, mode: s.mode, pick, goi: g, chair, board: tableBoard(pick, gheCua(g), banMacDinh(g), chair), cards: { 1: {}, 2: {}, 3: {} }, scores: {}, rounds: [] });
+  // gói theo vai nghề: dựng chỉ mục văn bản đã xác minh từ não của mọi ghế trong gói và Chủ toạ
+  if (g.loai === "vai-tro") st.luatIdx = chiMucLuat([...gheCua(g), chair].filter((k) => byKey[k]).map((k) => byKey[k].slug));
   emit(s, "phase", { phase: "setup", label: "The Chair is reading your question" });
   const setup = await chairSetup(st);
   Object.assign(st, {
@@ -506,6 +518,8 @@ async function run(s) {
   const v = await chairVerdict(st, finalScores, recommended);
   st.verdict = { ...v, recommended, scores: finalScores, spread: spreadF, confidence, support, votes, disclaimer: tuyenBo(st) };
   st.verdict.kiem_so = kiemSo({ dauVao: dauVaoSo(st), soLieu: v.so_lieu, cacBan: cacBanSo(st.verdict, st), vanBan: vanBanKetLuan(v) });
+  if (st.luatIdx) st.verdict.kiem_luat = gopKiemLuat([tongKiemLuat(st), kiemLuat(vanBanKetLuan(v), st.luatIdx)]);
+  st.verdict.a_dua = chiSoADua(st);
   emit(s, "verdict", { verdict: st.verdict, seats: verdictSeats(st, last) });
   await addChairView(s, st);
   finishRun(s);
@@ -530,6 +544,20 @@ export function finishRun(s, persist = save) {
 }
 
 /** The verdict's numbers, computed from the last round's cards (shared with the folder watcher). */
+/** Chỉ số a dua: trong các ghế mở đầu khác số đông ở vòng 1, bao nhiêu ghế sang vòng 2 đổi sang đúng
+ * phương án số đông. Cao không có nghĩa là sai (có thể bị thuyết phục), nhưng là dấu hiệu để đọc lại lý do đổi. */
+export function chiSoADua(st) {
+  const top = (c) => { const e = Object.entries(c?.parsed.optionScores || {}).sort((a, b) => b[1] - a[1]); return e.length ? e[0][0] : null; };
+  const r1 = Object.fromEntries(st.seats.map((k) => [k, top(st.cards[1][k])]));
+  const dem = {};
+  for (const o of Object.values(r1)) if (o) dem[o] = (dem[o] || 0) + 1;
+  const soDong = Object.entries(dem).sort((a, b) => b[1] - a[1])[0]?.[0];
+  if (!soDong || !Object.keys(st.cards[2] || {}).length) return null;
+  const khac = st.seats.filter((k) => r1[k] && r1[k] !== soDong && st.cards[2][k]);
+  const doiTheo = khac.filter((k) => top(st.cards[2][k]) === soDong);
+  return { so_dong: soDong, khac_so_dong: khac.length, doi_theo: doiTheo.length, ghe: doiTheo.map((k) => byKey[k]?.short || k) };
+}
+
 export function finalNumbers(st) {
   const last = st.rounds.at(-1);
   const finalScores = st.scores[last] || optionScores(st, last);
@@ -543,7 +571,7 @@ export function finalNumbers(st) {
     for (const k of st.seats) { const v = st.cards[3][k]?.parsed.finalScore; if (typeof v === "number") { n += v * st.weights[k].weight; d += st.weights[k].weight; } }
     return d ? Math.round((n / d) * 10) / 10 : null;
   })() : null;
-  const votes = last === 3 ? st.seats.reduce((acc, k) => { const v = st.cards[3][k]?.parsed.vote || "endorse"; acc[v] = (acc[v] || 0) + 1; return acc; }, {}) : null;
+  const votes = last === 3 ? st.seats.reduce((acc, k) => { const v = st.cards[3][k]?.parsed.vote || "chua_ro"; acc[v] = (acc[v] || 0) + 1; return acc; }, {}) : null;
   return { last, finalScores, recommended, spreadF, confidence, support, votes };
 }
 
@@ -597,6 +625,12 @@ function verdictMarkdown(st) {
   if (v.amendments?.length) L.push("", "## Amendments", "", ...v.amendments.map((a) => `- ${a.seat}: ${a.amendment} ${a.adopted ? "Adopted" : "Not adopted"}: ${a.reason}`));
   L.push("", "## Conditions", "", ...v.conditions.map((c, i) => `${i + 1}. ${c}`));
   L.push("", "## What to do next", "", ...v.next_steps.map((n) => `- **${n.when}:** ${n.action}`));
+  if (v.kiem_luat && (v.kiem_luat.het.length || v.kiem_luat.ngoai.length)) {
+    L.push("", "## Kiểm điều luật", "");
+    if (v.kiem_luat.het.length) L.push(`- **Hết hiệu lực hoặc đã bị thay thế (không dùng làm căn cứ):** ${v.kiem_luat.het.map((x) => `${x.so}${x.ten ? ` (${x.ten})` : ""}`).join("; ")}`);
+    if (v.kiem_luat.ngoai.length) L.push(`- **Chưa có trong nguồn đã xác minh (CẦN KIỂM TRA):** ${v.kiem_luat.ngoai.map((x) => x.so).join("; ")}`);
+  }
+  if (v.a_dua?.doi_theo) L.push("", `Chỉ số a dua: ${v.a_dua.doi_theo}/${v.a_dua.khac_so_dong} ghế mở đầu khác số đông đã đổi sang phương án ${v.a_dua.so_dong} ở vòng tranh luận (${v.a_dua.ghe.join(", ")}). Đọc lại lý do đổi trong thẻ vòng 2.`);
   L.push("", `**Cheapest test:** ${v.cheapest_test}`, `**Kill criteria:** ${v.kill_criteria}`, `**Revisit:** ${v.revisit}`, "", "---", tuyenBo(st), "");
   return L.join("\n");
 }

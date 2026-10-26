@@ -66,3 +66,17 @@ test("kiểm trích dẫn và tìm tên ghế với chữ có dấu", () => {
   assert.equal(vi[0]?.verified, false);
   assert.equal(seatIn("Tôi phản đối Buffett nhất")?.key, "buffett");
 });
+
+test("phiếu viết giá trị tiếng Việt vẫn đọc đúng", async () => {
+  const { parseCard } = await import("../lib/seats.mjs");
+  const c = parseCard("STANCE: Có điều kiện\nOPTION SCORES: A 7,5 · B 6 · C 2,5\nPILLAR SCORE: 8,5/10\nCONFIDENCE: 4\nRUIN RISK: khả năng cao\nDOOR: một chiều\nVOTE: Không tán thành\n", ["A", "B", "C"]);
+  assert.deepEqual(c.optionScores, { A: 7.5, B: 6, C: 2.5 });
+  assert.equal(c.pillar, 8.5);
+  assert.equal(c.ruin, "likely");
+  assert.equal(c.door, "one-way");
+  assert.equal(c.vote, "dissent");
+  assert.equal(parseCard("VOTE: Endorse with amendment", ["A"]).vote, "amend");
+  assert.equal(parseCard("VOTE: Tán thành", ["A"]).vote, "endorse");
+  assert.equal(parseCard("RUIN RISK: none", ["A"]).ruin, "none");
+  assert.equal(parseCard("không có phiếu", ["A"]).vote, "");
+});

@@ -72,6 +72,7 @@ function normalizeSetup(c) {
     title: c.title || "Hội đồng chuyên gia", decision: c.decision || "", brief: c.brief || "", mode,
     options, assumptions: c.assumptions || [], weights,
     seats: seats.length ? [...new Set(seats)] : defaultBoard(),
+    nganh: typeof c.nganh === "string" ? c.nganh : "",
   };
 }
 
@@ -121,7 +122,7 @@ function sync(x) {
     x.title = st.title;
     x.mode = st.mode;
     emit(x, "phase", { phase: "setup", label: "The Chair is reading your question", at: mtime(f("council.json")) });
-    emit(x, "setup", { title: st.title, decision: st.decision, brief: st.brief, options: st.options, assumptions: st.assumptions, weights: st.weights, seats: st.seats, mode: st.mode });
+    emit(x, "setup", { title: st.title, decision: st.decision, brief: st.brief, options: st.options, assumptions: st.assumptions, weights: st.weights, seats: st.seats, mode: st.mode, nganh: st.nganh });
     startRound(x, 1, "Round 1: opening positions", mtime(f("council.json")));
     x.step = "r1";
   }

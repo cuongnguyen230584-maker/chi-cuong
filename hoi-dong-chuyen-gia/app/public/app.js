@@ -77,7 +77,7 @@ const pillarOf = (s) => SEAT_VI[s.key]?.[0] || s.pillar;
 const questionOf = (s) => SEAT_VI[s.key]?.[1] || s.question;
 const VERDICT_VI = { "GO": "LÀM", "GO WITH CONDITIONS": "LÀM, CÓ ĐIỀU KIỆN", "RESHAPE": "ĐIỀU CHỈNH", "WAIT": "CHỜ", "DON'T DO IT": "KHÔNG LÀM" };
 const verdictVi = (l) => VERDICT_VI[String(l || "").toUpperCase()] || l;
-const VOTE_VI = { endorse: "đồng ý", amend: "sửa đổi", dissent: "phản đối" };
+const VOTE_VI = { endorse: "đồng ý", amend: "sửa đổi", dissent: "phản đối", chua_ro: "chưa đọc được phiếu" };
 const voteVi = (v) => VOTE_VI[v] || v;
 const PHASE_VI = [
   [/^The Chair is reading your question$/, "Chủ toạ đang đọc câu hỏi"],
@@ -762,7 +762,7 @@ async function onSeatDone(ev) {
     }
     sub = /^yes/i.test(parsed.moved) ? "Đã đổi quan điểm" : "";
   } else {
-    const v = parsed.vote || "endorse";
+    const v = parsed.vote || "chua_ro";
     tag = `Bỏ phiếu ${voteVi(v)}`;
 
   }
@@ -775,7 +775,7 @@ async function onSeatDone(ev) {
   chip.hidden = round === 3; // the vote stamp says it
   chip.className = "chip";
   if (round === 3) {
-    const v = parsed.vote || "endorse";
+    const v = parsed.vote || "chua_ro";
     chip.textContent = voteVi(v);
     chip.classList.add(v);
     seatEl(seat)?.querySelector(".vote")?.remove();
@@ -869,7 +869,7 @@ function feedCard(round, seat, parsed) {
   d.dataset.round = round;
   const top = topOption(parsed.optionScores);
   const tgt = parsed.disagreeWith ? state.byKey[parsed.disagreeWith]?.short : "";
-  const what = round === 1 ? `${stanceWord(parsed.stance)}${top ? `, chọn ${top.id}` : ""}` : round === 2 ? (tgt ? `phản bác ${tgt}` : "Tranh luận") : `Bỏ phiếu ${voteVi(parsed.vote || "endorse")}`;
+  const what = round === 1 ? `${stanceWord(parsed.stance)}${top ? `, chọn ${top.id}` : ""}` : round === 2 ? (tgt ? `phản bác ${tgt}` : "Tranh luận") : `Bỏ phiếu ${voteVi(parsed.vote || "chua_ro")}`;
   d.innerHTML = `<img class="av" src="${portrait(seat)}" alt=""><div><div class="h">${esc(s?.short || seat)}<span class="r">${esc(what)}</span></div><p>${esc(lineFor(round, parsed, 105))}</p></div>`;
   feedAppend(d);
 }
@@ -919,10 +919,11 @@ function onVerdict(ev) {
     <p class="v-call">${esc(v.call)}</p>
     <div class="v-sec v-chair" id="vChair">${chairViewHtml(state.chairView || { pending: state.replaying ? state.expectChairView : !state.ended })}</div>
     ${soLieuHtml(v.kiem_so)}
+    ${kiemLuatHtml(v.kiem_luat, v.a_dua)}
     <div class="v-grid">
       <div class="v-sec"><h3>Điểm</h3><div class="v-opts">${state.options.map((o) => `
         <div class="opt ${o.id === v.recommended ? "lead" : ""}"><span class="id">${o.id}</span><span class="label">${esc(o.label)}</span><span class="val">${v.scores[o.id]?.score ?? "-"}</span><span class="bar"><i style="width:${(v.scores[o.id]?.score || 0) * 10}%"></i></span></div>`).join("")}</div>
-        <p class="v-meta">Độ tin cậy ${v.confidence ?? "-"}/10${v.votes ? ` · ${v.votes.endorse || 0} đồng ý, ${v.votes.amend || 0} sửa đổi, ${v.votes.dissent || 0} phản đối` : ""}</p>
+        <p class="v-meta">Độ tin cậy ${v.confidence ?? "-"}/10${v.votes ? ` · ${v.votes.endorse || 0} đồng ý, ${v.votes.amend || 0} sửa đổi, ${v.votes.dissent || 0} phản đối${v.votes.chua_ro ? `, ${v.votes.chua_ro} chưa đọc được phiếu` : ""}` : ""}</p>
       </div>
       <div class="v-sec"><h3>Vì sao</h3><ul class="v-why">${v.why.slice(0, 3).map((w) => { const k = seatKey(w.seat); return `<li>${k ? `<img class="av" src="${portrait(k)}" alt="">` : ""}<span>${short(w.point, 150)}</span></li>`; }).join("")}</ul></div>
       <div class="v-sec"><h3>Cần lưu ý</h3><div class="minority"><div class="who">${mk ? `<img class="av" src="${portrait(mk)}" alt="">` : ""}${esc(seatName(v.minority.seat))}</div><q>${short(v.minority.quote, 170)}</q></div></div>
@@ -990,6 +991,18 @@ function soLieuHtml(ks) {
     : `<p class="so-ok">Mọi con số trong kết luận đều có nguồn.</p>`;
   const dong = (ks.so_lieu || []).map((e) => `<li class="${esc(e.trang_thai)}"><b>${esc(e.so)}</b> ${esc(e.y)} <span class="tag">${esc(e.loai)}${e.nguon ? `: ${esc(e.nguon)}` : ""}</span>${e.trang_thai === "khong_thay" ? ' <span class="tag bad">không thấy trong số liệu</span>' : ""}</li>`).join("");
   return `<div class="v-sec v-so"><h3>Số dùng trong kết luận</h3>${canh}${dong ? `<ul class="so-list">${dong}</ul>` : ""}</div>`;
+}
+
+// Máy kiểm điều luật (gói theo vai nghề) và chỉ số a dua: cảnh báo để đọc kỹ, không phải bằng chứng sai.
+function kiemLuatHtml(kl, aDua) {
+  const L = [];
+  if (kl) {
+    if (kl.het?.length) L.push(`<p class="so-canh"><b>Văn bản hết hiệu lực hoặc đã bị thay thế, không dùng làm căn cứ:</b> ${kl.het.map((x) => `<span class="so-co">${esc(x.so)}</span>${x.ten ? ` <span class="muted">${esc(x.ten)}</span>` : ""}`).join(" · ")}</p>`);
+    if (kl.ngoai?.length) L.push(`<p class="so-canh"><b>Chưa có trong nguồn đã xác minh, CẦN KIỂM TRA:</b> ${kl.ngoai.map((x) => `<span class="so-co">${esc(x.so)}</span>`).join(" · ")}</p>`);
+    if (!kl.het?.length && !kl.ngoai?.length) L.push(`<p class="so-ok">${kl.con?.length ? `${kl.con.length} văn bản được viện dẫn đều có trong nguồn đã xác minh và còn hiệu lực.` : "Hội đồng không viện dẫn số hiệu văn bản nào."}</p>`);
+  }
+  if (aDua?.doi_theo) L.push(`<p class="muted">Chỉ số a dua: ${aDua.doi_theo}/${aDua.khac_so_dong} ghế mở đầu khác số đông đã đổi sang phương án ${esc(aDua.so_dong)} (${aDua.ghe.map(esc).join(", ")}). Đọc lại lý do đổi ở vòng tranh luận.</p>`);
+  return L.length ? `<div class="v-sec v-so"><h3>Kiểm điều luật</h3>${L.join("")}</div>` : "";
 }
 
 async function onChairView(ev) {
