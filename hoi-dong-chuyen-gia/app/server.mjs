@@ -126,12 +126,14 @@ const server = http.createServer(async (req, res) => {
       const s = startCouncil(cheDuLieu(prompt.trim().slice(0, 4000)).text, mode === "quick" ? "quick" : "full", { nganh: goi(hoi?.nganh || String(nganh ?? "")).key });
       running = s.id;
       // run() calls this after the verdict and before the stream ends; it reports { path } or throws, and the page shows which
-      if (hoi) s.onDone = (x) => {
+      // mọi hội đồng đều có phiếu theo dõi (hạn xem lại, dự báo); không qua vòng hỏi thì câu hỏi là vấn đề gốc
+      const hoiPhieu = hoi || { cauHoi: prompt.trim().slice(0, 2000), van_de_goc: prompt.trim().slice(0, 2000), bo_qua_vong_hoi: true, luot: [] };
+      s.onDone = (x) => {
         const ev = [...x.events].reverse().find((e) => e.type === "verdict");
         if (!ev) throw new Error("Hội đồng chưa có kết luận");
         const setup = x.events.find((e) => e.type === "setup");
         const cv = x.events.find((e) => e.type === "chair_view");
-        const file = ghiPhieu({ dir: phieuDir(), hoi, setup, verdict: ev.verdict, chairView: cv?.view || null, chairQuotes: cv?.quotes || [], chairKiemSo: cv?.kiem_so || null, sessionId: x.id, today: homNay() });
+        const file = ghiPhieu({ dir: phieuDir(), hoi: hoiPhieu, setup, verdict: ev.verdict, chairView: cv?.view || null, chairQuotes: cv?.quotes || [], chairKiemSo: cv?.kiem_so || null, sessionId: x.id, today: homNay() });
         return { path: path.relative(REPO_ROOT, file) };
       };
       return send(res, 200, { id: s.id });
