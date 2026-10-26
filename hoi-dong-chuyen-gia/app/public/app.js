@@ -241,6 +241,7 @@ function applyNganh(key, { chon = false } = {}) {
     bustCache.clear();
     renderSeats(state.board);
     layoutStage();
+    if (g.tuyen_bo && $("#disclaimer")) $("#disclaimer").textContent = g.tuyen_bo;
   }
   renderNganh();
   renderSamples();
@@ -421,6 +422,18 @@ function bindUI() {
     if (ht && !ht.disabled) hopTiep(ht);
   });
   $("#historyBtn").addEventListener("click", openHistory);
+  $("#hanBtn")?.addEventListener("click", () => {
+    if (!$("#hanTu").value) { const d = new Date(); $("#hanTu").value = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; }
+    $("#hanDialog").showModal();
+  });
+  $("#hanForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const out = $("#hanKetQua");
+    try {
+      const r = await postJson("/api/tinh-han", { tu: $("#hanTu").value, so: Number($("#hanSo").value), loai: $("#hanLoai").value });
+      out.innerHTML = `<p class="han-han">Hạn: <b>${esc(r.han)}</b></p>${r.cac_ngay_nghi.length ? `<p class="muted">Ngày nghỉ lễ đã trừ: ${r.cac_ngay_nghi.map(esc).join("; ")}</p>` : ""}<p class="muted">${esc(r.ghi_chu)}</p>`;
+    } catch (err) { out.innerHTML = `<p class="so-canh">${esc(loiVi(err.message || err))}</p>`; }
+  });
   $("#newBtn").addEventListener("click", reset);
   $("#verdictSheet").addEventListener("click", (e) => { if (e.target.id === "verdictSheet" || e.target.closest("[data-close]")) $("#verdictSheet").hidden = true; });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("#verdictSheet").hidden = true; });
@@ -1196,6 +1209,7 @@ async function askHoi(cauHoi) {
   try {
     const j = await postJson("/api/hoi", { cau_hoi: cauHoi, nganh: state.nganh || "" });
     if (state.hoi !== h) return;
+    if (j.che?.length) toast(`Đã che trước khi gửi hội đồng: ${j.che.map((c) => `${c.so_luong} ${c.loai}`).join(", ")}.`);
     h.id = j.id;
     h.nganh = j.nganh;
     if (j.nganh && j.nganh !== state.goiDangDung) applyNganh(j.nganh); // Chủ toạ của gói vừa nhận diện lên ghế

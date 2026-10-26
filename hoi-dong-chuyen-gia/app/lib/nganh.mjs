@@ -90,4 +90,4 @@ export function doanGoi(cauHoi) {
 }
 
 /** Bản tóm tắt gửi cho trang. */
-export const goiChoTrang = () => danhSachGoi().map((g) => ({ key: g.key, ten: g.ten, mo_ta: g.mo_ta, loai: g.loai, chair: chuToa(g), ghe: gheCua(g), default: banMacDinh(g) }));
+export const goiChoTrang = () => danhSachGoi().map((g) => ({ key: g.key, ten: g.ten, mo_ta: g.mo_ta, loai: g.loai, chair: chuToa(g), ghe: gheCua(g), default: banMacDinh(g), tuyen_bo: g.tuyen_bo }));

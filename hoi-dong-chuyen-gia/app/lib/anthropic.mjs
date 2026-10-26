@@ -29,7 +29,8 @@ function addUsage(u = {}) {
 // With CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`) in .env, every call goes through the
 // Claude Code CLI on the user's Claude subscription instead of ANTHROPIC_API_KEY. The token lasts
 // about a year and never touches the keychain login, so it survives `claude` being logged out.
-export const BACKEND = env("CLAUDE_CODE_OAUTH_TOKEN") ? "cli" : "api";
+// COUNCIL_BACKEND=cli: dùng Claude Code đang đăng nhập sẵn trên máy (không cần token riêng trong .env).
+export const BACKEND = env("CLAUDE_CODE_OAUTH_TOKEN") || env("COUNCIL_BACKEND").toLowerCase() === "cli" ? "cli" : "api";
 const CLI_CWD = path.join(os.tmpdir(), "roast-room-cli"); // empty folder: no project CLAUDE.md or settings
 
 function claudeBin() {
@@ -52,7 +53,7 @@ function cliArgs(model, system, { tools = "", addDirs = [], effort = env("COUNCI
 
 /** One structured answer through the CLI, optionally with read-only tools over extra folders. */
 export async function askJson({ model, system, prompt, schema, tools = "", addDirs = [], effort }) {
-  if (BACKEND !== "cli") throw new Error("Cần CLAUDE_CODE_OAUTH_TOKEN trong .env");
+  if (BACKEND !== "cli") throw new Error("Cần CLAUDE_CODE_OAUTH_TOKEN (hoặc COUNCIL_BACKEND=cli) trong .env");
   const r = await cli([...cliArgs(model, system, { tools, addDirs, effort }), "--json-schema", JSON.stringify(schema)], prompt);
   addUsage(r.usage);
   if (r.structured_output) return r.structured_output;
@@ -62,8 +63,9 @@ export async function askJson({ model, system, prompt, schema, tools = "", addDi
 /** Run one `claude -p` turn; calls onEvent for each stream-json line. Resolves with the result event. */
 function cli(args, input, onEvent = () => {}) {
   fs.mkdirSync(CLI_CWD, { recursive: true });
-  const childEnv = { ...process.env, CLAUDE_CODE_OAUTH_TOKEN: env("CLAUDE_CODE_OAUTH_TOKEN"),
-    CLAUDE_CODE_DISABLE_CLAUDE_MDS: "1", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" };
+  const childEnv = { ...process.env, CLAUDE_CODE_DISABLE_CLAUDE_MDS: "1", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" };
+  // token riêng trong .env thì dùng token đó; không có thì để Claude Code dùng đăng nhập sẵn của máy
+  if (env("CLAUDE_CODE_OAUTH_TOKEN")) childEnv.CLAUDE_CODE_OAUTH_TOKEN = env("CLAUDE_CODE_OAUTH_TOKEN");
   delete childEnv.ANTHROPIC_API_KEY; // an API key would win over the subscription token
   delete childEnv.ANTHROPIC_AUTH_TOKEN;
   return new Promise((resolve, reject) => {

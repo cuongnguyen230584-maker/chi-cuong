@@ -250,6 +250,11 @@ button { font: inherit; cursor: pointer; }
 }
 .composer textarea::placeholder { color: var(--ink-mute); }
 .composer textarea:focus, .hoi textarea:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--accent-soft); }
+.han-form { display: grid; gap: 10px; margin: 12px 0; }
+.han-form label { display: grid; gap: 4px; font-size: 13px; color: var(--ink-soft); }
+.han-form input, .han-form select { font: inherit; padding: 8px 10px; border-radius: var(--r-sm); border: 1px solid var(--hairline-strong); background: var(--paper); color: var(--ink); }
+.han-form .convene { justify-self: start; }
+.han-kq .han-han { font-size: 18px; margin: 4px 0 8px; }
 .nganh-pick { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 0 0 10px; }
 .nganh-pick[hidden] { display: none; }
 .nganh-pick button {
