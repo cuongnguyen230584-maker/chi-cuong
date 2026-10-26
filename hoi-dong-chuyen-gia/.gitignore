@@ -12,3 +12,6 @@ sessions/*
 
 # phiếu quyết định của bạn (mặc định phieu/) ở lại trên máy
 phieu/
+
+# bộ nhớ đệm Python của các script kiểm trích dẫn
+__pycache__/
