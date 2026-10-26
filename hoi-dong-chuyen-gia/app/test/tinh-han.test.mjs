@@ -29,3 +29,13 @@ test("lịch chính thức thay lịch dự kiến; ngày sai dạng bị từ c
   assert.equal(docNgay("31/02/2026"), null);
   assert.throws(() => tinhHan("hôm qua", 3));
 });
+
+test("chấm Brier từ mục Dự báo của phiếu", async () => {
+  const { docDuBao, brier } = await import("../scripts/cham-brier.mjs");
+  const a = docDuBao("# x\n\n## Dự báo\n\nKhách có thẻ: **70%** (hạn 30/11).\n\nKết quả thật (điền khi xem lại): ☒ Xảy ra ☐ Không xảy ra\n\n## Khác\n");
+  assert.deepEqual(a, { xac_suat: 0.7, ket_qua: 1 });
+  const b = docDuBao("## Dự báo\n\nX: **20%**\n\nKết quả thật: ☐ Xảy ra [x] Không xảy ra\n");
+  assert.equal(b.ket_qua, 0);
+  assert.equal(docDuBao("## Dự báo\n\nX: **50%**\n\n☐ Xảy ra ☐ Không xảy ra").ket_qua, null);
+  assert.ok(Math.abs(brier([a, b]) - ((0.3 ** 2 + 0.2 ** 2) / 2)) < 1e-9);
+});

@@ -329,6 +329,7 @@ async function chairVerdict(st, finalScores, recommended) {
     cheapest_test: S.str,
     kill_criteria: S.str,
     revisit: S.str,
+    du_bao: S.obj({ ket_qua: S.str, xac_suat: S.int, han: S.str, co_so: S.str }),
     so_lieu: SO_LIEU,
   });
   return ai.json({
@@ -354,6 +355,7 @@ Write the verdict for the founder.
 - minority: the strongest losing view; quote copies the seat's own words exactly from a card; would_have_to_be_true in one line. If unanimous, use the least-tested assumption instead.
 - amendments: every Round 3 amendment, adopted or not, with the reason (empty in quick mode). Adopt when no seat objected or the argument went unanswered.
 - conditions, next_steps (with when), cheapest_test, kill_criteria, revisit: final, merged, checkable.
+- du_bao: a calibrated forecast the founder can score later. ket_qua = one observable outcome by the revisit date if they follow the call (yes or no, no judgment needed, e.g. "Khách có thẻ tạm trú trước 30/11"); xac_suat = your probability 0 to 100 that it happens; han = the date; co_so = in one sentence, what the number rests on (the seats' confidence, the spread, the unknowns). Do not round to 90+ or 10- unless the council had decisive evidence; with many CẦN KIỂM TRA or Chưa có số items stay between 30 and 70. In Vietnamese.
 - so_lieu: every number that appears in call, why, conditions, next_steps, cheapest_test and kill_criteria (not dates, deadlines, option letters or the computed scores). so = the number exactly as you wrote it; y = what it measures; loai = "đề bài" (the founder gave it), "số liệu" (from the SỐ LIỆU sheet; nguon = its source as listed there), "tính" (nguon = the arithmetic, using only đề bài and SỐ LIỆU numbers), or "giả định" (nguon = how to check it within 30 days). Write y and nguon in Vietnamese. Never list a number you cannot source as "số liệu": mark it "giả định" or take it out of the verdict.
 
 ${LUAT_SO}`,
@@ -534,6 +536,7 @@ async function run(s) {
   st.verdict.kiem_so = kiemSo({ dauVao: dauVaoSo(st), soLieu: v.so_lieu, cacBan: cacBanSo(st.verdict, st), vanBan: vanBanKetLuan(v) });
   if (st.luatIdx) st.verdict.kiem_luat = gopKiemLuat([tongKiemLuat(st), kiemLuat(vanBanKetLuan(v), st.luatIdx)]);
   st.verdict.a_dua = chiSoADua(st);
+  if (st.verdict.du_bao) st.verdict.du_bao.xac_suat = Math.max(0, Math.min(100, Math.round(Number(st.verdict.du_bao.xac_suat) || 0)));
   emit(s, "verdict", { verdict: st.verdict, seats: verdictSeats(st, last) });
   await addChairView(s, st);
   finishRun(s);
@@ -649,6 +652,7 @@ function verdictMarkdown(st) {
     if (v.kiem_luat.het.length) L.push(`- **Hết hiệu lực hoặc đã bị thay thế (không dùng làm căn cứ):** ${v.kiem_luat.het.map((x) => `${x.so}${x.ten ? ` (${x.ten})` : ""}`).join("; ")}`);
     if (v.kiem_luat.ngoai.length) L.push(`- **Chưa có trong nguồn đã xác minh (CẦN KIỂM TRA):** ${v.kiem_luat.ngoai.map((x) => x.so).join("; ")}`);
   }
+  if (v.du_bao?.ket_qua) L.push("", "## Dự báo", "", `${v.du_bao.ket_qua}: **${v.du_bao.xac_suat}%** (hạn ${v.du_bao.han}). ${v.du_bao.co_so}`, "", "Khi xem lại, ghi kết quả thật (xảy ra hay không) để chấm độ chính xác của hội đồng.");
   if (v.a_dua?.doi_theo) L.push("", `Chỉ số a dua: ${v.a_dua.doi_theo}/${v.a_dua.khac_so_dong} ghế mở đầu khác số đông đã đổi sang phương án ${v.a_dua.so_dong} ở vòng tranh luận (${v.a_dua.ghe.join(", ")}). Đọc lại lý do đổi trong thẻ vòng 2.`);
   L.push("", `**Cách thử rẻ nhất:** ${v.cheapest_test}`, `**Dừng nếu:** ${v.kill_criteria}`, `**Xem lại vào:** ${v.revisit}`, "", "---", tuyenBo(st), "");
   return L.join("\n");

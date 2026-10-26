@@ -972,7 +972,8 @@ function onVerdict(ev) {
       <div class="v-sec"><h3>Vì sao</h3><ul class="v-why">${v.why.slice(0, 3).map((w) => { const k = seatKey(w.seat); return `<li>${k ? `<img class="av" src="${portrait(k)}" alt="">` : ""}<span>${short(w.point, 150)}</span></li>`; }).join("")}</ul></div>
       <div class="v-sec"><h3>Cần lưu ý</h3><div class="minority"><div class="who">${mk ? `<img class="av" src="${portrait(mk)}" alt="">` : ""}${esc(seatName(v.minority.seat))}</div><q>${short(v.minority.quote, 170)}</q></div></div>
       <div class="v-sec"><h3>Bước tiếp theo</h3><ul class="v-steps">${v.next_steps.slice(0, 3).map((n) => `<li><b>${esc(n.when)}</b> ${short(n.action, 120)}</li>`).join("")}</ul>
-        <p class="v-meta"><b>Dừng nếu:</b> ${short(v.kill_criteria, 140)}</p></div>
+        <p class="v-meta"><b>Dừng nếu:</b> ${short(v.kill_criteria, 140)}</p>
+        ${v.du_bao?.ket_qua ? `<p class="v-meta"><b>Dự báo:</b> ${esc(v.du_bao.ket_qua)}: <b>${esc(v.du_bao.xac_suat)}%</b> (hạn ${esc(v.du_bao.han)}). <span class="muted">${esc(v.du_bao.co_so)}</span></p>` : ""}</div>
     </div>
     <details class="v-more"><summary>Chi tiết đầy đủ</summary>
       <div class="v-grid">

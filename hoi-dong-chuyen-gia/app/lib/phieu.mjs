@@ -78,6 +78,7 @@ function noiDung({ hoi, setup, verdict, chairView, chairQuotes, chairKiemSo, ses
     ...muc("Vì sao", (verdict.why ?? []).map((w) => `- ${dong(w.point)} (${tenGhe(w.seat)})`)),
     ...muc("Bước tiếp theo", (verdict.next_steps ?? []).map((n) => `- **${dong(n.when)}:** ${dong(n.action)}`)),
     ...muc("Dừng nếu", verdict.kill_criteria ? [verdict.kill_criteria] : []),
+    ...muc("Dự báo", verdict.du_bao?.ket_qua ? [`${dong(verdict.du_bao.ket_qua)}: **${verdict.du_bao.xac_suat}%** (hạn ${dong(verdict.du_bao.han)}). ${dong(verdict.du_bao.co_so)}`, "", "Kết quả thật (điền khi xem lại): ☐ Xảy ra ☐ Không xảy ra"] : []),
   ];
   return L.join("\n");
 }
