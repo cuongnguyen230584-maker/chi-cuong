@@ -1,0 +1,62 @@
+{
+  "mo_ta": "Bộ đề chuẩn của gói phap-ly-nnn. Mỗi ca có câu hỏi và các điểm bắt buộc phải xuất hiện trong kết luận (phai_co: mỗi mục là một nhóm từ đồng nghĩa, có một từ là đạt) và các điểm cấm (khong_duoc: biểu thức không được xuất hiện). Chạy: node app/scripts/chay-bo-de.mjs. Lấy từ 4 ca của vòng đánh giá 1 (docs/danh-gia-vong-1.md).",
+  "ca": [
+    {
+      "id": "gia-han-dn1",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "prompt": "Khách Hàn Quốc làm giám đốc điều hành công ty FDI của họ ở Bắc Ninh, đang ở Việt Nam bằng thị thực DN1, còn 20 ngày hết hạn. Giấy phép lao động đang nộp, chưa có kết quả. Phương án: gia hạn thị thực rồi làm thẻ tạm trú sau, xuất cảnh rồi nhập lại bằng e-visa, hoặc chờ giấy phép lao động. Tôi nghiêng về gia hạn thị thực.",
+      "phai_co": [
+        ["ĐT", "nhà đầu tư", "đầu tư"],
+        ["chuyển đổi mục đích", "đổi mục đích", "chuyển đổi ký hiệu"],
+        ["giấy phép lao động", "GPLĐ"],
+        ["miễn"],
+        ["quá hạn", "hết hạn"]
+      ],
+      "khong_duoc": ["có hưởng lương", "trong 48 giờ cơ quan", "chắc chắn được cấp", "cam kết được cấp"]
+    },
+    {
+      "id": "lo-trinh-fdi",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "prompt": "Nhà đầu tư Trung Quốc muốn mở công ty TNHH 100% vốn để kinh doanh thương mại điện tử và bán lẻ quần áo tại TP.HCM, vốn dự kiến 10 tỷ đồng, đồng thời muốn tự làm giám đốc. Phương án: làm giấy chứng nhận đăng ký đầu tư trước rồi giấy phép lao động; góp vốn vào một công ty Việt Nam có sẵn; hoặc mở văn phòng đại diện trước. Khách muốn bắt đầu hoạt động trong 3 tháng. Tôi nghiêng về góp vốn vào công ty có sẵn cho nhanh.",
+      "phai_co": [
+        ["143/2025", "Luật Đầu tư 2025"],
+        ["bán lẻ"],
+        ["thương mại điện tử"],
+        ["văn phòng đại diện"],
+        ["góp vốn"],
+        ["giấy phép lao động", "GPLĐ", "miễn"]
+      ],
+      "khong_duoc": ["61/2020/QH14 quy định", "31/2021/NĐ-CP quy định", "chắc chắn được cấp"]
+    },
+    {
+      "id": "qua-han-tam-tru",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "prompt": "Một khách Trung Quốc quá hạn tạm trú 25 ngày vì quên ngày hết hạn e-visa, muốn ở lại làm việc tiếp cho một xưởng may ở Bình Dương cũ. Phương án: tự trình diện nộp phạt rồi xuất cảnh; nhờ công ty bảo lãnh xin gia hạn tại chỗ; hoặc xuất cảnh qua cửa khẩu đường bộ và chấp nhận rủi ro. Tôi muốn phương án an toàn nhất cho khách và cho văn phòng mình.",
+      "phai_co": [
+        ["282/2025", "Nghị định xử phạt"],
+        ["trình diện", "tự khai báo", "chủ động"],
+        ["vị trí", "chức danh", "công việc"],
+        ["giấy phép lao động", "GPLĐ"],
+        ["trục xuất", "cấm nhập cảnh", "chưa cho nhập cảnh"]
+      ],
+      "khong_duoc": ["144/2021/NĐ-CP quy định", "xuất cảnh qua cửa khẩu đường bộ là an toàn"]
+    },
+    {
+      "id": "goi-tron-gpld-trc",
+      "nganh": "phap-ly-nnn",
+      "mode": "full",
+      "prompt": "Văn phòng tôi định chào gói trọn giấy phép lao động cộng thẻ tạm trú 2 năm cho doanh nghiệp FDI với giá cố định 25 triệu đồng mỗi người, cam kết hoàn tiền nếu trượt. Hiện mỗi tháng làm khoảng 40 hồ sơ với 3 nhân viên, tỷ lệ hồ sơ bị trả lại khoảng 15%. Phương án: bán gói có cam kết hoàn tiền; giữ giá từng việc như hiện nay; hoặc bán gói nhưng không cam kết hoàn tiền mà cam kết làm lại miễn phí. Tôi nghiêng về hoàn tiền để dễ chốt khách.",
+      "phai_co": [
+        ["15%"],
+        ["hợp đồng"],
+        ["hoàn tiền"],
+        ["lệ phí", "phí nhà nước"],
+        ["40 hồ sơ", "40"]
+      ],
+      "khong_duoc": ["hoàn tiền là trái luật", "hoàn tiền là vi phạm pháp luật", "Điều 348"]
+    }
+  ]
+}

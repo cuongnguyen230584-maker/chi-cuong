@@ -254,7 +254,8 @@ async function chairSetup(st) {
 Set up the room.
 - title: the decision in 3 to 7 words.
 - decision: one line.
-- options: 2 to 4 options with ids A, B, C (D only if truly needed). Always include "don't do it" or "keep doing what you do now", and the obvious smaller version if the founder brought one big idea.
+- options: 2 to 4 options with ids A, B, C (D only if truly needed). Always include "don't do it" or "keep doing what you do now", and the obvious smaller version if the founder brought one big idea.${st.goi?.loai === "vai-tro" ? `
+  In this professional pack the options must be genuinely different routes, not variants of one idea: different legal paths (another visa or residence category, another legal structure, another order of procedures), not the same path at different speeds. Before choosing, list to yourself every lawful route the seats' brains know for this goal (for example for a foreign manager: extend the current visa, change visa purpose in Việt Nam, investor route, work-permit-exempt route, exit and re-enter), and keep the strongest distinct ones the founder did not name. Never offer an unlawful route as an option; if the founder named one, keep it as an option so the council can score it and say why it fails.` : ""}
 - brief: under 200 words covering the business, resources, what success looks like, and the founder's lean, using only what the founder said. Do not invent facts.
 - assumptions: any number or fact you had to assume to make the brief usable, each one line starting with "GIẢ ĐỊNH:" and saying how to check it within 30 days. Keep it to what matters; never present an assumed number as the founder's.
 - weights: one entry for every seat, weight 1 to 3 (3 = the decision lives in this pillar, 2 = materially affected, 1 = touched at the edges). Exactly one or two seats at 3. Reason in one line.
