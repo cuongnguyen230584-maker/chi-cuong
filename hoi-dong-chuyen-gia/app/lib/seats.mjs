@@ -188,6 +188,8 @@ export function parseCard(text, optionIds) {
     risk: field(text, "THE RISK I SEE"),
     thisWeek: field(text, "WHAT I'D DO THIS WEEK"),
     premortem: field(text, "PRE-MORTEM"),
+    // quy tắc then chốt (gói vai nghề): các dòng "- …" ngay sau nhãn KEY RULES
+    keyRules: ((text.match(/KEY RULES\**[ \t]*:[^\n]*\n((?:[ \t]*[-•][^\n]*\n?){1,8})/i) || [])[1] || "").split("\n").map((l) => l.replace(/^[ \t]*[-•][ \t]*/, "").trim()).filter(Boolean),
     // phương án ghế thật sự chọn, đọc từ THE CALL rồi STANCE: "phương án D", "option B", "chọn A"
     chon: chonTrong(field(text, "THE CALL")) || chonTrong(field(text, "STANCE")),
     get lua_chon() { return this.chon; },

@@ -103,7 +103,7 @@ function briefBlock(st) {
 }
 // Nhãn trường và giá trị liệt kê là giao kèo với bộ đọc phiếu (seats.mjs parseCard): giữ tiếng Anh.
 // Mọi nội dung khác viết tiếng Việt trang trọng.
-const NGON_NGU_PHIEU = `LANGUAGE: Keep every field label (SEAT, STANCE, OPTION SCORES, PILLAR SCORE, CONFIDENCE, RUIN RISK, DOOR, THE CALL, WHY, THE RISK I SEE, WHAT WOULD CHANGE MY MIND, WHAT I'D DO THIS WEEK, PRE-MORTEM, QUESTION FOR THE FOUNDER, I DISAGREE MOST WITH, I CONCEDE, ON THE CRUXES, MOVED, MY CONDITIONS FOR YES, VOTE, FINAL SCORE, FINAL PILLAR SCORE, AMENDMENT OR DISSENT, ONE LINE FOR THE FOUNDER) exactly in English capitals as shown. On STANCE, RUIN RISK, DOOR, MOVED and VOTE, start with one of the English values shown (Strong yes | Yes | Conditional yes | No | Strong no; none | possible | likely; one-way | two-way; no | yes, from X to Y; Endorse | Endorse with amendment | Dissent); you may add a Vietnamese explanation after it. Write everything else in formal Vietnamese (tiếng Việt trang trọng), short sentences. Verbatim quotes from your brain stay in their original language inside quotation marks with the source id; add a Vietnamese gloss after them if useful.`;
+const NGON_NGU_PHIEU = `LANGUAGE: Keep every field label (SEAT, STANCE, OPTION SCORES, PILLAR SCORE, CONFIDENCE, RUIN RISK, DOOR, THE CALL, WHY, THE RISK I SEE, WHAT WOULD CHANGE MY MIND, WHAT I'D DO THIS WEEK, PRE-MORTEM, KEY RULES, QUESTION FOR THE FOUNDER, I DISAGREE MOST WITH, I CONCEDE, ON THE CRUXES, MOVED, MY CONDITIONS FOR YES, VOTE, FINAL SCORE, FINAL PILLAR SCORE, AMENDMENT OR DISSENT, ONE LINE FOR THE FOUNDER) exactly in English capitals as shown. On STANCE, RUIN RISK, DOOR, MOVED and VOTE, start with one of the English values shown (Strong yes | Yes | Conditional yes | No | Strong no; none | possible | likely; one-way | two-way; no | yes, from X to Y; Endorse | Endorse with amendment | Dissent); you may add a Vietnamese explanation after it. Write everything else in formal Vietnamese (tiếng Việt trang trọng), short sentences. Verbatim quotes from your brain stay in their original language inside quotation marks with the source id; add a Vietnamese gloss after them if useful.`;
 const optLine = (st) => st.options.map((o) => `${o.id} n/10`).join(" · ");
 
 function round1Prompt(st, seat) {
@@ -134,7 +134,8 @@ WHY:
 3. ...
 THE RISK I SEE: the single biggest thing that goes wrong.
 WHAT WOULD CHANGE MY MIND: a concrete fact or number.
-WHAT I'D DO THIS WEEK: one action.
+WHAT I'D DO THIS WEEK: one action.${st.goi?.loai === "vai-tro" ? `
+KEY RULES: up to 4 hard rules from your brain that this case turns on, one per line starting with "- ": the concrete threshold, limit (e.g. how many times something can be extended), maximum term, deadline, deciding authority, required document form, or prohibition, each with the document number and article and its label (QUY ĐỊNH / THỰC TIỄN / CẦN KIỂM TRA). Rules the asker is likely to get wrong come first.` : ""}
 PRE-MORTEM: imagine it is 12 months later and the option you recommend has failed. The single most likely reason, in one sentence${st.goi?.loai === "vai-tro" ? ", and any consequence that cannot be undone (deportation, entry ban, licence revoked, criminal liability)" : ""}.
 QUESTION FOR THE FOUNDER: the one question you would ask before signing off.
 
@@ -395,7 +396,7 @@ CRUXES: ${JSON.stringify(st.cruxes)}
 
 ROUND 2 CARDS
 ${cardsBlock(st, 2)}
-
+${st.seats.some((k) => st.cards[1][k]?.parsed.keyRules?.length) ? `\nKEY RULES THE SEATS LISTED IN ROUND 1 (each must reach can_cu unless refuted):\n${st.seats.flatMap((k) => (st.cards[1][k]?.parsed.keyRules || []).map((r) => `- ${byKey[k].short}: ${r}`)).join("\n")}\n` : ""}
 ${lastRound === 3 ? `DRAFT RESOLUTION\n${JSON.stringify(st.draft)}\n\nROUND 3 VOTES\n${cardsBlock(st, 3)}` : "(Quick mode: Round 3 skipped.)"}
 
 FINAL WEIGHTED OPTION SCORES (computed, do not change): ${JSON.stringify(Object.fromEntries(Object.entries(finalScores).map(([k, v]) => [k, v.score])))}
@@ -411,7 +412,7 @@ Write the verdict for the founder.
 - minority: the strongest losing view; quote copies the seat's own words exactly from a card; would_have_to_be_true in one line. If unanimous, use the least-tested assumption instead.
 - amendments: every Round 3 amendment, adopted or not, with the reason (empty in quick mode). Adopt when no seat objected or the argument went unanswered.
 - conditions, next_steps (with when), cheapest_test, kill_criteria, revisit: final, merged, checkable.
-- can_cu: ${st.goi?.loai === "vai-tro" ? "4 to 8" : "0 to 4"} rules this decision turns on, taken from the cards: each noi_dung is one sentence with the concrete content (the threshold, the number of days, the limit on extensions, the authority that decides, what is prohibited, the form a document must take), van_ban is the document number and article ("Nghị định 219/2025/NĐ-CP, Điều 3") or "" for practice, nhan is QUY ĐỊNH, THỰC TIỄN or CẦN KIỂM TRA as the card labeled it. Prefer prohibitions and hard numbers over general statements; this list is what a staff member reads to file correctly, so it is not shortened by the length limit.
+- can_cu: ${st.goi?.loai === "vai-tro" ? "4 to 10" : "0 to 4"} rules this decision turns on, taken from the cards${st.goi?.loai === "vai-tro" ? ` (include every distinct rule the seats listed under KEY RULES, merged when two seats say the same thing, unless another seat refuted it with a cited source)` : ""}: each noi_dung is one sentence with the concrete content (the threshold, the number of days, the limit on extensions, the authority that decides, what is prohibited, the form a document must take), van_ban is the document number and article ("Nghị định 219/2025/NĐ-CP, Điều 3") or "" for practice, nhan is QUY ĐỊNH, THỰC TIỄN or CẦN KIỂM TRA as the card labeled it. Prefer prohibitions and hard numbers over general statements; this list is what a staff member reads to file correctly, so it is not shortened by the length limit.
 - rui_ro_khong_dao_nguoc: every consequence that cannot be undone if things go wrong (deportation, entry ban, licence revoked, criminal liability, loss of the right to stay), each one sentence with what triggers it and how to avoid it. Empty only if there is none. This list goes on the client sheet.
 - lam_ngay: the one action to take today, in one short line (it may belong to a different option than the main route, e.g. "Nộp gia hạn tạm trú hôm nay" while the main route is D).
 - can_xac_nhan: one merged list of everything a lawyer or the authority must confirm before filing (viec = what, ai = who: luật sư, Phòng Quản lý xuất nhập cảnh, Sở…). Put every "CẦN KIỂM TRA" item here once instead of repeating it across sections.
