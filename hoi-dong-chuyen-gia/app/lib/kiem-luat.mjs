@@ -110,7 +110,7 @@ export function chiMucLuat(slugs, dir = BRAINS_DIR) {
 
 // Nhắc một văn bản để nói nó đã hết hiệu lực ("NĐ 09/2018 đã bị thay bằng NĐ 342/2026") là dùng đúng,
 // không phải viện dẫn làm căn cứ: mọi lần xuất hiện của số hiệu đều có chữ phủ định ở gần thì không gắn cờ.
-const PHU_DINH = /hết hiệu lực|bị thay|đã thay|thay thế|thay bằng|bãi bỏ|không còn hiệu lực|không dùng|không được dùng|hết tác dụng/i;
+const PHU_DINH = /hết hiệu lực|bị thay|đã thay|thay thế|thay bằng|bãi bỏ|không còn hiệu lực|không còn là căn cứ|không còn áp dụng|không áp dụng|không làm căn cứ|không phải căn cứ|không dùng|không được dùng|hết tác dụng|văn bản cũ/i;
 function chiNhacLaHet(text, so) {
   const t = String(text ?? "").normalize("NFC");
   const goc = so.split("/").slice(0, 2).join("/");

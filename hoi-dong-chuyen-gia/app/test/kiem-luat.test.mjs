@@ -112,3 +112,13 @@ test("máy kiểm thứ tự thủ tục", async () => {
   assert.deepEqual(kiemThuTu(["Nộp hồ sơ thẻ tạm trú diện kết hôn"]), [], "thiếu hẳn bước GPLĐ thì không báo (có thể là diện không cần)");
   assert.equal(kiemThuTu(["Thanh toán cho bên bán", "Đăng ký góp vốn tại Sở"]).length, 1);
 });
+
+test("'không còn là căn cứ' là nhắc văn bản hết hiệu lực, không phải viện dẫn", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kl5-"));
+  fs.mkdirSync(path.join(dir, "fdi"));
+  fs.writeFileSync(path.join(dir, "fdi", "sources.md"), "- S002 | Luật Đầu tư số 61/2020/QH14 | u | | | TÌNH TRẠNG: hết hiệu lực từ 01/3/2026 | k\n");
+  const idx = chiMucLuat(["fdi"], dir);
+  const k = kiemLuat("Báo khách rằng Luật 61/2020/QH14 không còn là căn cứ. Chưa chuyển đồng nào.", idx);
+  assert.equal(k.het.length, 0);
+  assert.equal(k.nhac_het.length, 1);
+});
