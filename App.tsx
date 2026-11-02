@@ -11,7 +11,7 @@ import {
   Library, FileVideo, MonitorPlay, Sparkles as SparklesIcon, FlipHorizontal, Focus, Palette
 } from 'lucide-react';
 import { PipelineType, ProductInfo, PipelineConfig, CampaignContent, MaterialSettings, ProductEntry, CollageStyle } from './types';
-import { gemini } from './services/geminiService';
+import { gemini, isAIStudio } from './services/geminiService';
 import JSZip from 'jszip';
 
 const SCENE_PRESETS = ['Studio', 'Đời sống', 'Cao cấp', 'Văn hoá Việt', 'Trend', 'Runway', 'Sân khấu LED'];
@@ -71,6 +71,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const checkKey = async () => {
+      if (!isAIStudio()) {
+        setHasApiKey(await gemini.isServerConfigured());
+        return;
+      }
       try {
         const selected = await (window as any).aistudio.hasSelectedApiKey();
         setHasApiKey(selected);
@@ -80,6 +84,12 @@ const App: React.FC = () => {
   }, []);
 
   const handleOpenSelectKey = async () => {
+    if (!isAIStudio()) {
+      const configured = await gemini.isServerConfigured();
+      setHasApiKey(configured);
+      if (!configured) alert("Máy chủ chưa có GEMINI_API_KEY. Vui lòng khai báo khóa trong file .env.local rồi khởi động lại.");
+      return;
+    }
     await (window as any).aistudio.openSelectKey();
     setHasApiKey(true);
   };
