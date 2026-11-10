@@ -7,7 +7,8 @@ import { goiChoTrang, goi } from "./lib/nganh.mjs";
 import { cheDuLieu } from "./lib/che-du-lieu.mjs";
 import { tinhHan } from "./lib/tinh-han.mjs";
 import { startCouncil, getSession, subscribe, listSaved, loadSaved, MODELS, chairSeat } from "./lib/council.mjs";
-import { usage, askJson, S } from "./lib/anthropic.mjs";
+import { usage } from "./lib/anthropic.mjs";
+import { createDichPhieu, NGON_NGU } from "./lib/dich-phieu.mjs";
 import * as watch from "./lib/watch.mjs";
 import { startHoiGocApp } from "./lib/hoi-goc.mjs";
 import { ghiPhieu, ghiHopTiep, phieuTrongThuMuc } from "./lib/phieu.mjs";
@@ -28,6 +29,7 @@ const homNay = () => ngayIso(); // yyyy-mm-dd theo giờ Việt Nam (tên file p
 
 // "viewer" (default): the room plays councils that /roast-room runs in Claude Code.
 // "api": the room can also run councils itself on ANTHROPIC_API_KEY (COUNCIL_RUNNER=api in .env).
+const dichPhieu = createDichPhieu();
 const RUNNER = (process.env.COUNCIL_RUNNER || env("COUNCIL_RUNNER") || "viewer").toLowerCase() === "api" ? "api" : "viewer";
 watch.startWatching();
 const hoiGoc = startHoiGocApp();
@@ -99,18 +101,10 @@ const server = http.createServer(async (req, res) => {
     // Phiếu khách song ngữ: trang gửi nội dung phiếu (object chữ) và ngôn ngữ; trả object cùng khoá, giá trị đã dịch.
     if (p === "/api/dich-phieu" && req.method === "POST") {
       const { noi_dung, ngon_ngu } = await readJson(req);
-      const ten = { en: "English", zh: "Simplified Chinese (简体中文)", ko: "Korean (한국어)" }[ngon_ngu];
-      if (!ten || !noi_dung || typeof noi_dung !== "object") return send(res, 400, { error: "Thiếu nội dung phiếu hoặc ngôn ngữ không hỗ trợ." });
-      const nguon = JSON.stringify(noi_dung);
-      if (nguon.length > 30000) return send(res, 400, { error: "Phiếu quá dài để dịch." });
+      if (!NGON_NGU[ngon_ngu] || !noi_dung || typeof noi_dung !== "object") return send(res, 400, { error: "Thiếu nội dung phiếu hoặc ngôn ngữ không hỗ trợ." });
+      if (JSON.stringify(noi_dung).length > 30000) return send(res, 400, { error: "Phiếu quá dài để dịch." });
       try {
-        const r = await askJson({
-          model: env("SEAT_MODEL") || "claude-sonnet-5-5", effort: "low",
-          system: "You translate Vietnamese legal and immigration advisory documents for foreign clients in Việt Nam. Precise, formal, no additions, no omissions.",
-          prompt: `Translate every string value in this JSON from Vietnamese into ${ten}. Keep every key, the structure, array order, numbers, dates (dd/mm/yyyy), document numbers (61/2020/QH14, 219/2025/NĐ-CP) and visa or card symbols (DN1, ĐT3, TRC) unchanged. At the first mention of a Vietnamese legal term or authority, add the Vietnamese original in parentheses. Labels like CẦN KIỂM TRA become the target-language equivalent of "TO BE VERIFIED". Return only the translated JSON as the string field json.\n\n${nguon}`,
-          schema: S.obj({ json: S.str }),
-        });
-        return send(res, 200, { noi_dung: JSON.parse(String(r.json).replace(/^```(?:json)?\s*|\s*```$/g, "")) });
+        return send(res, 200, { noi_dung: await dichPhieu(noi_dung, ngon_ngu) });
       } catch (e) { return send(res, 502, { error: `Chưa dịch được phiếu: ${String(e.message || e).slice(0, 200)}` }); }
     }
     if (p === "/api/council" && req.method === "POST") {
