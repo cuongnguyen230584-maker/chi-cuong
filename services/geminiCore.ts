@@ -84,7 +84,7 @@ export class GeminiCore {
     const ai = this.getAI();
     return this.withRetry(async () => {
       const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
+        model: 'gemini-3.1-pro-preview',
         contents: {
           parts: [
             { inlineData: { mimeType: 'video/mp4', data: videoBase64 } },
