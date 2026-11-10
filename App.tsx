@@ -12,6 +12,10 @@ import {
 } from 'lucide-react';
 import { PipelineType, ProductInfo, PipelineConfig, CampaignContent, MaterialSettings, ProductEntry, CollageStyle } from './types';
 import { gemini, isAIStudio } from './services/geminiService';
+import { mimeOf } from './services/geminiCore';
+
+// Máy chủ nhận tối đa 60MB mỗi yêu cầu; video mã hoá base64 to thêm khoảng 1/3.
+const MAX_VIDEO_BYTES = 40 * 1024 * 1024;
 import JSZip from 'jszip';
 
 const SCENE_PRESETS = ['Studio', 'Đời sống', 'Cao cấp', 'Văn hoá Việt', 'Trend', 'Runway', 'Sân khấu LED'];
@@ -110,6 +114,10 @@ const App: React.FC = () => {
     const files = e.target.files;
     if (!files) return;
     Array.from(files).forEach((file: File) => {
+      if (target === 'video_analysis' && file.size > MAX_VIDEO_BYTES) {
+        alert(`Video ${(file.size / 1024 / 1024).toFixed(0)}MB quá lớn. Vui lòng dùng video dưới 40MB (cắt ngắn hoặc giảm độ phân giải).`);
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64 = (reader.result as string).split(',')[1];
@@ -295,7 +303,7 @@ const App: React.FC = () => {
           <div className="lg:col-span-4 space-y-6">
             <Section icon={<Library size={18}/>} title="PHÂN TÍCH VIDEO">
               <div className="space-y-4">
-                <UploadZone label="TẢI VIDEO (.MP4)" onFile={(e: any) => handleUpload(e, 'video_analysis')} active={!!videoToAnalyze} />
+                <UploadZone label="TẢI VIDEO (MP4/MOV, DƯỚI 40MB)" onFile={(e: any) => handleUpload(e, 'video_analysis')} active={!!videoToAnalyze} />
                 <InputField label="CÂU HỎI PHÂN TÍCH" value={videoAnalysisPrompt} onChange={setVideoAnalysisPrompt} />
                 <button 
                   onClick={startPipeline} 
@@ -311,7 +319,7 @@ const App: React.FC = () => {
           <div className="lg:col-span-8 space-y-6">
             {videoToAnalyze && (
               <div className="bg-slate-900 rounded-[32px] overflow-hidden border border-slate-800 shadow-2xl">
-                <video src={`data:video/mp4;base64,${videoToAnalyze}`} controls className="w-full aspect-video bg-black" />
+                <video src={`data:${mimeOf(videoToAnalyze, 'video/mp4')};base64,${videoToAnalyze}`} controls className="w-full aspect-video bg-black" />
               </div>
             )}
             {isGenerating && !videoAnalysisResult && (
@@ -489,7 +497,7 @@ const App: React.FC = () => {
 
   const downloadAll = async () => {
     const zip = new JSZip();
-    (results || []).forEach((url, i) => zip.file(`4K_Visual_${i+1}.png`, url.split(',')[1], { base64: true }));
+    (results || []).forEach((url, i) => zip.file(`4K_Visual_${i+1}.${url.startsWith('data:image/jpeg') ? 'jpg' : 'png'}`, url.split(',')[1], { base64: true }));
     const blob = await zip.generateAsync({ type: "blob" });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob as unknown as Blob);

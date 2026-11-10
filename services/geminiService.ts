@@ -8,6 +8,8 @@ export const isAIStudio = () => typeof window !== 'undefined' && !!(window as an
 const getStudioKey = (): string =>
   (typeof process !== 'undefined' && process.env?.API_KEY) || '';
 
+const VIDEO_TIMEOUT_MS = 10 * 60_000;
+
 async function callApi<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(`/api/${path}`, body === undefined ? undefined : {
     method: 'POST',
@@ -62,8 +64,10 @@ export class GeminiService {
         ? await this.core().startVideoCommercial(config)
         : (await callApi<{ name: string }>('video/start', { config })).name;
 
+      const deadline = Date.now() + VIDEO_TIMEOUT_MS;
       let status: VideoStatus = { done: false };
       while (!status.done) {
+        if (Date.now() > deadline) throw new Error("Tạo video quá 10 phút chưa xong. Vui lòng thử lại sau.");
         await new Promise(r => setTimeout(r, 10000));
         status = studio
           ? await this.core().getVideoStatus(name)

@@ -2,6 +2,24 @@
 import { GoogleGenAI, GenerateVideosOperation, Type } from "@google/genai";
 import { PipelineType, ProductInfo, PipelineConfig, CampaignContent } from "../types";
 
+// Nhận định dạng thật của file từ vài byte đầu (ảnh JPG/PNG/WebP/GIF, video MP4/MOV/WebM).
+export function mimeOf(base64: string, fallback: string): string {
+  if (base64.startsWith('/9j/')) return 'image/jpeg';
+  if (base64.startsWith('iVBOR')) return 'image/png';
+  if (base64.startsWith('UklGR')) return 'image/webp';
+  if (base64.startsWith('R0lGOD')) return 'image/gif';
+  if (base64.startsWith('GkXf')) return 'video/webm';
+  const head = atob(base64.slice(0, 16));
+  if (head.slice(4, 8) === 'ftyp') return head.slice(8, 10) === 'qt' ? 'video/quicktime' : 'video/mp4';
+  return fallback;
+}
+
+const base64ToBytes = (base64: string) => Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+
+// Gửi kèm trực tiếp tối đa khoảng 20MB mỗi yêu cầu; video lớn hơn phải tải lên Files API trước.
+const INLINE_VIDEO_LIMIT = 14_000_000; // ký tự base64 ≈ 10MB video
+const IMAGE_CONCURRENCY = 3;
+
 export interface VideoStatus {
   done: boolean;
   uri?: string;
@@ -57,7 +75,7 @@ export class GeminiCore {
         model: 'gemini-3-flash-preview',
         contents: {
           parts: [
-            { inlineData: { mimeType: 'image/png', data: base64 } },
+            { inlineData: { mimeType: mimeOf(base64, 'image/jpeg'), data: base64 } },
             { text: "Hãy đóng vai chuyên gia Product Analyst. Phân tích ảnh sản phẩm này và trích xuất: Tên sản phẩm, Ngành hàng, 5 Lợi ích cốt lõi (Benefits), USP (Điểm bán hàng độc nhất). Trả về JSON chính xác." }
           ]
         },
@@ -82,12 +100,16 @@ export class GeminiCore {
 
   async analyzeVideo(videoBase64: string, prompt: string): Promise<string> {
     const ai = this.getAI();
+    const mimeType = mimeOf(videoBase64, 'video/mp4');
+    const videoPart = videoBase64.length <= INLINE_VIDEO_LIMIT
+      ? { inlineData: { mimeType, data: videoBase64 } }
+      : await this.uploadVideo(videoBase64, mimeType);
     return this.withRetry(async () => {
       const response = await ai.models.generateContent({
         model: 'gemini-3.1-pro-preview',
         contents: {
           parts: [
-            { inlineData: { mimeType: 'video/mp4', data: videoBase64 } },
+            videoPart,
             { text: prompt }
           ]
         },
@@ -99,37 +121,50 @@ export class GeminiCore {
     });
   }
 
+  // Tải video lớn lên Files API, chờ Google xử lý xong rồi mới dùng.
+  private async uploadVideo(videoBase64: string, mimeType: string) {
+    const ai = this.getAI();
+    let file = await ai.files.upload({ file: new Blob([base64ToBytes(videoBase64)], { type: mimeType }), config: { mimeType } });
+    const deadline = Date.now() + 5 * 60_000;
+    while (file.state === 'PROCESSING') {
+      if (Date.now() > deadline) throw new Error("Google xử lý video quá 5 phút. Vui lòng thử video ngắn hơn.");
+      await new Promise(r => setTimeout(r, 5000));
+      file = await ai.files.get({ name: file.name! });
+    }
+    if (file.state === 'FAILED' || !file.uri) throw new Error("Google không xử lý được video này.");
+    return { fileData: { fileUri: file.uri, mimeType: file.mimeType || mimeType } };
+  }
+
   async generate4KVisuals(config: PipelineConfig): Promise<string[]> {
     const ai = this.getAI();
-    const prompt = this.buildPipelinePrompt(config);
     
     const parts: any[] = [];
     (config.productImages || []).forEach((img, i) => {
       parts.push({ text: `ẢNH THAM CHIẾU SẢN PHẨM ${i+1} (GIỮ NGUYÊN CHI TIẾT GỐC):` });
-      parts.push({ inlineData: { mimeType: 'image/png', data: img } });
+      parts.push({ inlineData: { mimeType: mimeOf(img, 'image/jpeg'), data: img } });
     });
     
     if (config.iconImage) {
       parts.push({ text: "LOGO/ICON THƯƠNG HIỆU CHÍNH THỨC (PHẢI XUẤT HIỆN SẮC NÉT VÀ NỔI BẬT):" });
-      parts.push({ inlineData: { mimeType: 'image/png', data: config.iconImage } });
+      parts.push({ inlineData: { mimeType: mimeOf(config.iconImage, 'image/png'), data: config.iconImage } });
     }
     
     (config.modelImages || []).forEach((img, i) => {
       parts.push({ text: `ẢNH NGƯỜI MẪU THAM CHIẾU ${i+1} (GIỮ ĐÚNG DANH TÍNH, ĐƯỜNG NÉT VÀ THẦN THÁI):` });
-      parts.push({ inlineData: { mimeType: 'image/png', data: img } });
+      parts.push({ inlineData: { mimeType: mimeOf(img, 'image/jpeg'), data: img } });
     });
 
     (config.groupModelImages || []).forEach((img, i) => {
       parts.push({ text: `ẢNH THÀNH VIÊN NHÓM ${i+1} (KẾT HỢP VÀO KHUNG HÌNH CHUNG ĐỂ TẠO GROUP LOOK):` });
-      parts.push({ inlineData: { mimeType: 'image/png', data: img } });
+      parts.push({ inlineData: { mimeType: mimeOf(img, 'image/jpeg'), data: img } });
     });
     
-    parts.push({ text: prompt });
-
-    return this.withRetry(async () => {
+    // Mỗi lần gọi trả về một ảnh, nên gọi đủ số ảnh đã chọn (chạy song song có giới hạn).
+    const total = Math.max(1, config.settings.imageCount || 1);
+    const renderOne = (index: number) => this.withRetry(async () => {
       const response = await ai.models.generateContent({
         model: 'gemini-3-pro-image-preview',
-        contents: { parts },
+        contents: { parts: [...parts, { text: this.buildPipelinePrompt(config, index, total) }] },
         config: {
           systemInstruction: this.SYSTEM_INSTRUCTION,
           imageConfig: {
@@ -141,23 +176,36 @@ export class GeminiCore {
 
       const images: string[] = [];
       response.candidates?.[0]?.content?.parts?.forEach(part => {
-        if (part.inlineData) images.push(`data:image/png;base64,${part.inlineData.data}`);
+        if (part.inlineData) images.push(`data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`);
       });
       return images;
     });
+
+    const images: string[] = [];
+    let lastError: unknown = null;
+    for (let start = 0; start < total; start += IMAGE_CONCURRENCY) {
+      const batch = Array.from({ length: Math.min(IMAGE_CONCURRENCY, total - start) }, (_, i) => renderOne(start + i + 1));
+      for (const result of await Promise.allSettled(batch)) {
+        if (result.status === 'fulfilled') images.push(...result.value);
+        else lastError = result.reason;
+      }
+    }
+    if (images.length === 0 && lastError) throw lastError;
+    return images.slice(0, total);
   }
 
-  private buildPipelinePrompt(config: PipelineConfig): string {
+  private buildPipelinePrompt(config: PipelineConfig, index: number, total: number): string {
     const { pipeline, productInfo, settings, iconImage } = config;
     let detail = `SẢN PHẨM: ${productInfo.name}. ĐẶC ĐIỂM USP: ${productInfo.usp}. BỐI CẢNH YÊU CẦU: ${settings.vnContext}. `;
     
     if (iconImage) detail += "Đảm bảo logo thương hiệu được tích hợp một cách chuyên nghiệp, sắc nét từng đường nét trên sản phẩm hoặc bối cảnh. ";
     
+    const render = `HÃY RENDER 1 ẢNH: PHIÊN BẢN ${index}/${total}, chọn góc máy và bố cục khác các phiên bản còn lại.`;
     const technicalKeywords = "4K, Ultra-HD, 8k resolution, photorealistic, cinematic lighting, extreme detail, sharp focus, 85mm lens, f/1.8, ray-traced shadows, vibrant HDR colors, subsurface scattering, depth of field, high-end editorial look. ";
 
     switch (pipeline) {
       case PipelineType.IMAGE_2D:
-        return `${detail} ${technicalKeywords} PHONG CÁCH: High-end Commercial Photography. Ánh sáng Studio Softbox mạnh mẽ, tạo khối rõ rệt cho sản phẩm. Ảnh sắc nét tuyệt đối từ tiền cảnh đến trung cảnh. HÃY RENDER ${settings.imageCount} PHIÊN BẢN MASTER.`;
+        return `${detail} ${technicalKeywords} PHONG CÁCH: High-end Commercial Photography. Ánh sáng Studio Softbox mạnh mẽ, tạo khối rõ rệt cho sản phẩm. Ảnh sắc nét tuyệt đối từ tiền cảnh đến trung cảnh. ${render}`;
       case PipelineType.IMAGE_3D:
         const mat = settings.material;
         let matPrompt = '';
@@ -169,13 +217,13 @@ export class GeminiCore {
           matPrompt += `Độ bóng (Glossiness): ${mat.glossiness/100}, Độ nhám vật lý (Roughness): ${mat.roughness/100}, Tính kim loại (Metalness): ${mat.metalness/100}. `;
           matPrompt += `Bề mặt phản xạ ánh sáng chân thực, specular lobes sắc nét. `;
         }
-        return `${detail} ${technicalKeywords} ${matPrompt} PHONG CÁCH: 3D Product Mockup siêu thực, chất lượng Unreal Engine 5. Ánh sáng bao quanh cực kỳ mịn màng. Xoay góc Hero Shot đẳng cấp. HÃY RENDER ${settings.imageCount} PHIÊN BẢN.`;
+        return `${detail} ${technicalKeywords} ${matPrompt} PHONG CÁCH: 3D Product Mockup siêu thực, chất lượng Unreal Engine 5. Ánh sáng bao quanh cực kỳ mịn màng. Xoay góc Hero Shot đẳng cấp. ${render}`;
       case PipelineType.MODEL_SINGLE:
-        return `${detail} ${technicalKeywords} PHONG CÁCH: Professional Fashion Editorial. Người mẫu Việt Nam với làn da thật sự sống động, ánh mắt có thần, đang tương tác tự nhiên với sản phẩm. Ánh sáng tự nhiên kết hợp Fill light. BẢO TỒN DANH TÍNH MẪU. HÃY RENDER ${settings.imageCount} PHIÊN BẢN.`;
+        return `${detail} ${technicalKeywords} PHONG CÁCH: Professional Fashion Editorial. Người mẫu Việt Nam với làn da thật sự sống động, ánh mắt có thần, đang tương tác tự nhiên với sản phẩm. Ánh sáng tự nhiên kết hợp Fill light. BẢO TỒN DANH TÍNH MẪU. ${render}`;
       case PipelineType.GROUP_SHOOT:
-        return `${detail} ${technicalKeywords} PHONG CÁCH: Cinematic Group Portrait / Fashion Show. Kết hợp tất cả các mẫu tham chiếu vào một bối cảnh sang trọng duy nhất. Ánh sáng kịch tính (Dramatic lighting), hiệu ứng khói/bụi nhẹ dưới ánh đèn sân khấu. Tương tác nhóm hoàn hảo. BẢO TỒN DANH TÍNH TỪNG NGƯỜI. HÃY RENDER ${settings.imageCount} PHIÊN BẢN.`;
+        return `${detail} ${technicalKeywords} PHONG CÁCH: Cinematic Group Portrait / Fashion Show. Kết hợp tất cả các mẫu tham chiếu vào một bối cảnh sang trọng duy nhất. Ánh sáng kịch tính (Dramatic lighting), hiệu ứng khói/bụi nhẹ dưới ánh đèn sân khấu. Tương tác nhóm hoàn hảo. BẢO TỒN DANH TÍNH TỪNG NGƯỜI. ${render}`;
       default:
-        return `${detail} ${technicalKeywords} HÃY RENDER ${settings.imageCount} PHIÊN BẢN ĐẸP NHẤT.`;
+        return `${detail} ${technicalKeywords} ${render}`;
     }
   }
 
@@ -200,7 +248,7 @@ export class GeminiCore {
 
   async startVideoCommercial(config: PipelineConfig): Promise<string> {
     const ai = this.getAI();
-    const videoPrompt = `High-end 4K Cinematic Commercial TVC for ${config.productInfo.name}. Context: ${config.settings.vnContext}. Extreme photorealism, slow-motion details, dynamic lighting, professional color grading, vivid 4K resolution. 20 seconds.`;
+    const videoPrompt = `High-end 4K Cinematic Commercial TVC for ${config.productInfo.name}. Context: ${config.settings.vnContext}. Extreme photorealism, slow-motion details, dynamic lighting, professional color grading, vivid 4K resolution. Single continuous 8-second shot.`;
     const operation = await ai.models.generateVideos({
       model: 'veo-3.1-fast-generate-preview',
       prompt: videoPrompt,
